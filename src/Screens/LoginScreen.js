@@ -80,7 +80,9 @@ const LoginScreen = () => {
           ToastAndroid.show('Login Successfully', ToastAndroid.SHORT);
 
           const trainerId = data.payload.trainer_id;
+          const trainername = data.payload.trainer_name;
           await AsyncStorage.setItem('trainer_id', trainerId);
+          await AsyncStorage.setItem('trainer_name', trainername);
           navigation.navigate('HomeScreen');
 
           // Navigate based on m_pin and user_type

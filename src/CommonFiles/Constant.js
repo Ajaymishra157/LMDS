@@ -8,4 +8,5 @@ export const ENDPOINTS = {
   Trainer_Time_wise_Show: `${BASE_URL}trainer_time.php`,
   Trainer_Attendence: `${BASE_URL}trainer_attendance.php`,
   Show_Trainer_Attendence_List: `${BASE_URL}trainer_attendance_list.php`,
+  Show_Trainer_Date_Wise: `${BASE_URL}trainer_date.php`,
 };
