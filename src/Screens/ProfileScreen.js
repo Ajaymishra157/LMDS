@@ -98,7 +98,25 @@ const ProfileScreen = () => {
   );
   return (
     <View style={{flex: 1, backgroundColor: 'white'}}>
-      <Header title="My Profile" />
+      <View
+        style={{
+          backgroundColor: colors.Black,
+          padding: 15,
+          justifyContent: 'center',
+
+          alignItems: 'center',
+          flexDirection: 'row',
+        }}>
+        <Text
+          style={{
+            color: 'white',
+            fontSize: 20,
+            fontWeight: 'bold',
+            fontFamily: 'Inter-Bold',
+          }}>
+          My Profile
+        </Text>
+      </View>
       <View style={{}}>
         <View
           style={{
@@ -347,7 +365,7 @@ const ProfileScreen = () => {
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: 'space-between',
             padding: 15,
           }}>
           <TouchableOpacity
@@ -374,6 +392,31 @@ const ProfileScreen = () => {
                 fontFamily: 'Inter-Medium',
               }}>
               Logout
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              height: 40,
+              backgroundColor: colors.Black,
+              borderRadius: 10,
+              width: '50%',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <MaterialIcons
+              name="logout"
+              color="white"
+              size={22}
+              style={{marginRight: 7}}
+            />
+            <Text
+              style={{
+                color: colors.White,
+                fontSize: 14,
+                fontFamily: 'Inter-Medium',
+              }}>
+              Change Password
             </Text>
           </TouchableOpacity>
         </View>

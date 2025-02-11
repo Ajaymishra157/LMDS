@@ -14,6 +14,7 @@ import Bottomtabnavigation from '../Component/Bottomtabnavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ENDPOINTS} from '../CommonFiles/Constant';
 import {useFocusEffect} from '@react-navigation/native';
+import colors from '../CommonFiles/Colors';
 
 const AttendenceScreen = () => {
   const [currentDate, setCurrentDate] = useState('');
@@ -86,10 +87,7 @@ const AttendenceScreen = () => {
       console.log('Attendance Response:', data);
 
       if (data.code == 200) {
-        ToastAndroid.show(
-          `Status: ${actionType} Successful`,
-          ToastAndroid.SHORT,
-        );
+        ToastAndroid.show(`${actionType} Successful`, ToastAndroid.SHORT);
         await ShowTrainerAttendenceListApi();
       } else {
         // ToastAndroid.show('Error in Punching', ToastAndroid.SHORT);
@@ -143,7 +141,25 @@ const AttendenceScreen = () => {
 
   return (
     <View style={{flex: 1, backgroundColor: 'white'}}>
-      <Header title="Attendence" />
+      <View
+        style={{
+          backgroundColor: colors.Black,
+          padding: 15,
+          justifyContent: 'center',
+
+          alignItems: 'center',
+          flexDirection: 'row',
+        }}>
+        <Text
+          style={{
+            color: 'white',
+            fontSize: 20,
+            fontWeight: 'bold',
+            fontFamily: 'Inter-Bold',
+          }}>
+          Attendence
+        </Text>
+      </View>
       {/* Aaj ki Date */}
       <View
         style={{

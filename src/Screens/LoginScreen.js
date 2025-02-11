@@ -83,7 +83,11 @@ const LoginScreen = () => {
           const trainername = data.payload.trainer_name;
           await AsyncStorage.setItem('trainer_id', trainerId);
           await AsyncStorage.setItem('trainer_name', trainername);
-          navigation.navigate('HomeScreen');
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'HomeScreen'}],
+          });
+          // navigation.navigate('HomeScreen');
 
           // Navigate based on m_pin and user_type
         } else {

@@ -9,10 +9,13 @@ import colors from '../CommonFiles/Colors';
 import AttendenceScreen from '../Screens/AttendenceScreen';
 import CustomerListing from '../Screens/CustomerListing';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DrawerNavigation from './DrawerNavigation';
+import LeaveApplication from '../Screens/LeaveApplication';
 
 const Stack = createNativeStackNavigator();
 const RouteNavigation = () => {
   const [initialRoute, setInitialRoute] = useState(null);
+  console.log('initialroute', initialRoute);
   useEffect(() => {
     const checkLoginStatus = async () => {
       const id = await AsyncStorage.getItem('trainer_id');
@@ -62,6 +65,11 @@ const RouteNavigation = () => {
         <Stack.Screen
           name="CustomerListing"
           component={CustomerListing}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="LeaveApplication"
+          component={LeaveApplication}
           options={{headerShown: false}}
         />
       </Stack.Navigator>

@@ -12,22 +12,16 @@ import {
   Image,
   ScrollView,
   TextInput,
-  RefreshControl,
 } from 'react-native';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 
 import Bottomtabnavigation from '../Component/Bottomtabnavigation';
 import Header from '../Component/Header';
 import {ENDPOINTS} from '../CommonFiles/Constant';
-import {
-  DrawerActions,
-  useFocusEffect,
-  useNavigation,
-} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import colors from '../CommonFiles/Colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const {width, height} = Dimensions.get('window');
 
@@ -35,14 +29,16 @@ const HomeScreen = () => {
   const Pending = require('../assets/images/pending.png');
   const verified = require('../assets/images/verified.png');
   const [trainerName, setTrainerName] = useState('');
-
+  const [date, setDate] = useState(new Date()); // Default date
+  const [show, setShow] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [isDateSelected, setIsDateSelected] = useState(false);
   const [Status, setStatus] = useState('Verify');
   const [ButtonStatus, SetButtonStatus] = useState('');
   const [StatusLoading, setStatusLoading] = useState(false);
   const [HistoryLoading, setHistoryLoading] = useState(false);
   const [TodayHistory, setTodayHistory] = useState([]);
-  const [isAddButtonDisabled, setIsAddButtonDisabled] = useState(); // Add button disabled initially
-  const [isCheckButtonDisabled, setIsCheckButtonDisabled] = useState(false);
+  const [isAddButtonDisabled, setIsAddButtonDisabled] = useState(false);
 
   const [currentDate, setCurrentDate] = useState('');
   const [isDropdownVisible, setDropdownVisible] = useState(false);
@@ -51,48 +47,73 @@ const HomeScreen = () => {
   const [data, setData] = useState([]);
   const [TrainerStudent, setTrainerStudent] = useState([]);
   const [times, setTimes] = useState([]);
-  console.log('times', times);
 
   const [CheckData, setCheckData] = useState(null);
   const [checkdataLoading, setcheckdataLoading] = useState(false);
+  const [studentNames, setStudentNames] = useState('');
 
   const [selectedTime, setSelectedTime] = useState(null);
 
   const [appNoValues, setAppNoValues] = useState({}); // To store input values for Application Numbers
-  const [studentNames, setStudentNames] = useState('');
-  const [appNo, setAppNo] = useState('');
-  const [studentName, setStudentName] = useState(''); // Fetched Student Name
-  const [studentsList, setStudentsList] = useState([]);
-  console.log('studentlist', studentsList);
-  const [error, setError] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleDelete = appNo => {
-    const updatedList = studentsList.filter(student => student.appNo !== appNo);
-    setStudentsList(updatedList);
-    setIsCheckButtonDisabled(false);
-  };
+  const [debounceTimer, setDebounceTimer] = useState(null);
 
-  // Handle Application Number input change
-  const handleAppNoChange = async value => {
-    setAppNo(value);
-    if (value) {
-      await CheckStudentApi(value);
-    } else {
-      setStudentName('');
-    }
-  };
+  const handleAppNoChange = async (itemId, value) => {
+    console.log('handleAppnochange', value);
 
-  console.log('ggg', studentNames);
-  // Check Student name API
-  const CheckStudentApi = async appNo => {
-    console.log('called');
-    try {
-      // Check if appNo is non-empty before making the API request
-      if (!appNo) {
-        return; // Skip the API request if appNo is empty
+    // Reset student name and input when input is cleared
+    if (!value) {
+      console.log('Input is cleared:', value);
+
+      setIsAddButtonDisabled(true); // Disable the button if input is cleared
+      setAppNoValues(prevValues => ({
+        ...prevValues,
+        [itemId]: '', // Clear the application number
+      }));
+
+      setStudentNames(prevState => ({
+        ...prevState,
+        [itemId]: `Student ${itemId}`, // Default student name
+      }));
+
+      // Clear debounce timer immediately when input is cleared to prevent API call
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
       }
 
+      // Ensure no API call is made after clearing the input
+      return;
+    }
+
+    // Update the state with the new application number for each student
+    setAppNoValues(prevValues => ({
+      ...prevValues,
+      [itemId]: value,
+    }));
+
+    // Clear any previous debounce timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    // If the value is not empty, set a new debounce timer to trigger the API call
+    const newDebounceTimer = setTimeout(async () => {
+      try {
+        // Only trigger the API call if the value is not empty
+        if (value.trim() !== '') {
+          await CheckStudentApi(itemId, value);
+        }
+      } catch (error) {
+        console.error('Error fetching student info:', error);
+      }
+    }, 500); // Delay of 500ms after the last input
+
+    setDebounceTimer(newDebounceTimer); // Store the new debounce timer
+  };
+
+  //Check Student name Api
+  const CheckStudentApi = async (itemId, appNo) => {
+    try {
       const response = await fetch(ENDPOINTS.Show_Student_Name, {
         method: 'POST',
         headers: {
@@ -102,57 +123,46 @@ const HomeScreen = () => {
       });
 
       const data = await response.json();
+      console.log('Full Detail Data:', data);
+
       // Update student name or handle errors
       if (data.code === 200) {
-        setStudentName(data.payload.student_name);
+        const {student_name} = data.payload;
+        setStudentNames(prevState => ({
+          ...prevState,
+          [itemId]: student_name,
+        }));
+      } else if (data.code === 400) {
+        console.log(appNo);
+        if (!appNo) {
+          setStudentNames(prevState => ({
+            ...prevState,
+            [itemId]: `Student ${itemId}`, // Default student name
+          }));
+        } else {
+          setStudentNames(prevState => ({
+            ...prevState,
+            [itemId]: 'Not Found',
+          }));
+        }
       } else {
-        setStudentName('Not Found');
+        setStudentNames(prevState => ({
+          ...prevState,
+          [itemId]: `Student ${itemId}`, // Default student name
+        }));
       }
     } catch (error) {
       console.error('Error:', error.message);
     }
   };
 
-  // Handle "Add" button click
-  const handleAddButtonClick = () => {
-    if (studentName !== 'Not Found' && studentName !== '') {
-      console.log('studentname', studentName);
-      const newStudent = {appNo, studentName};
-
-      setStudentsList(prevList => {
-        const updatedList = [...prevList, newStudent];
-
-        // Disable Check button if 3 students are added
-        if (updatedList.length >= 3) {
-          setIsCheckButtonDisabled(true); // Disable Check button
-        }
-
-        return updatedList;
-      });
-
-      setAppNo(''); // Clear the input field
-      setStudentName(''); // Clear the fetched student name
-      setError(''); // Clear any existing error message after successful addition
-    } else {
-      setError('Student not found');
-    }
-  };
-
-  useEffect(() => {
-    if (studentsList.length == 0) {
-      setIsAddButtonDisabled(true); // Disable Add button if no students are added
-    } else {
-      setIsAddButtonDisabled(false); // Enable Add button once at least one student is added
-    }
-  }, [studentsList]);
-
   // Check if any student name is "Not Found" to disable the button
-  // useEffect(() => {
-  //   const isAnyNotFound = Object.values(studentNames).some(
-  //     name => name == 'Not Found',
-  //   );
-  //   setIsAddButtonDisabled(isAnyNotFound); // Disable button if any name is "Not Found"
-  // }, [studentNames]);
+  useEffect(() => {
+    const isAnyNotFound = Object.values(studentNames).some(
+      name => name === 'Not Found',
+    );
+    setIsAddButtonDisabled(isAnyNotFound); // Disable button if any name is "Not Found"
+  }, [studentNames]);
 
   //ADD Button par Api
 
@@ -160,11 +170,13 @@ const HomeScreen = () => {
     const trainerId = await AsyncStorage.getItem('trainer_id');
     const formattedDate = getFormattedCurrentDate();
 
-    // Extract application numbers from the studentsList state
-    const appNos = studentsList.map(student => student.appNo); // Get all app numbers from the students list
+    // Prepare application numbers dynamically from state
+    const {1: appNo1, 2: appNo2, 3: appNo3} = appNoValues; // Extract app numbers from state
+    console.log(appNo1, appNo2, appNo3, selectedValue);
 
-    // Check if at least one application number is provided
-    if (appNos.length === 0 || !appNos.some(appNo => appNo)) {
+    // Make sure all required application numbers are provided
+    // Optional: Make sure at least one application number is provided
+    if (!appNo1 && !appNo2 && !appNo3) {
       ToastAndroid.show(
         'Please fill at least one Application Number',
         ToastAndroid.SHORT,
@@ -182,23 +194,22 @@ const HomeScreen = () => {
           trainer_id: trainerId,
           training_time: selectedValue, // The selected time slot
           c_date: formattedDate, // Current date
-          application_no1: appNos[0] || null, // Send null if no app number provided
-          application_no2: appNos[1] || null, // Send null if no app number provided
-          application_no3: appNos[2] || null, // Send null if no app number provided
+          application_no1: appNo1 || null, // Send null if no app number provided
+          application_no2: appNo2 || null, // Send null if no app number provided
+          application_no3: appNo3 || null, // Send null if no app number provided
         }),
       });
 
       const data = await response.json();
+      console.log('Full Detail Data:', data);
 
       // Check response status
-      if (data.code === 200) {
+      if (data.code == 200) {
         ToastAndroid.show('Students Added Successfully', ToastAndroid.SHORT);
         TrainerTimeWiseShowApi();
         setCheckData(true);
-        setAppNo('');
-        setStudentName('');
-        setStudentsList([]); // Clear the students list after successful submission
-        setIsCheckButtonDisabled(false); // Re-enable the Check button
+        setAppNoValues({});
+        setStudentNames({});
       } else {
         ToastAndroid.show('Error: ' + data.message, ToastAndroid.SHORT);
       }
@@ -214,6 +225,7 @@ const HomeScreen = () => {
   //Form Data Value Api True False
   const CheckDataApi = async () => {
     setcheckdataLoading(true);
+    console.log('check data api call', selectedValue);
     const trainerId = await AsyncStorage.getItem('trainer_id');
     const formattedDate = getFormattedCurrentDate();
     try {
@@ -230,6 +242,7 @@ const HomeScreen = () => {
       });
 
       const data = await response.json();
+      console.log('Full Detail Data hello:', data);
 
       // Check response status
       if (data.code === 200) {
@@ -273,6 +286,8 @@ const HomeScreen = () => {
       });
 
       const data = await response.json();
+      console.log('Full Detail Data  Data:', data);
+
       // Check response status
       if (data.code == 200) {
         TrainerTimeWiseShowApi();
@@ -302,6 +317,7 @@ const HomeScreen = () => {
       });
 
       const data = await response.json();
+      console.log('Full Delete  Data:', data);
 
       // Check response status
       if (data.code == 200) {
@@ -341,13 +357,14 @@ const HomeScreen = () => {
         }),
       });
       const data = await response.json();
+      console.log('Full Data:', data);
+
       // Check response status
       if (data.code === 200) {
         // ToastAndroid.show('Show Trainer Date Wise', ToastAndroid.SHORT);
         setTodayHistory(data.payload);
-        setErrorMessage('');
       } else {
-        setErrorMessage('No data found');
+        ToastAndroid.show('No data found', ToastAndroid.SHORT);
       }
     } catch (error) {
       console.error('Error:', error.message);
@@ -361,6 +378,7 @@ const HomeScreen = () => {
     const trainerId = await AsyncStorage.getItem('trainer_id'); // Make sure to retrieve trainerId
 
     if (!trainerId) {
+      console.log('Trainer ID is not available');
       return;
     }
 
@@ -385,13 +403,7 @@ const HomeScreen = () => {
         if (result.code === 200) {
           setData(result.payload); // Successfully received data
           // Extracting only training times from payload
-          // Assuming `result.payload` is the array you get from the response
-          const timesArray = result.payload.map(item => ({
-            training_time: item.training_time,
-            time_am_pm: item.time_am_pm, // If you need to map `time_am_pm` too
-          }));
-
-          // Now set the times in the state
+          const timesArray = result.payload.map(item => item.training_time);
           setTimes(timesArray);
         } else {
           console.log('Error:', 'Failed to load categories');
@@ -445,11 +457,9 @@ const HomeScreen = () => {
   const handleSelect = item => {
     setSelectedTime(item);
     setSelectedValue(item);
-    setAppNo('');
-    setError('');
-    setStudentName('');
-    setStudentsList([]);
-    setIsCheckButtonDisabled(false);
+    setAppNoValues({});
+    setStudentNames({});
+    setDropdownVisible(false); // Close the dropdown after selection
   };
 
   // Use useEffect to run CheckDataApi when selectedTime changes
@@ -469,7 +479,6 @@ const HomeScreen = () => {
       <Header
         title="Lucky Driving School"
         imageSource={require('../assets/images/logo.jpg')}
-        onMenuPress={() => navigation.openDrawer()}
       />
 
       <View style={{flex: 1, alignItems: 'center', marginTop: 10}}>
@@ -615,10 +624,7 @@ const HomeScreen = () => {
             /> */}
           {/* </TouchableOpacity> */}
           <View style={{padding: 10}}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled">
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={{flexDirection: 'row', alignItems: 'center'}}>
                 {times.map((item, index) => (
                   <TouchableOpacity
@@ -642,23 +648,8 @@ const HomeScreen = () => {
                         fontFamily: 'Inter-Regular',
                         color: item === selectedTime ? '#fff' : '#000', // White text when selected
                       }}>
-                      {item.training_time}{' '}
-                      {/* Display the training time here */}
+                      {item}
                     </Text>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'flex-end',
-                      }}>
-                      <Text
-                        style={{
-                          fontSize: 10,
-                          fontFamily: 'Inter-Regular',
-                          color: item === selectedTime ? '#fff' : '#000', // White text when selected
-                        }}>
-                        {item.time_am_pm} {/* Display the AM/PM here */}
-                      </Text>
-                    </View>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -896,161 +887,266 @@ const HomeScreen = () => {
                 />
               </View>
             ) : (
-              <View style={{padding: 20}}>
-                {/* Application Number Input and Add Button */}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
+              // This block will be rendered when CheckData is false
+              <View
+                style={{
+                  padding: 30,
+                  justifyContent: 'center',
+                  width: '100%',
+                  flex: 1,
+                }}>
+                <ScrollView
+                  contentContainerStyle={{
+                    flexGrow: 1,
                   }}>
-                  <TextInput
-                    style={{
-                      width: '60%',
-                      height: 40,
-                      borderWidth: 1,
-                      borderRadius: 8,
-                      marginRight: 10,
-                      paddingLeft: 10,
-                      color: 'black',
-                      fontFamily: 'Inter-Regular',
-                    }}
-                    placeholder="Application No"
-                    placeholderTextColor="black"
-                    value={appNo}
-                    onChangeText={handleAppNoChange}
-                    editable={!isCheckButtonDisabled} // Disable the input after 3 students are added
-                  />
-                  <TouchableOpacity
-                    style={{
-                      backgroundColor: isCheckButtonDisabled
-                        ? '#B0B0B0'
-                        : '#4CAF50',
-                      borderRadius: 8,
-                      padding: 10,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      width: '30%',
-                    }}
-                    onPress={handleAddButtonClick}
-                    disabled={isCheckButtonDisabled}>
-                    <Text style={{color: 'white', fontFamily: 'Inter-Regular'}}>
-                      Check
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                {error ? (
-                  <Text
-                    style={{
-                      color: 'red',
-                      marginBottom: 10,
-                      fontFamily: 'Inter-Regular',
-                    }}>
-                    {error}
-                  </Text>
-                ) : null}
-
-                {/* Static Headers for List */}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    marginTop: 20,
-                    paddingVertical: 5,
-                    borderBottomWidth: 1,
-                    borderColor: '#ddd',
-                  }}>
-                  <Text
-                    style={{
-                      width: '30%',
-                      fontWeight: 'bold',
-                      color: 'black',
-                      fontFamily: 'Inter-Regular',
-                    }}>
-                    App No
-                  </Text>
-                  <Text
-                    style={{
-                      width: '30%',
-                      fontWeight: 'bold',
-                      flex: 1,
-                      color: 'black',
-                      fontFamily: 'Inter-Regular',
-                    }}>
-                    Student Name
-                  </Text>
-                </View>
-
-                {/* List of Added Students */}
-                <View style={{marginTop: 10}}>
-                  {studentsList.map((student, index) => (
+                  <View
+                    style={{justifyContent: 'center', alignItems: 'center'}}>
                     <View
-                      key={index}
                       style={{
-                        flexDirection: 'row',
-                        paddingVertical: 5,
-                        borderBottomWidth: 1,
-                        borderColor: '#ddd',
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        padding: 10,
+                        backgroundColor: '#f9f9f9',
+                        alignItems: 'center',
+                        width: '100%',
+                        height: 470,
                       }}>
-                      <Text
+                      {/* Slot Time Header */}
+                      <View
                         style={{
-                          width: '30%',
-                          color: 'black',
-                          fontFamily: 'Inter-Regular',
-                          textTransform: 'capitalize',
+                          width: '100%',
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          paddingVertical: 5,
                         }}>
-                        {student.appNo}
-                      </Text>
-                      <Text
-                        style={{
-                          width: '30%',
-                          color: 'black',
-                          fontFamily: 'Inter-Regular',
-                        }}>
-                        {student.studentName}
-                      </Text>
+                        <Text
+                          style={{
+                            color: 'black',
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 17,
+                          }}>
+                          Slot Time : {selectedValue}
+                        </Text>
+                      </View>
 
-                      {/* Delete Icon */}
+                      {/* Static Header for App No and Student Name */}
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          width: '100%',
+                          borderBottomWidth: 2,
+                          borderColor: '#ddd',
+                          paddingVertical: 8,
+                          backgroundColor: '#e6e6e6',
+                          borderRadius: 5,
+                        }}>
+                        <View style={{width: '35%', alignItems: 'center'}}>
+                          <Text
+                            style={{
+                              fontFamily: 'Inter-Bold',
+                              color: 'black',
+                            }}>
+                            #APP NO
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            width: '65%',
+                            justifyContent: 'flex-start',
+                            flexDirection: 'row',
+                          }}>
+                          <Text
+                            style={{
+                              fontFamily: 'Inter-Bold',
+                              color: 'black',
+                            }}>
+                            STUDENT NAME
+                          </Text>
+                        </View>
+                      </View>
+
+                      {/* Application No and Student Name Inputs */}
+                      <View style={{width: '100%'}}>
+                        {/* Application No 1 */}
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            width: '100%',
+                            paddingVertical: 8,
+                            borderBottomWidth: 1,
+                            borderColor: '#ddd',
+                            backgroundColor: '#fff',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}>
+                          <View style={{width: '35%', alignItems: 'center'}}>
+                            <TextInput
+                              style={{
+                                width: '78%',
+                                height: 40,
+                                borderWidth: 1,
+                                borderColor: 'black',
+                                borderRadius: 8,
+                                marginTop: 5,
+                                paddingLeft: 10,
+                                color: 'black',
+                                fontFamily: 'Inter-Regular',
+                              }}
+                              placeholder="App No"
+                              placeholderTextColor="grey"
+                              value={appNoValues['1'] || ''}
+                              onChangeText={text =>
+                                handleAppNoChange('1', text)
+                              }
+                            />
+                          </View>
+                          <View
+                            style={{
+                              width: '65%',
+                              justifyContent: 'flex-start',
+                              flexDirection: 'row',
+                            }}>
+                            <Text
+                              style={{
+                                fontFamily: 'Inter-Regular',
+                                color: 'black',
+                              }}>
+                              {studentNames['1'] || 'Student 1'}
+                            </Text>
+                          </View>
+                        </View>
+
+                        {/* Application No 2 */}
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            width: '100%',
+                            paddingVertical: 8,
+                            borderBottomWidth: 1,
+                            borderColor: '#ddd',
+                            backgroundColor: '#f2f2f2',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}>
+                          <View style={{width: '35%', alignItems: 'center'}}>
+                            <TextInput
+                              style={{
+                                width: '78%',
+                                height: 40,
+                                borderWidth: 1,
+                                borderColor: 'black',
+                                borderRadius: 8,
+                                marginTop: 5,
+                                paddingLeft: 10,
+                                color: 'black',
+                                fontFamily: 'Inter-Regular',
+                              }}
+                              placeholder="App No"
+                              placeholderTextColor="grey"
+                              value={appNoValues['2'] || ''}
+                              onChangeText={text =>
+                                handleAppNoChange('2', text)
+                              }
+                            />
+                          </View>
+                          <View
+                            style={{
+                              width: '65%',
+                              justifyContent: 'flex-start',
+                              flexDirection: 'row',
+                            }}>
+                            <Text
+                              style={{
+                                fontFamily: 'Inter-Regular',
+                                color: 'black',
+                              }}>
+                              {studentNames['2'] || 'Student 2'}
+                            </Text>
+                          </View>
+                        </View>
+
+                        {/* Application No 3 */}
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            width: '100%',
+                            paddingVertical: 8,
+                            borderBottomWidth: 1,
+                            borderColor: '#ddd',
+                            backgroundColor: '#fff',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}>
+                          <View style={{width: '35%', alignItems: 'center'}}>
+                            <TextInput
+                              style={{
+                                width: '78%',
+                                height: 40,
+                                borderWidth: 1,
+                                borderColor: 'black',
+                                borderRadius: 8,
+                                marginTop: 5,
+                                paddingLeft: 10,
+                                color: 'black',
+                                fontFamily: 'Inter-Regular',
+                              }}
+                              placeholder="App No"
+                              placeholderTextColor="grey"
+                              value={appNoValues['3'] || ''}
+                              onChangeText={text =>
+                                handleAppNoChange('3', text)
+                              }
+                            />
+                          </View>
+                          <View
+                            style={{
+                              width: '65%',
+                              justifyContent: 'flex-start',
+                              flexDirection: 'row',
+                            }}>
+                            <Text
+                              style={{
+                                fontFamily: 'Inter-Regular',
+                                color: 'black',
+                              }}>
+                              {studentNames['3'] || 'Student 3'}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+
+                      {/* Add Button */}
                       <TouchableOpacity
                         style={{
-                          width: '30%',
-                          alignItems: 'flex-end',
+                          borderRadius: 8,
+                          backgroundColor: isAddButtonDisabled
+                            ? '#B0B0B0'
+                            : colors.Green,
+                          width: 160,
+                          height: 50,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          shadowColor: '#000',
+                          shadowOffset: {width: 0, height: 2},
+                          shadowOpacity: 0.2,
+                          shadowRadius: 4,
+                          marginTop: 10,
                         }}
-                        onPress={() => handleDelete(student.appNo)} // Delete student when icon is pressed
-                      >
-                        <Icon name="delete" size={24} color="red" />
+                        onPress={AddButtonApi}
+                        disabled={isAddButtonDisabled}>
+                        <Text
+                          style={{
+                            color: colors.White,
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 16,
+                          }}>
+                          ADD
+                        </Text>
                       </TouchableOpacity>
                     </View>
-                  ))}
-                </View>
-                {/* Add Button */}
-                <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-                  <TouchableOpacity
-                    style={{
-                      borderRadius: 8,
-                      backgroundColor: isAddButtonDisabled
-                        ? '#D3D3D3' // Light gray when disabled
-                        : colors.Green, // Green when enabled
-                      width: 160,
-                      height: 50,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      shadowColor: '#000',
-                      shadowOffset: {width: 0, height: 2},
-                      shadowOpacity: 0.2,
-                      shadowRadius: 4,
-                      marginTop: 10,
-                    }}
-                    onPress={AddButtonApi}
-                    disabled={isAddButtonDisabled}>
-                    <Text
-                      style={{
-                        color: colors.White,
-                        fontFamily: 'Inter-Bold',
-                        fontSize: 16,
-                      }}>
-                      ADD
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                  </View>
+                </ScrollView>
               </View>
             )}
           </View>
@@ -1134,128 +1230,162 @@ const HomeScreen = () => {
                     </Text>
                   </View>
                 </View>
-                {/* Check if TodayHistory is empty, if so show error message */}
-                {TodayHistory.length === 0 ? (
-                  <View
-                    style={{
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      paddingVertical: 20,
-                    }}>
-                    <Text style={{color: 'red', fontFamily: 'Inter-Regular'}}>
-                      No data found
-                    </Text>
-                  </View>
-                ) : (
-                  <FlatList
-                    data={TodayHistory} // Use the TodayHistory array directly
-                    keyExtractor={(item, index) => index.toString()} // Use index for unique keys
-                    renderItem={({item}) => (
-                      <>
-                        <View
-                          style={{
-                            marginBottom: 5,
-                            borderBottomWidth: 1,
-                            borderBottomColor: '#ddd',
-                            paddingBottom: 3,
-                          }}>
-                          {/* Training Time */}
-                          <View style={{flexDirection: 'row'}}>
-                            <View
+                <FlatList
+                  data={TodayHistory} // Use the TodayHistory array directly
+                  keyExtractor={(item, index) => index.toString()} // Use index for unique keys
+                  renderItem={({item}) => (
+                    <>
+                      <View
+                        style={{
+                          marginBottom: 5,
+                          borderBottomWidth: 1,
+                          borderBottomColor: '#ddd',
+                          paddingBottom: 3,
+                        }}>
+                        {/* Training Time */}
+                        <View style={{flexDirection: 'row'}}>
+                          <View
+                            style={{
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginBottom: 2,
+                              width: '30%',
+                            }}>
+                            <Text
                               style={{
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                marginBottom: 2,
-                                width: '30%',
+                                fontSize: 18,
+                                fontFamily: 'Inter-Regular',
+                                fontWeight: 'bold',
+                                color: colors.Black,
                               }}>
+                              {item.training_time} {/* Displaying Time */}
+                            </Text>
+                          </View>
+
+                          {/* Student Information in Column */}
+                          <View
+                            style={{
+                              marginBottom: 2,
+                              flex: 1,
+                              width: '70%',
+                            }}>
+                            {item.application_no1 && item.student_name1 && (
                               <Text
                                 style={{
-                                  fontSize: 18,
+                                  fontSize: 14,
                                   fontFamily: 'Inter-Regular',
-                                  fontWeight: 'bold',
                                   color: colors.Black,
                                 }}>
-                                {item.training_time} {/* Displaying Time */}
+                                <Text
+                                  style={{
+                                    fontFamily: 'Inter-Regular',
+                                    fontWeight: 'bold',
+                                    color: colors.Black,
+                                  }}>
+                                  {item.application_no1}
+                                </Text>{' '}
+                                -{' '}
+                                <Text
+                                  style={{
+                                    marginLeft: 5,
+                                    color: 'black',
+                                    fontFamily: 'Inter-Regular',
+                                  }}>
+                                  {item.student_name1}
+                                </Text>
                               </Text>
-                            </View>
+                            )}
+                            {item.application_no2 && item.student_name2 && (
+                              <Text
+                                style={{
+                                  fontSize: 14,
+                                  fontFamily: 'Inter-Regular',
+                                  color: colors.Black,
+                                }}>
+                                <Text
+                                  style={{
+                                    fontFamily: 'Inter-Regular',
+                                    fontWeight: 'bold',
+                                    color: colors.Black,
+                                  }}>
+                                  {item.application_no2}
+                                </Text>{' '}
+                                -{' '}
+                                <Text
+                                  style={{
+                                    marginLeft: 5,
+                                    color: 'black',
+                                    fontFamily: 'Inter-Regular',
+                                  }}>
+                                  {item.student_name2}
+                                </Text>
+                              </Text>
+                            )}
+                            {item.application_no3 && item.student_name3 && (
+                              <Text
+                                style={{
+                                  fontSize: 14,
+                                  fontFamily: 'Inter-Regular',
+                                  color: colors.Black,
+                                }}>
+                                <Text
+                                  style={{
+                                    fontFamily: 'Inter-Regular',
+                                    fontWeight: 'bold',
+                                    color: colors.Black,
+                                  }}>
+                                  {item.application_no3}
+                                </Text>
+                                -{' '}
+                                <Text
+                                  style={{
+                                    marginLeft: 5,
+                                    color: 'black',
+                                    fontFamily: 'Inter-Regular',
+                                  }}>
+                                  {item.student_name3}
+                                </Text>
+                              </Text>
+                            )}
+                          </View>
+                        </View>
 
-                            {/* Student Information in Column */}
+                        {/* Status in Column - With Image instead of Text */}
+                        {item.status && (
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                            }}>
+                            <View style={{width: '30%'}}></View>{' '}
+                            {/* This can be adjusted based on your layout */}
                             <View
                               style={{
-                                marginBottom: 2,
-                                flex: 1,
+                                marginTop: 5,
+                                flexDirection: 'row',
+                                justifyContent: 'flex-start',
                                 width: '70%',
                               }}>
-                              {item.application_no1 && item.student_name1 && (
-                                <Text
-                                  style={{
-                                    fontSize: 14,
-                                    fontFamily: 'Inter-Regular',
-                                    color: colors.Black,
-                                  }}>
-                                  {item.application_no1}- {item.student_name1}
-                                </Text>
+                              {/* Check the status and display respective image */}
+                              {item.status === 'Pending' && (
+                                <Image
+                                  source={Pending} // Replace with your actual source for Pending
+                                  style={{width: 30, height: 30}}
+                                />
                               )}
-                              {item.application_no2 && item.student_name2 && (
-                                <Text
-                                  style={{
-                                    fontSize: 14,
-                                    fontFamily: 'Inter-Regular',
-                                    color: colors.Black,
-                                  }}>
-                                  {item.application_no2}- {item.student_name2}
-                                </Text>
-                              )}
-                              {item.application_no3 && item.student_name3 && (
-                                <Text
-                                  style={{
-                                    fontSize: 14,
-                                    fontFamily: 'Inter-Regular',
-                                    color: colors.Black,
-                                  }}>
-                                  {item.application_no3}- {item.student_name3}
-                                </Text>
+                              {item.status === 'Verify' && (
+                                <Image
+                                  source={verified} // Replace with your actual source for Verified
+                                  style={{width: 35, height: 35}}
+                                />
                               )}
                             </View>
                           </View>
-
-                          {/* Status in Column - With Image instead of Text */}
-                          {item.status && (
-                            <View
-                              style={{
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                              }}>
-                              <View style={{width: '30%'}}></View>{' '}
-                              {/* This can be adjusted based on your layout */}
-                              <View
-                                style={{
-                                  marginTop: 5,
-                                  flexDirection: 'row',
-                                  justifyContent: 'flex-start',
-                                  width: '70%',
-                                }}>
-                                {/* Check the status and display respective image */}
-                                {item.status === 'Pending' && (
-                                  <Image
-                                    source={Pending} // Replace with your actual source for Pending
-                                    style={{width: 30, height: 30}}
-                                  />
-                                )}
-                                {item.status === 'Verify' && (
-                                  <Image
-                                    source={verified} // Replace with your actual source for Verified
-                                    style={{width: 35, height: 35}}
-                                  />
-                                )}
-                              </View>
-                            </View>
-                          )}
-                        </View>
-                      </>
-                    )}
-                  />
-                )}
+                        )}
+                      </View>
+                    </>
+                  )}
+                />
               </View>
             </TouchableOpacity>
           </TouchableOpacity>

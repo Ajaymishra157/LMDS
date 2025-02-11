@@ -18,7 +18,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Entypo from 'react-native-vector-icons/Entypo';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import order from '../assets/images/document.png';
-
 import profile from '../assets/images/account.png';
 
 const {width, height} = Dimensions.get('window');
@@ -48,50 +47,40 @@ const Bottomtabnavigation = () => {
     if (isFocused) {
       const routeName = route.name;
 
+      // Dynamically set active tab based on the route name
       if (routeName === 'HomeScreen') {
         setActiveTab('Home');
       } else if (routeName === 'ProfileScreen') {
         setActiveTab('Profile');
       } else if (routeName === 'AttendenceScreen') {
         setActiveTab('Order');
-      } else if (routeName === 'InfoScreen') {
-        setActiveTab('Info');
+      } else if (routeName === 'LeaveApplication') {
+        setActiveTab('Leave'); // Add 'Leave' tab
       }
     }
   }, [isFocused, route]);
 
-  // const handleTabPress = tabName => {
-  //   setActiveTab(tabName);
-  //   navigation.navigate(
-  //     tabName === 'Home'
-  //       ? userType == 'retail'
-  //         ? 'HomeScreen'
-  //         : 'DashboardScreen'
-  //       : tabName === 'Profile'
-  //       ? 'MyProfile'
-  //       : tabName === 'Order'
-  //       ? 'OrderDetails'
-  //       : 'InfoScreen',
-  //   );
-  // };
+  // Updated handleTabPress to handle Leave tab
   const handleTabPress = tabName => {
     // Update the active tab first
     setActiveTab(tabName);
 
-    // Then navigate based on the tab
+    // Navigate based on the selected tab
     if (tabName === 'Home') {
       navigation.navigate('HomeScreen');
     } else if (tabName === 'Profile') {
       navigation.navigate('ProfileScreen');
     } else if (tabName === 'Order') {
       navigation.navigate('AttendenceScreen');
+    } else if (tabName === 'Leave') {
+      navigation.navigate('LeaveApplication'); // Assuming LeaveApplicationScreen is the name of the Leave screen
     }
   };
 
   const isTabActive = tabName => activeTab === tabName;
 
   const getTabStyle = tabName => ({
-    width: '25%', // Updated for 4 tabs
+    width: '20%', // Adjusted for 4 tabs (each 20%)
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -101,6 +90,7 @@ const Bottomtabnavigation = () => {
     isTabActive(tabName) ? colors.Black : 'grey';
   const getTextColor = tabName =>
     isTabActive(tabName) ? colors.Black : 'grey';
+
   return (
     <View style={{flex: 1, justifyContent: 'flex-end'}}>
       <View
@@ -116,10 +106,6 @@ const Bottomtabnavigation = () => {
           paddingTop: 7,
           marginTop: 7,
           paddingBottom: 7,
-          // shadowColor: 'grey',
-          // shadowOffset: {width: 0, height: 4},
-          // shadowOpacity: 0.1,
-          // shadowRadius: 6,
         }}>
         {/* Home Tab */}
         <TouchableOpacity
@@ -137,7 +123,7 @@ const Bottomtabnavigation = () => {
           </Text>
         </TouchableOpacity>
 
-        {/* Order Tab */}
+        {/* Order (Attendence) Tab */}
         <TouchableOpacity
           style={getTabStyle('Order')}
           onPress={() => handleTabPress('Order')}>
@@ -178,6 +164,25 @@ const Bottomtabnavigation = () => {
               fontFamily: 'Inter-Regular',
             }}>
             Profile
+          </Text>
+        </TouchableOpacity>
+
+        {/* Leave Tab */}
+        <TouchableOpacity
+          style={getTabStyle('Leave')}
+          onPress={() => handleTabPress('Leave')}>
+          <Entypo
+            name="export"
+            size={24}
+            color={getIconTintColor('Leave')}
+            style={{marginTop: 3}}
+          />
+          <Text
+            style={{
+              color: getTextColor('Leave'),
+              fontFamily: 'Inter-Regular',
+            }}>
+            Leave
           </Text>
         </TouchableOpacity>
       </View>

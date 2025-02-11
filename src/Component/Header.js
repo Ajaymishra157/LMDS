@@ -1,8 +1,9 @@
 import React from 'react';
-import {View, Text, Image} from 'react-native';
+import {View, Text, Image, TouchableOpacity} from 'react-native';
 import colors from '../CommonFiles/Colors';
+import Icon from 'react-native-vector-icons/Ionicons';
 
-const Header = ({title, imageSource}) => {
+const Header = ({title, imageSource, onMenuPress}) => {
   return (
     <View
       style={{
@@ -13,6 +14,14 @@ const Header = ({title, imageSource}) => {
         alignItems: 'center',
         flexDirection: 'row',
       }}>
+      <TouchableOpacity
+        onPress={onMenuPress}
+        style={{position: 'absolute', left: 15, top: 15}}>
+        {' '}
+        {/* Handle menu icon press */}
+        <Icon name="menu" size={30} color="white" /> {/* Menu icon */}
+      </TouchableOpacity>
+
       {imageSource && (
         <Image
           source={imageSource}
