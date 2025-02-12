@@ -72,7 +72,7 @@ const CustomerListing = () => {
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
-    justifyContent: 'flex-start', // Ensure it starts from the top
+    justifyContent: 'flex-start',
   },
   imageStyle: {
     opacity: 0.1, // Adjust opacity to create watermark effect

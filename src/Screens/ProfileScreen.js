@@ -403,6 +403,9 @@ const ProfileScreen = () => {
               flexDirection: 'row',
               justifyContent: 'center',
               alignItems: 'center',
+            }}
+            onPress={() => {
+              navigation.navigate('ChangePassword');
             }}>
             <MaterialIcons
               name="logout"

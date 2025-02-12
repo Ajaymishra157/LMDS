@@ -14,4 +14,7 @@ export const ENDPOINTS = {
   Show_Student_Name: `${BASE_URL}show_student_name.php`,
   Add_Trainer_Leave: `${BASE_URL}add_trainer_leave.php`,
   Trainer_Leave_List: `${BASE_URL}trainer_leave_list.php`,
+  Delete_Trainer_Leave: `${BASE_URL}delete_trainer_leave.php`,
+  Update_Trainer_Leave: `${BASE_URL}update_trainer_leave.php`,
+  Trainer_Change_Password: `${BASE_URL}change_trainer_pswd.php`,
 };

@@ -51,7 +51,7 @@ const HomeScreen = () => {
   const [data, setData] = useState([]);
   const [TrainerStudent, setTrainerStudent] = useState([]);
   const [times, setTimes] = useState([]);
-  console.log('times', times);
+  console.log('times xxxx', times);
 
   const [CheckData, setCheckData] = useState(null);
   const [checkdataLoading, setcheckdataLoading] = useState(false);
@@ -216,6 +216,7 @@ const HomeScreen = () => {
     setcheckdataLoading(true);
     const trainerId = await AsyncStorage.getItem('trainer_id');
     const formattedDate = getFormattedCurrentDate();
+
     try {
       const response = await fetch(ENDPOINTS.Slot_wise_check_form, {
         method: 'POST',
@@ -232,10 +233,10 @@ const HomeScreen = () => {
       const data = await response.json();
 
       // Check response status
-      if (data.code === 200) {
+      if (data.code == 200) {
         // If code is 200, status is true
         setCheckData(true); // Update state to true
-      } else if (data.code === 400) {
+      } else if (data.code == 400) {
         // If code is 400, status is false
         setCheckData(false); // Update state to false
       }
@@ -386,12 +387,9 @@ const HomeScreen = () => {
           setData(result.payload); // Successfully received data
           // Extracting only training times from payload
           // Assuming `result.payload` is the array you get from the response
-          const timesArray = result.payload.map(item => ({
-            training_time: item.training_time,
-            time_am_pm: item.time_am_pm, // If you need to map `time_am_pm` too
-          }));
-
-          // Now set the times in the state
+          // Assuming `result.payload` is the array you get from the response
+          const timesArray = result.payload.map(item => item.training_time);
+          console.log('Mapped Times Array:', timesArray); // Check if the array is populated
           setTimes(timesArray);
         } else {
           console.log('Error:', 'Failed to load categories');
@@ -504,25 +502,18 @@ const HomeScreen = () => {
             flexDirection: 'row',
             justifyContent: 'center',
             alignItems: 'center',
-            gap: 25,
           }}>
-          <View
+          <Text
             style={{
-              width: '60%',
-              flexDirection: 'row',
-              justifyContent: 'flex-end',
+              fontSize: 16,
+              fontWeight: 'bold',
+              color: '#333',
+              fontFamily: 'Inter-Regular',
             }}>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: 'bold',
-                color: '#333',
-                fontFamily: 'Inter-Regular',
-              }}>
-              {currentDate}
-            </Text>
-          </View>
-          {HistoryLoading ? (
+            {currentDate}
+          </Text>
+
+          {/* {HistoryLoading ? (
             <View
               style={{
                 justifyContent: 'center',
@@ -560,7 +551,7 @@ const HomeScreen = () => {
                 History Report
               </Text>
             </TouchableOpacity>
-          )}
+          )} */}
         </View>
         {/* 
         <TouchableOpacity
@@ -620,47 +611,53 @@ const HomeScreen = () => {
               showsHorizontalScrollIndicator={false}
               keyboardShouldPersistTaps="handled">
               <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                {times.map((item, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={{
-                      paddingHorizontal: 20,
-                      paddingVertical: 10,
-                      marginRight: 10,
-                      backgroundColor:
-                        item === selectedTime ? '#4CAF50' : '#fff', // Green when selected
-                      borderRadius: 5,
-                      borderWidth: 1,
-                      borderColor: '#ccc',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                    onPress={() => handleSelect(item)}>
-                    <Text
+                {times.map((item, index) => {
+                  // Split the time range (e.g., "7-8") into hours
+                  const [start, end] = item.split('-');
+                  let period = '';
+
+                  // Check if the starting time is before or after 12 to determine AM/PM
+                  if (parseInt(start) < 12) {
+                    period = 'AM';
+                  } else {
+                    period = 'PM';
+                  }
+
+                  return (
+                    <TouchableOpacity
+                      key={index}
                       style={{
-                        fontSize: 16,
-                        fontFamily: 'Inter-Regular',
-                        color: item === selectedTime ? '#fff' : '#000', // White text when selected
-                      }}>
-                      {item.training_time}{' '}
-                      {/* Display the training time here */}
-                    </Text>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'flex-end',
-                      }}>
+                        paddingHorizontal: 20,
+                        paddingVertical: 10,
+                        marginRight: 10,
+                        backgroundColor:
+                          item === selectedTime ? '#4CAF50' : '#fff', // Green when selected
+                        borderRadius: 5,
+                        borderWidth: 1,
+                        borderColor: '#ccc',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                      onPress={() => handleSelect(item)}>
                       <Text
                         style={{
-                          fontSize: 10,
+                          fontSize: 16,
                           fontFamily: 'Inter-Regular',
                           color: item === selectedTime ? '#fff' : '#000', // White text when selected
                         }}>
-                        {item.time_am_pm} {/* Display the AM/PM here */}
+                        {item} {/* Display the training time with AM/PM */}
                       </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
+                      <Text
+                        style={{
+                          fontSize: 8,
+                          color: item === selectedTime ? '#fff' : '#000',
+                          fontFamily: 'Inter-Regular',
+                        }}>
+                        {period}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </ScrollView>
           </View>
@@ -1122,7 +1119,7 @@ const HomeScreen = () => {
                   </View>
                   <View style={{flexDirection: 'row', width: '70%'}}>
                     <Text style={{color: 'black', fontFamily: 'Inter-Bold'}}>
-                      #App No{' '}
+                      #App No
                     </Text>
                     <Text
                       style={{
@@ -1130,7 +1127,7 @@ const HomeScreen = () => {
                         fontFamily: 'Inter-Bold',
                         marginLeft: 5,
                       }}>
-                      Student Name{' '}
+                      Student Name
                     </Text>
                   </View>
                 </View>
@@ -1226,7 +1223,7 @@ const HomeScreen = () => {
                                 flexDirection: 'row',
                                 alignItems: 'center',
                               }}>
-                              <View style={{width: '30%'}}></View>{' '}
+                              <View style={{width: '30%'}}></View>
                               {/* This can be adjusted based on your layout */}
                               <View
                                 style={{

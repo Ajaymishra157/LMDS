@@ -54,13 +54,11 @@ const Bottomtabnavigation = () => {
         setActiveTab('Profile');
       } else if (routeName === 'AttendenceScreen') {
         setActiveTab('Order');
-      } else if (routeName === 'LeaveApplication') {
-        setActiveTab('Leave'); // Add 'Leave' tab
       }
     }
   }, [isFocused, route]);
 
-  // Updated handleTabPress to handle Leave tab
+  // Updated handleTabPress to handle only the Home, Profile, and Attendence tabs
   const handleTabPress = tabName => {
     // Update the active tab first
     setActiveTab(tabName);
@@ -72,15 +70,13 @@ const Bottomtabnavigation = () => {
       navigation.navigate('ProfileScreen');
     } else if (tabName === 'Order') {
       navigation.navigate('AttendenceScreen');
-    } else if (tabName === 'Leave') {
-      navigation.navigate('LeaveApplication'); // Assuming LeaveApplicationScreen is the name of the Leave screen
     }
   };
 
   const isTabActive = tabName => activeTab === tabName;
 
   const getTabStyle = tabName => ({
-    width: '20%', // Adjusted for 4 tabs (each 20%)
+    width: '33.33%', // Adjusted for 3 tabs (each 33.33%)
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -164,25 +160,6 @@ const Bottomtabnavigation = () => {
               fontFamily: 'Inter-Regular',
             }}>
             Profile
-          </Text>
-        </TouchableOpacity>
-
-        {/* Leave Tab */}
-        <TouchableOpacity
-          style={getTabStyle('Leave')}
-          onPress={() => handleTabPress('Leave')}>
-          <Entypo
-            name="export"
-            size={24}
-            color={getIconTintColor('Leave')}
-            style={{marginTop: 3}}
-          />
-          <Text
-            style={{
-              color: getTextColor('Leave'),
-              fontFamily: 'Inter-Regular',
-            }}>
-            Leave
           </Text>
         </TouchableOpacity>
       </View>

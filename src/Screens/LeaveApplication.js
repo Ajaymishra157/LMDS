@@ -5,6 +5,10 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  ToastAndroid,
+  Alert,
+  Button,
+  Modal,
 } from 'react-native';
 import Header from '../Component/Header';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -12,25 +16,66 @@ import colors from '../CommonFiles/Colors';
 import Bottomtabnavigation from '../Component/Bottomtabnavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ENDPOINTS} from '../CommonFiles/Constant';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import Feather from 'react-native-vector-icons/Feather';
+import Entypo from 'react-native-vector-icons/Entypo';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 
 const LeaveApplication = () => {
+  const navigation = useNavigation();
   const [fromDate, setFromDate] = useState('');
   const [tillDate, setTillDate] = useState('');
   const [reason, setReason] = useState('');
   const [LeaveList, setLeaveList] = useState([]);
+  console.log('leaveList', LeaveList);
   const [showFromDatePicker, setShowFromDatePicker] = useState(false);
   const [showTillDatePicker, setShowTillDatePicker] = useState(false);
 
-  // const formatDate = date => {
-  //   const d = new Date(date);
-  //   const year = d.getFullYear();
-  //   const month = String(d.getMonth() + 1).padStart(2, '0'); // Month is zero-based
-  //   const day = String(d.getDate()).padStart(2, '0'); // Ensure two-digit day
-  //   return `${year}-${month}-${day}`;
-  // };
+  const [isModalVisible, setIsModalVisible] = useState(false); // State to control modal visibility
+  const [selectedLeave, setSelectedLeave] = useState(null);
+
+  const [ConfirmationModal, setConfirmationModal] = useState(false);
+  const [selectedConfirmLeave, setselectedConfirmLeave] = useState(null);
+  console.log('selectedConfirmLeave ', selectedConfirmLeave);
+
+  const handleOpenModal = leave => {
+    setSelectedLeave(leave); // Set the selected leave data
+    setIsModalVisible(true); // Open the modal
+  };
+  const handleOpenModal2 = leave => {
+    setConfirmationModal(true); // Open the modal
+    setselectedConfirmLeave(leave);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false); // Close the modal
+    setSelectedLeave(null); // Clear selected leave data
+  };
+  const handleCloseModal2 = () => {
+    setConfirmationModal(false); // Close the modal
+    setselectedConfirmLeave(null); // Clear selected leave data
+  };
+
+  const handleUpdateLeave = () => {
+    // Pre-fill the form with selected leave data when updating
+    setFromDate(selectedConfirmLeave.start_date);
+    setTillDate(selectedConfirmLeave.end_date);
+    setReason(selectedConfirmLeave.reason);
+  };
+
+  const handleSubmitLeave = async () => {
+    if (selectedConfirmLeave) {
+      // If a leave is selected for update, call the Update API
+      await UpdateLeaveApi(selectedConfirmLeave.leave_id); // Pass the leave ID for update
+    } else {
+      // If no leave is selected (new leave), call the Add API
+      await handleAddLeaveApi();
+    }
+  };
 
   const handleAddLeaveApi = async () => {
     console.log('fromdate and tilldate', fromDate, tillDate);
@@ -80,6 +125,7 @@ const LeaveApplication = () => {
 
   const TrainerLeaveList = async () => {
     const trainerId = await AsyncStorage.getItem('trainer_id');
+    console.log('trinerid', trainerId);
     try {
       const response = await fetch(ENDPOINTS.Trainer_Leave_List, {
         method: 'POST',
@@ -94,8 +140,8 @@ const LeaveApplication = () => {
       const data = await response.json();
 
       // Check if the response contains the list directly (as an array)
-      if (Array.isArray(data)) {
-        setLeaveList(data); // Set the leave list data directly to the state
+      if (Array.isArray(data.payload)) {
+        setLeaveList(data.payload); // Set the leave list data directly to the state
       } else {
         setLeaveList([]); // Empty list if the response is not an array
       }
@@ -106,6 +152,7 @@ const LeaveApplication = () => {
 
   useFocusEffect(
     useCallback(() => {
+      console.log('called');
       TrainerLeaveList();
     }, []),
   );
@@ -113,11 +160,12 @@ const LeaveApplication = () => {
   const handleDateChange = (event, selectedDate, type) => {
     const currentDate = selectedDate || new Date();
 
-    // Format the date as "YYYY-MM-DD"
-    const year = currentDate.getFullYear();
-    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0'); // Month is 0-indexed, so we add 1
-    const day = currentDate.getDate().toString().padStart(2, '0');
-    const formattedDate = `${year}-${month}-${day}`;
+    // Format the date as "DD-MM-YYYY"
+    const day = currentDate.getDate().toString().padStart(2, '0'); // Ensure 2-digit day
+    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0'); // Ensure 2-digit month
+    const year = currentDate.getFullYear(); // Get the full year
+
+    const formattedDate = `${day}-${month}-${year}`; // New format: "DD-MM-YYYY"
 
     if (type === 'from') {
       setFromDate(formattedDate);
@@ -133,25 +181,80 @@ const LeaveApplication = () => {
     }
   };
 
-  const handleDeleteApi = async () => {
-    const trainerId = await AsyncStorage.getItem('trainer_id');
+  const handleDeleteConfirmation = leaveId => {
+    setConfirmationModal(false);
+    setselectedConfirmLeave(null);
+    Alert.alert(
+      'Confirm Delete',
+      'Are you sure you want to delete this leave?',
+      [
+        {
+          text: 'No', // If the user presses "No", nothing happens
+          onPress: () => console.log('Delete cancelled'),
+          style: 'cancel',
+        },
+        {
+          text: 'Yes', // If the user presses "Yes", delete the leave
+          onPress: () => handleDeleteApi(leaveId),
+        },
+      ],
+    );
+  };
+
+  const handleDeleteApi = async leaveId => {
     try {
-      const response = await fetch(ENDPOINTS.Trainer_Leave_List, {
+      const response = await fetch(ENDPOINTS.Delete_Trainer_Leave, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          trainer_id: trainerId,
+          leave_id: leaveId,
         }),
       });
 
       const data = await response.json();
 
       // Check if the response contains the list directly (as an array)
-      if (data.code === 200) {
-        // Set the leave list data directly to the state
+      if (data.code == 200) {
+        ToastAndroid.show('Data Delete Succussfully', ToastAndroid.SHORT);
+        TrainerLeaveList();
       } else {
+        ToastAndroid.show('Data not Delete ', ToastAndroid.SHORT);
+      }
+    } catch (error) {
+      console.error('Error:', error.message);
+    }
+  };
+
+  const UpdateLeaveApi = async leaveId => {
+    console.log('leaveId', leaveId, fromDate, tillDate, reason);
+    try {
+      const response = await fetch(ENDPOINTS.Update_Trainer_Leave, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          leave_id: leaveId,
+          start_date: fromDate, // Pass formatted dates
+          end_date: tillDate,
+          reason: reason,
+        }),
+      });
+
+      const data = await response.json();
+
+      // Check if the response contains the list directly (as an array)
+      if (data.code == 200) {
+        setFromDate('');
+        setTillDate('');
+        setReason('');
+        ToastAndroid.show('Data Updated Succussfully', ToastAndroid.SHORT);
+        TrainerLeaveList();
+        setselectedConfirmLeave(null);
+      } else {
+        ToastAndroid.show('Data not Update ', ToastAndroid.SHORT);
       }
     } catch (error) {
       console.error('Error:', error.message);
@@ -169,6 +272,15 @@ const LeaveApplication = () => {
           alignItems: 'center',
           flexDirection: 'row',
         }}>
+        <TouchableOpacity
+          style={{position: 'absolute', top: 15, left: 15}}
+          onPress={() => {
+            navigation.navigate('HomeScreen');
+          }}>
+          {' '}
+          <Ionicons name="arrow-back" color="white" size={26} />
+        </TouchableOpacity>
+
         <Text
           style={{
             color: 'white',
@@ -181,7 +293,6 @@ const LeaveApplication = () => {
       </View>
       <View
         style={{
-          flex: 1,
           justifyContent: 'flex-start',
           paddingHorizontal: 15,
         }}>
@@ -309,7 +420,7 @@ const LeaveApplication = () => {
             marginTop: 5,
             alignItems: 'center',
           }}
-          onPress={handleAddLeaveApi}>
+          onPress={handleSubmitLeave}>
           <Text
             style={{
               color: '#fff',
@@ -317,7 +428,7 @@ const LeaveApplication = () => {
               fontWeight: 'bold',
               fontFamily: 'Inter-Regular',
             }}>
-            Add Leave
+            {selectedConfirmLeave ? 'Update Leave' : 'Add Leave'}
           </Text>
         </TouchableOpacity>
 
@@ -346,7 +457,7 @@ const LeaveApplication = () => {
         )}
       </View>
 
-      <ScrollView style={{flex: 1, padding: 5}}>
+      <ScrollView style={{flex: 1, padding: 5, marginTop: 15}}>
         {/* Table Header */}
         <View
           style={{
@@ -363,18 +474,7 @@ const LeaveApplication = () => {
               fontWeight: 'bold',
               fontFamily: 'Inter-Regular',
               textAlign: 'center',
-              fontSize: 11,
-              color: 'black',
-            }}>
-            Action
-          </Text>
-          <Text
-            style={{
-              flex: 1,
-              fontWeight: 'bold',
-              fontFamily: 'Inter-Regular',
-              textAlign: 'center',
-              fontSize: 11,
+              fontSize: 14,
               color: 'black',
             }}>
             From Date
@@ -385,28 +485,19 @@ const LeaveApplication = () => {
               fontWeight: 'bold',
               fontFamily: 'Inter-Regular',
               textAlign: 'center',
-              fontSize: 11,
+              fontSize: 14,
               color: 'black',
             }}>
             Till Date
           </Text>
+
           <Text
             style={{
               flex: 1,
               fontWeight: 'bold',
               fontFamily: 'Inter-Regular',
               textAlign: 'center',
-              fontSize: 11,
-            }}>
-            Reason
-          </Text>
-          <Text
-            style={{
-              flex: 1,
-              fontWeight: 'bold',
-              fontFamily: 'Inter-Regular',
-              textAlign: 'center',
-              fontSize: 11,
+              fontSize: 14,
               color: 'black',
             }}>
             Status
@@ -417,9 +508,10 @@ const LeaveApplication = () => {
               fontWeight: 'bold',
               fontFamily: 'Inter-Regular',
               textAlign: 'center',
-              fontSize: 11,
+              fontSize: 14,
+              color: 'black',
             }}>
-            Entry Date
+            Action
           </Text>
         </View>
 
@@ -434,17 +526,12 @@ const LeaveApplication = () => {
               marginBottom: 5,
               borderRadius: 5,
             }}>
-            <TouchableOpacity
-              onPress={handleDeleteApi}
-              style={{flex: 1, alignItems: 'center'}}>
-              <Icon name="delete" size={17} color="red" />
-            </TouchableOpacity>
             <Text
               style={{
                 flex: 1,
                 textAlign: 'center',
                 fontFamily: 'Inter-Regular',
-                fontSize: 9,
+                fontSize: 12,
                 color: 'black',
               }}>
               {leave.start_date}
@@ -454,7 +541,7 @@ const LeaveApplication = () => {
                 flex: 1,
                 textAlign: 'center',
                 fontFamily: 'Inter-Regular',
-                fontSize: 9,
+                fontSize: 12,
                 color: 'black',
               }}>
               {leave.end_date}
@@ -464,37 +551,207 @@ const LeaveApplication = () => {
                 flex: 1,
                 textAlign: 'center',
                 fontFamily: 'Inter-Regular',
-                fontSize: 9,
-                color: 'black',
-              }}>
-              {leave.reason}
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'center',
-                fontFamily: 'Inter-Regular',
-                fontSize: 9,
+                fontSize: 12,
                 color: leave.leave_status === 'Pending' ? 'orange' : 'black',
               }}>
               {leave.leave_status}
             </Text>
-            <Text
+            <View
               style={{
-                flex: 1,
-                textAlign: 'center',
-                fontFamily: 'Inter-Regular',
-                fontSize: 9,
-                color: 'black',
+                width: '24%',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                gap: 22,
               }}>
-              {leave.entry_date}
-            </Text>
+              {' '}
+              <TouchableOpacity
+                onPress={() => handleOpenModal(leave)}
+                style={{alignItems: 'center'}}>
+                <Feather name="eye" size={18} color="black" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleOpenModal2(leave)}
+                style={{alignItems: 'center'}}>
+                <Entypo name="dots-three-vertical" size={18} color="Black" />
+              </TouchableOpacity>
+            </View>
           </View>
         ))}
+
+        {selectedLeave && (
+          <Modal
+            visible={isModalVisible}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={handleCloseModal}>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              }}>
+              <View
+                style={{
+                  backgroundColor: 'white',
+                  padding: 20,
+                  borderRadius: 10,
+                  width: '80%',
+                  alignItems: 'center',
+                }}>
+                <View
+                  style={{
+                    justifyContent: 'flex-end',
+                    flexDirection: 'row',
+                    width: '100%',
+                  }}>
+                  <TouchableOpacity onPress={handleCloseModal}>
+                    <Entypo name="cross" size={24} color="Black" />
+                  </TouchableOpacity>
+                </View>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    marginBottom: 10,
+                    color: 'black',
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  Leave Reason
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    marginBottom: 20,
+                    textAlign: 'center',
+                    color: 'black',
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  {selectedLeave.reason}
+                </Text>
+              </View>
+            </View>
+          </Modal>
+        )}
+        {/* confirmation modal */}
+        {selectedConfirmLeave && (
+          <Modal
+            visible={ConfirmationModal}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={handleCloseModal}>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              }}>
+              <View
+                style={{
+                  backgroundColor: 'white',
+                  padding: 20,
+                  borderRadius: 15,
+                  width: '80%',
+                  alignItems: 'center',
+                  elevation: 5, // Adds shadow for Android
+                  shadowColor: '#000', // Shadow for iOS
+                  shadowOffset: {width: 0, height: 2},
+                  shadowOpacity: 0.1,
+                  shadowRadius: 5,
+                }}>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    marginBottom: 20,
+                    color: 'black',
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  Select Action
+                </Text>
+                <View style={{gap: 15, width: '100%'}}>
+                  {/* Delete Leave Button */}
+                  <TouchableOpacity
+                    style={{
+                      borderColor: 'red',
+                      borderWidth: 1,
+                      borderRadius: 10,
+                      width: '100%',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      paddingVertical: 12,
+                      flexDirection: 'row',
+                      gap: 15,
+                    }}
+                    onPress={() =>
+                      handleDeleteConfirmation(selectedConfirmLeave.leave_id)
+                    }>
+                    <AntDesign name="delete" size={24} color="red" />
+                    <Text
+                      style={{
+                        color: 'red',
+                        fontFamily: 'Inter-Regular',
+                        fontSize: 16,
+                      }}>
+                      Delete Leave
+                    </Text>
+                  </TouchableOpacity>
+                  {/* Update Leave Button */}
+                  <TouchableOpacity
+                    style={{
+                      borderColor: 'black',
+                      borderWidth: 1,
+                      borderRadius: 10,
+                      width: '100%',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      paddingVertical: 12,
+                      marginTop: 10,
+                      flexDirection: 'row',
+                      gap: 15,
+                    }}
+                    onPress={() => {
+                      handleUpdateLeave();
+                      setConfirmationModal(false);
+                    }}>
+                    <MaterialCommunityIcons
+                      name="update"
+                      size={24}
+                      color={colors.Black}
+                    />
+                    <Text
+                      style={{
+                        color: 'black',
+                        fontFamily: 'Inter-Regular',
+                        fontSize: 16,
+                      }}>
+                      Update Leave
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity
+                  style={{
+                    position: 'absolute',
+                    top: 10,
+                    right: 10,
+                  }}
+                  onPress={handleCloseModal2}>
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      fontWeight: 'bold',
+                      color: 'black',
+                      fontFamily: 'Inter-Regular',
+                    }}>
+                    ×
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        )}
       </ScrollView>
-      <View style={{justifyContent: 'flex-end'}}>
-        <Bottomtabnavigation />
-      </View>
     </View>
   );
 };

@@ -11,9 +11,14 @@ import CustomerListing from '../Screens/CustomerListing';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DrawerNavigation from './DrawerNavigation';
 import LeaveApplication from '../Screens/LeaveApplication';
+import ChangePassword from '../Screens/ChangePassword';
+import {createDrawerNavigator} from '@react-navigation/drawer';
+import TodayReport from '../Screens/TodayReport';
 
 const Stack = createNativeStackNavigator();
-const RouteNavigation = () => {
+const Drawer = createDrawerNavigator();
+
+const MainStack = () => {
   const [initialRoute, setInitialRoute] = useState(null);
   console.log('initialroute', initialRoute);
   useEffect(() => {
@@ -40,41 +45,63 @@ const RouteNavigation = () => {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName={initialRoute}>
-        <Stack.Screen
-          name="LoginScreen"
-          component={LoginScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="HomeScreen"
-          component={HomeScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="ProfileScreen"
-          component={ProfileScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="AttendenceScreen"
-          component={AttendenceScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="CustomerListing"
-          component={CustomerListing}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="LeaveApplication"
-          component={LeaveApplication}
-          options={{headerShown: false}}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Stack.Navigator initialRouteName={initialRoute}>
+      <Stack.Screen
+        name="LoginScreen"
+        component={LoginScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="HomeScreen"
+        component={HomeScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="ProfileScreen"
+        component={ProfileScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="AttendenceScreen"
+        component={AttendenceScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="CustomerListing"
+        component={CustomerListing}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="LeaveApplication"
+        component={LeaveApplication}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="ChangePassword"
+        component={ChangePassword}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="TodayReport"
+        component={TodayReport}
+        options={{headerShown: false}}
+      />
+    </Stack.Navigator>
   );
 };
 
+const RouteNavigation = () => {
+  return (
+    <NavigationContainer>
+      <Drawer.Navigator
+        drawerContent={props => <DrawerNavigation {...props} />}>
+        <Drawer.Screen
+          name="MainStack"
+          component={MainStack}
+          options={{headerShown: false}}
+        />
+      </Drawer.Navigator>
+    </NavigationContainer>
+  );
+};
 export default RouteNavigation;
