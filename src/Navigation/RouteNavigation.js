@@ -14,6 +14,9 @@ import LeaveApplication from '../Screens/LeaveApplication';
 import ChangePassword from '../Screens/ChangePassword';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import TodayReport from '../Screens/TodayReport';
+import DashboardScreen from '../Screens/DashboardScreen';
+import AdvancePayment from '../Screens/AdvancePayment';
+import RewardPoints from '../Screens/RewardPoints';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -23,11 +26,15 @@ const MainStack = () => {
   console.log('initialroute', initialRoute);
   useEffect(() => {
     const checkLoginStatus = async () => {
-      const id = await AsyncStorage.getItem('trainer_id');
-      console.log('training_id', id);
+      const userType = await AsyncStorage.getItem('user_type');
 
-      if (id) {
-        setInitialRoute('HomeScreen');
+      const id = await AsyncStorage.getItem('trainer_id');
+      console.log('training_id', id, userType);
+
+      if (userType && id) {
+        setInitialRoute(
+          userType === 'Trainer' ? 'HomeScreen' : 'DashboardScreen',
+        );
       } else {
         setInitialRoute('LoginScreen');
       }
@@ -84,6 +91,21 @@ const MainStack = () => {
       <Stack.Screen
         name="TodayReport"
         component={TodayReport}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="DashboardScreen"
+        component={DashboardScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="AdvancePayment"
+        component={AdvancePayment}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="RewardPoints"
+        component={RewardPoints}
         options={{headerShown: false}}
       />
     </Stack.Navigator>

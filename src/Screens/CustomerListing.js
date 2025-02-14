@@ -10,8 +10,6 @@ import Header from '../Component/Header';
 import colors from '../CommonFiles/Colors';
 
 const CustomerListing = () => {
-  const customers = ['Amit Sharma', 'Priya Verma', 'Rahul Singh'];
-
   return (
     <ImageBackground
       source={require('../assets/images/logo.jpg')} // Replace with your logo image path
@@ -21,30 +19,7 @@ const CustomerListing = () => {
       <View style={{flex: 1}}>
         <Header title="Customer List" />
 
-        <View style={{flex: 1, justifyContent: 'flex-start'}}>
-          {customers.map((customer, index) => (
-            <View
-              key={index}
-              style={{
-                backgroundColor: '#f0f0f0',
-                flexDirection: 'row',
-                justifyContent: 'center',
-                padding: 15,
-                marginVertical: 5,
-                borderRadius: 8,
-              }}>
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: 'bold',
-                  fontFamily: 'Inter-Medium',
-                  color: colors.Black,
-                }}>
-                {customer}
-              </Text>
-            </View>
-          ))}
-        </View>
+        <View style={{flex: 1, justifyContent: 'flex-start'}}></View>
 
         <TouchableOpacity
           style={{

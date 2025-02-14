@@ -48,7 +48,9 @@ const HomeScreen = () => {
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [HistoryModal, SetHistoryModal] = useState(false);
   const [selectedValue, setSelectedValue] = useState(null); // Default text
+  console.log('selectedvalue yyyy', selectedValue);
   const [data, setData] = useState([]);
+  console.log('data xxxx', data);
   const [TrainerStudent, setTrainerStudent] = useState([]);
   const [times, setTimes] = useState([]);
   console.log('times xxxx', times);
@@ -389,6 +391,7 @@ const HomeScreen = () => {
           // Assuming `result.payload` is the array you get from the response
           // Assuming `result.payload` is the array you get from the response
           const timesArray = result.payload.map(item => item.training_time);
+
           console.log('Mapped Times Array:', timesArray); // Check if the array is populated
           setTimes(timesArray);
         } else {
@@ -611,18 +614,7 @@ const HomeScreen = () => {
               showsHorizontalScrollIndicator={false}
               keyboardShouldPersistTaps="handled">
               <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                {times.map((item, index) => {
-                  // Split the time range (e.g., "7-8") into hours
-                  const [start, end] = item.split('-');
-                  let period = '';
-
-                  // Check if the starting time is before or after 12 to determine AM/PM
-                  if (parseInt(start) < 12) {
-                    period = 'AM';
-                  } else {
-                    period = 'PM';
-                  }
-
+                {data.map((item, index) => {
                   return (
                     <TouchableOpacity
                       key={index}
@@ -631,29 +623,27 @@ const HomeScreen = () => {
                         paddingVertical: 10,
                         marginRight: 10,
                         backgroundColor:
-                          item === selectedTime ? '#4CAF50' : '#fff', // Green when selected
+                          item.training_time === selectedTime
+                            ? '#4CAF50'
+                            : '#fff', // Green when selected
                         borderRadius: 5,
                         borderWidth: 1,
                         borderColor: '#ccc',
                         justifyContent: 'center',
                         alignItems: 'center',
                       }}
-                      onPress={() => handleSelect(item)}>
+                      onPress={() => handleSelect(item.training_time)} // Pass `training_time` on click
+                    >
                       <Text
                         style={{
                           fontSize: 16,
                           fontFamily: 'Inter-Regular',
-                          color: item === selectedTime ? '#fff' : '#000', // White text when selected
+                          color:
+                            item.training_time === selectedTime
+                              ? '#fff'
+                              : '#000', // White text when selected
                         }}>
-                        {item} {/* Display the training time with AM/PM */}
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 8,
-                          color: item === selectedTime ? '#fff' : '#000',
-                          fontFamily: 'Inter-Regular',
-                        }}>
-                        {period}
+                        {item.time_am_pm} {/* Display time in AM/PM */}
                       </Text>
                     </TouchableOpacity>
                   );
@@ -740,7 +730,16 @@ const HomeScreen = () => {
                                   fontFamily: 'Inter-Bold',
                                   fontSize: 17,
                                 }}>
-                                Slot Time : {selectedValue}
+                                Slot Time :{' '}
+                                {data.find(
+                                  item => item.training_time === selectedTime,
+                                )?.time_am_pm
+                                  ? data.find(
+                                      item =>
+                                        item.training_time === selectedTime,
+                                    ).time_am_pm
+                                  : 'No Slot Selected'}
+                                {/* Show the corresponding time_am_pm */}
                               </Text>
                             </View>
 

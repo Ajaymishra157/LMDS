@@ -65,7 +65,9 @@ const Bottomtabnavigation = () => {
 
     // Navigate based on the selected tab
     if (tabName === 'Home') {
-      navigation.navigate('HomeScreen');
+      navigation.navigate(
+        userType === 'Trainer' ? 'HomeScreen' : 'DashboardScreen',
+      );
     } else if (tabName === 'Profile') {
       navigation.navigate('ProfileScreen');
     } else if (tabName === 'Order') {

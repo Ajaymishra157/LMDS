@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   ScrollView,
   ToastAndroid,
+  RefreshControl,
   Alert,
   Button,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import Header from '../Component/Header';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -30,13 +32,22 @@ const LeaveApplication = () => {
   const [fromDate, setFromDate] = useState('');
   const [tillDate, setTillDate] = useState('');
   const [reason, setReason] = useState('');
+
+  const [isValidFromDate, setIsValidFromDate] = useState(true);
+  const [isValidTillDate, setIsValidTillDate] = useState(true);
+  const [isValidReason, setIsValidReason] = useState(true);
+
+  const [refreshing, setRefreshing] = useState(false);
+
   const [LeaveList, setLeaveList] = useState([]);
+  const [LeaveListLaoding, setLeaveListLaoding] = useState(false);
   console.log('leaveList', LeaveList);
   const [showFromDatePicker, setShowFromDatePicker] = useState(false);
   const [showTillDatePicker, setShowTillDatePicker] = useState(false);
 
   const [isModalVisible, setIsModalVisible] = useState(false); // State to control modal visibility
   const [selectedLeave, setSelectedLeave] = useState(null);
+  const [addLoading, setaddLoading] = useState(false);
 
   const [ConfirmationModal, setConfirmationModal] = useState(false);
   const [selectedConfirmLeave, setselectedConfirmLeave] = useState(null);
@@ -68,16 +79,29 @@ const LeaveApplication = () => {
   };
 
   const handleSubmitLeave = async () => {
-    if (selectedConfirmLeave) {
-      // If a leave is selected for update, call the Update API
-      await UpdateLeaveApi(selectedConfirmLeave.leave_id); // Pass the leave ID for update
+    const isFromDateValid = fromDate !== '';
+    const isTillDateValid = tillDate !== '';
+    const isReasonValid = reason !== '';
+
+    setIsValidFromDate(isFromDateValid);
+    setIsValidTillDate(isTillDateValid);
+    setIsValidReason(isReasonValid);
+
+    if (isFromDateValid && isTillDateValid && isReasonValid) {
+      if (selectedConfirmLeave) {
+        // If a leave is selected for update, call the Update API
+        await UpdateLeaveApi(selectedConfirmLeave.leave_id); // Pass the leave ID for update
+      } else {
+        // If no leave is selected (new leave), call the Add API
+        await handleAddLeaveApi();
+      }
     } else {
-      // If no leave is selected (new leave), call the Add API
-      await handleAddLeaveApi();
+      // Show error or handle invalid fields
     }
   };
 
   const handleAddLeaveApi = async () => {
+    setaddLoading(true);
     console.log('fromdate and tilldate', fromDate, tillDate);
     const trainerId = await AsyncStorage.getItem('trainer_id');
 
@@ -119,11 +143,12 @@ const LeaveApplication = () => {
     } catch (error) {
       console.error('Error:', error.message);
     } finally {
-      // Any final actions if needed
+      setaddLoading(false);
     }
   };
 
   const TrainerLeaveList = async () => {
+    setLeaveListLaoding(true);
     const trainerId = await AsyncStorage.getItem('trainer_id');
     console.log('trinerid', trainerId);
     try {
@@ -147,6 +172,8 @@ const LeaveApplication = () => {
       }
     } catch (error) {
       console.error('Error:', error.message);
+    } finally {
+      setLeaveListLaoding(false);
     }
   };
 
@@ -156,24 +183,55 @@ const LeaveApplication = () => {
       TrainerLeaveList();
     }, []),
   );
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await TrainerLeaveList(); // Re-fetch data
+    setRefreshing(false); // Stop refreshing once data is fetched
+  };
 
+  // const handleDateChange = (event, selectedDate, type) => {
+
+  //   const currentDate = selectedDate || new Date();
+
+  //   // Format the date as "DD-MM-YYYY"
+  //   const day = currentDate.getDate().toString().padStart(2, '0'); // Ensure 2-digit day
+  //   const month = (currentDate.getMonth() + 1).toString().padStart(2, '0'); // Ensure 2-digit month
+  //   const year = currentDate.getFullYear(); // Get the full year
+
+  //   const formattedDate = `${day}-${month}-${year}`; // New format: "DD-MM-YYYY"
+
+  //   if (type === 'from') {
+  //     setFromDate(formattedDate);
+  //   } else {
+  //     setTillDate(formattedDate);
+  //   }
+
+  //   // Hide the date picker after selecting a date
+  //   if (type === 'from') {
+  //     setShowFromDatePicker(false);
+  //   } else {
+  //     setShowTillDatePicker(false);
+  //   }
+  // };
   const handleDateChange = (event, selectedDate, type) => {
-    const currentDate = selectedDate || new Date();
+    if (selectedDate) {
+      const currentDate = selectedDate;
 
-    // Format the date as "DD-MM-YYYY"
-    const day = currentDate.getDate().toString().padStart(2, '0'); // Ensure 2-digit day
-    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0'); // Ensure 2-digit month
-    const year = currentDate.getFullYear(); // Get the full year
+      // Format the date as "DD-MM-YYYY"
+      const day = currentDate.getDate().toString().padStart(2, '0'); // Ensure 2-digit day
+      const month = (currentDate.getMonth() + 1).toString().padStart(2, '0'); // Ensure 2-digit month
+      const year = currentDate.getFullYear(); // Get the full year
 
-    const formattedDate = `${day}-${month}-${year}`; // New format: "DD-MM-YYYY"
+      const formattedDate = `${day}-${month}-${year}`; // New format: "DD-MM-YYYY"
 
-    if (type === 'from') {
-      setFromDate(formattedDate);
-    } else {
-      setTillDate(formattedDate);
+      if (type === 'from') {
+        setFromDate(formattedDate);
+      } else {
+        setTillDate(formattedDate);
+      }
     }
 
-    // Hide the date picker after selecting a date
+    // Hide the date picker after selecting or closing without a change
     if (type === 'from') {
       setShowFromDatePicker(false);
     } else {
@@ -228,6 +286,8 @@ const LeaveApplication = () => {
   };
 
   const UpdateLeaveApi = async leaveId => {
+    setaddLoading(true);
+
     console.log('leaveId', leaveId, fromDate, tillDate, reason);
     try {
       const response = await fetch(ENDPOINTS.Update_Trainer_Leave, {
@@ -258,7 +318,30 @@ const LeaveApplication = () => {
       }
     } catch (error) {
       console.error('Error:', error.message);
+    } finally {
+      setaddLoading(false);
     }
+  };
+
+  const getLeaveStatusColor = status => {
+    switch (status) {
+      case 'Approve':
+        return 'green'; // Green for approved
+      case 'Reject':
+        return 'red'; // Red for rejected
+      case 'Pending':
+        return 'orange'; // Orange for pending
+      default:
+        return 'black'; // Default color
+    }
+  };
+
+  const getCurrentDate = () => {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    const day = currentDate.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   return (
@@ -275,9 +358,8 @@ const LeaveApplication = () => {
         <TouchableOpacity
           style={{position: 'absolute', top: 15, left: 15}}
           onPress={() => {
-            navigation.navigate('HomeScreen');
+            navigation.goBack();
           }}>
-          {' '}
           <Ionicons name="arrow-back" color="white" size={26} />
         </TouchableOpacity>
 
@@ -322,11 +404,11 @@ const LeaveApplication = () => {
                 backgroundColor: '#ffffff',
                 borderRadius: 5,
                 borderWidth: 1,
-                borderColor: '#cccccc',
+                borderColor: !isValidFromDate ? 'red' : '#cccccc',
                 flexDirection: 'row',
                 justifyContent: 'space-between',
               }}
-              activeOpacity={1}>
+              onPress={() => setShowFromDatePicker(true)}>
               <Text
                 style={{
                   fontSize: 12,
@@ -335,10 +417,20 @@ const LeaveApplication = () => {
                 }}>
                 {fromDate || 'Select From Date'}
               </Text>
-              <TouchableOpacity onPress={() => setShowFromDatePicker(true)}>
+              <TouchableOpacity>
                 <FontAwesome name="calendar" size={25} />
               </TouchableOpacity>
             </TouchableOpacity>
+            {!isValidFromDate && (
+              <Text
+                style={{
+                  color: 'red',
+                  fontSize: 12,
+                  fontFamily: 'Inter-Regular',
+                }}>
+                From Date is required
+              </Text>
+            )}
           </View>
 
           {/* Till Date */}
@@ -359,11 +451,11 @@ const LeaveApplication = () => {
                 backgroundColor: '#ffffff',
                 borderRadius: 5,
                 borderWidth: 1,
-                borderColor: '#cccccc',
+                borderColor: !isValidTillDate ? 'red' : '#cccccc',
                 flexDirection: 'row',
                 justifyContent: 'space-between',
               }}
-              activeOpacity={1}>
+              onPress={() => setShowTillDatePicker(true)}>
               <Text
                 style={{
                   fontSize: 12,
@@ -372,10 +464,20 @@ const LeaveApplication = () => {
                 }}>
                 {tillDate || 'Select Till Date'}
               </Text>
-              <TouchableOpacity onPress={() => setShowTillDatePicker(true)}>
+              <TouchableOpacity>
                 <FontAwesome name="calendar" size={25} />
               </TouchableOpacity>
             </TouchableOpacity>
+            {!isValidTillDate && (
+              <Text
+                style={{
+                  color: 'red',
+                  fontSize: 12,
+                  fontFamily: 'Inter-Regular',
+                }}>
+                Till Date is required
+              </Text>
+            )}
           </View>
         </View>
 
@@ -397,7 +499,7 @@ const LeaveApplication = () => {
               backgroundColor: '#ffffff',
               borderRadius: 5,
               borderWidth: 1,
-              borderColor: '#cccccc',
+              borderColor: !isValidReason ? 'red' : '#cccccc',
               minHeight: 80,
               textAlignVertical: 'top', // Ensures multiline input
               color: 'black',
@@ -409,50 +511,72 @@ const LeaveApplication = () => {
             onChangeText={setReason}
             multiline
           />
+          {!isValidReason && (
+            <Text
+              style={{color: 'red', fontSize: 12, fontFamily: 'Inte-Regualar'}}>
+              Reason is required
+            </Text>
+          )}
         </View>
 
         {/* Add Leave Button */}
-        <TouchableOpacity
-          style={{
-            backgroundColor: '#007BFF',
-            paddingVertical: 12,
-            borderRadius: 5,
-            marginTop: 5,
-            alignItems: 'center',
-          }}
-          onPress={handleSubmitLeave}>
-          <Text
+        {addLoading ? (
+          <View>
+            <ActivityIndicator size="small" color="black" />
+          </View>
+        ) : (
+          <TouchableOpacity
             style={{
-              color: '#fff',
-              fontSize: 16,
-              fontWeight: 'bold',
-              fontFamily: 'Inter-Regular',
-            }}>
-            {selectedConfirmLeave ? 'Update Leave' : 'Add Leave'}
-          </Text>
-        </TouchableOpacity>
+              backgroundColor: '#007BFF',
+              paddingVertical: 12,
+              borderRadius: 5,
+              marginTop: 5,
+              alignItems: 'center',
+            }}
+            onPress={handleSubmitLeave}>
+            <Text
+              style={{
+                color: '#fff',
+                fontSize: 16,
+                fontWeight: 'bold',
+                fontFamily: 'Inter-Regular',
+              }}>
+              {selectedConfirmLeave ? 'Update Leave' : 'Add Leave'}
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {/* Date Picker for From Date */}
         {showFromDatePicker && (
           <DateTimePicker
-            value={new Date()}
+            value={
+              fromDate
+                ? new Date(fromDate.split('-').reverse().join('-'))
+                : new Date()
+            } // Current date
             mode="date"
             display="default"
             onChange={(event, selectedDate) =>
               handleDateChange(event, selectedDate, 'from')
             }
+            minimumDate={new Date()} // This ensures no past dates can be selected
           />
         )}
 
         {/* Date Picker for Till Date */}
         {showTillDatePicker && (
           <DateTimePicker
-            value={new Date()}
+            value={
+              tillDate
+                ? new Date(tillDate.split('-').reverse().join('-'))
+                : new Date()
+            }
             mode="date"
             display="default"
             onChange={(event, selectedDate) =>
               handleDateChange(event, selectedDate, 'till')
             }
+            minimumDate={new Date()}
           />
         )}
       </View>
@@ -490,7 +614,6 @@ const LeaveApplication = () => {
             }}>
             Till Date
           </Text>
-
           <Text
             style={{
               flex: 1,
@@ -515,68 +638,105 @@ const LeaveApplication = () => {
           </Text>
         </View>
 
-        {/* Data List using .map() */}
-        {LeaveList.map(leave => (
+        {/* Loading Indicator */}
+        {LeaveListLaoding ? (
           <View
-            key={leave.leave_id}
-            style={{
-              flexDirection: 'row',
-              backgroundColor: '#f9f9f9',
-              padding: 10,
-              marginBottom: 5,
-              borderRadius: 5,
-            }}>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'center',
-                fontFamily: 'Inter-Regular',
-                fontSize: 12,
-                color: 'black',
-              }}>
-              {leave.start_date}
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'center',
-                fontFamily: 'Inter-Regular',
-                fontSize: 12,
-                color: 'black',
-              }}>
-              {leave.end_date}
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                textAlign: 'center',
-                fontFamily: 'Inter-Regular',
-                fontSize: 12,
-                color: leave.leave_status === 'Pending' ? 'orange' : 'black',
-              }}>
-              {leave.leave_status}
-            </Text>
-            <View
-              style={{
-                width: '24%',
-                flexDirection: 'row',
-                justifyContent: 'center',
-                gap: 22,
-              }}>
-              {' '}
-              <TouchableOpacity
-                onPress={() => handleOpenModal(leave)}
-                style={{alignItems: 'center'}}>
-                <Feather name="eye" size={18} color="black" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => handleOpenModal2(leave)}
-                style={{alignItems: 'center'}}>
-                <Entypo name="dots-three-vertical" size={18} color="Black" />
-              </TouchableOpacity>
-            </View>
+            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            <ActivityIndicator size="large" color="#0000ff" />
           </View>
-        ))}
+        ) : (
+          <>
+            {/* If no data */}
+            {LeaveList.length === 0 ? (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    color: 'red',
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  No Data Found
+                </Text>
+              </View>
+            ) : (
+              // Data List using .map()
+              LeaveList.map(leave => {
+                const currentDate = getCurrentDate();
+                const isPending = leave.leave_status === 'Pending';
+                return (
+                  <View
+                    key={leave.leave_id}
+                    style={{
+                      flexDirection: 'row',
+                      backgroundColor: '#f9f9f9',
+                      padding: 10,
+                      marginBottom: 5,
+                      borderRadius: 5,
+                    }}>
+                    <Text
+                      style={{
+                        flex: 1,
+                        textAlign: 'center',
+                        fontFamily: 'Inter-Regular',
+                        fontSize: 12,
+                        color: 'black',
+                      }}>
+                      {leave.start_date}
+                    </Text>
+                    <Text
+                      style={{
+                        flex: 1,
+                        textAlign: 'center',
+                        fontFamily: 'Inter-Regular',
+                        fontSize: 12,
+                        color: 'black',
+                      }}>
+                      {leave.end_date}
+                    </Text>
+                    <Text
+                      style={{
+                        flex: 1,
+                        textAlign: 'center',
+                        fontFamily: 'Inter-Bold',
+                        fontSize: 12,
+                        color: getLeaveStatusColor(leave.leave_status), // Use the function here
+                      }}>
+                      {leave.leave_status}
+                    </Text>
+                    <View
+                      style={{
+                        width: '24%',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        gap: 22,
+                      }}>
+                      <TouchableOpacity
+                        onPress={() => handleOpenModal(leave)}
+                        style={{alignItems: 'center'}}>
+                        <Feather name="eye" size={18} color="black" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleOpenModal2(leave)}
+                        style={{alignItems: 'center'}}
+                        disabled={!isPending}>
+                        <Entypo
+                          name="dots-three-vertical"
+                          size={18}
+                          color={!isPending ? 'white' : 'black'}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
+              })
+            )}
+          </>
+        )}
 
         {selectedLeave && (
           <Modal
@@ -584,12 +744,16 @@ const LeaveApplication = () => {
             animationType="slide"
             transparent={true}
             onRequestClose={handleCloseModal}>
-            <View
+            <TouchableOpacity
               style={{
                 flex: 1,
                 justifyContent: 'center',
                 alignItems: 'center',
                 backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              }}
+              activeOpacity={1}
+              onPress={() => {
+                setIsModalVisible(false);
               }}>
               <View
                 style={{
@@ -609,28 +773,52 @@ const LeaveApplication = () => {
                     <Entypo name="cross" size={24} color="Black" />
                   </TouchableOpacity>
                 </View>
-                <Text
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 'bold',
-                    marginBottom: 10,
-                    color: 'black',
-                    fontFamily: 'Inter-Regular',
-                  }}>
-                  Leave Reason
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    marginBottom: 20,
-                    textAlign: 'center',
-                    color: 'black',
-                    fontFamily: 'Inter-Regular',
-                  }}>
-                  {selectedLeave.reason}
-                </Text>
+                {/* Entry Date Section */}
+                <View style={{alignItems: 'flex-start', width: '100%'}}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '600',
+                      marginBottom: 5,
+                      color: '#333',
+                      fontFamily: 'Inter-Bold',
+                    }}>
+                    Entry Date
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      marginBottom: 20,
+                      color: '#555',
+                      fontFamily: 'Inter-Regular',
+                    }}>
+                    {selectedLeave.entry_date}
+                  </Text>
+                </View>
+                <View style={{alignItems: 'flex-start', width: '100%'}}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 'bold',
+                      marginBottom: 10,
+                      color: 'black',
+                      fontFamily: 'Inter-Regular',
+                    }}>
+                    Leave Reason
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      marginBottom: 20,
+                      textAlign: 'center',
+                      color: 'black',
+                      fontFamily: 'Inter-Regular',
+                    }}>
+                    {selectedLeave.reason}
+                  </Text>
+                </View>
               </View>
-            </View>
+            </TouchableOpacity>
           </Modal>
         )}
         {/* confirmation modal */}
@@ -639,7 +827,7 @@ const LeaveApplication = () => {
             visible={ConfirmationModal}
             animationType="slide"
             transparent={true}
-            onRequestClose={handleCloseModal}>
+            onRequestClose={handleCloseModal2}>
             <View
               style={{
                 flex: 1,

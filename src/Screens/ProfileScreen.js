@@ -33,8 +33,8 @@ const ProfileScreen = () => {
 
   const handleLogout = async () => {
     Alert.alert(
-      'Log out',
-      'Are you sure you want to log out?',
+      'Logout',
+      'Are you sure you want to logout?',
       [
         {
           text: 'No',
@@ -98,25 +98,7 @@ const ProfileScreen = () => {
   );
   return (
     <View style={{flex: 1, backgroundColor: 'white'}}>
-      <View
-        style={{
-          backgroundColor: colors.Black,
-          padding: 15,
-          justifyContent: 'center',
-
-          alignItems: 'center',
-          flexDirection: 'row',
-        }}>
-        <Text
-          style={{
-            color: 'white',
-            fontSize: 20,
-            fontWeight: 'bold',
-            fontFamily: 'Inter-Bold',
-          }}>
-          My Profile
-        </Text>
-      </View>
+      <Header title="My Profile" onMenuPress={() => navigation.openDrawer()} />
       <View style={{}}>
         <View
           style={{

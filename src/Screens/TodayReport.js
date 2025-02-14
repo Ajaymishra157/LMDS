@@ -6,17 +6,24 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ENDPOINTS} from '../CommonFiles/Constant';
 import colors from '../CommonFiles/Colors';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const TodayReport = () => {
+  const route = useRoute();
+  const {fromDate, tillDate} = route.params;
+  console.log('From date and till date', fromDate, tillDate);
   const navigation = useNavigation();
   const [TodayHistory, setTodayHistory] = useState([]);
   const [currentDate, setCurrentDate] = useState('');
+  const [ReportLoading, setReportLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     let today = new Date();
@@ -28,19 +35,20 @@ const TodayReport = () => {
     setCurrentDate(formattedDate);
   }, []);
   // Function to format the current date
-  const getFormattedCurrentDate = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0'); // Adds leading zero if needed
-    const day = String(today.getDate()).padStart(2, '0'); // Adds leading zero if needed
+  // const getFormattedCurrentDate = () => {
+  //   const today = new Date();
+  //   const year = today.getFullYear();
+  //   const month = String(today.getMonth() + 1).padStart(2, '0'); // Adds leading zero if needed
+  //   const day = String(today.getDate()).padStart(2, '0'); // Adds leading zero if needed
 
-    return `${year}-${month}-${day}`; // Format as yyyy-mm-dd
-  };
+  //   return `${year}-${month}-${day}`; // Format as yyyy-mm-dd
+  // };
 
   // Fetch data from API
   const ShowTrainerDateWiseApi = async () => {
+    setReportLoading(true);
     const trainerId = await AsyncStorage.getItem('trainer_id');
-    const formattedDate = getFormattedCurrentDate();
+    // const formattedDate = getFormattedCurrentDate();
 
     try {
       const response = await fetch(ENDPOINTS.Show_Trainer_Date_Wise, {
@@ -50,7 +58,8 @@ const TodayReport = () => {
         },
         body: JSON.stringify({
           trainer_id: trainerId,
-          date: formattedDate,
+          from_date: fromDate, // Use the passed fromDate
+          till_date: tillDate, // Use the passed tillDate
         }),
       });
       const data = await response.json();
@@ -61,12 +70,30 @@ const TodayReport = () => {
       }
     } catch (error) {
       console.error('Error:', error.message);
+    } finally {
+      setReportLoading(false);
     }
   };
 
+  // Function to handle pull-to-refresh
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await ShowTrainerDateWiseApi(); // Re-fetch data
+    setRefreshing(false); // Stop refreshing once data is fetched
+  };
+
   useEffect(() => {
-    ShowTrainerDateWiseApi(); // Fetch data when component mounts
-  }, []);
+    ShowTrainerDateWiseApi();
+  }, [fromDate, tillDate]);
+
+  const formatDate = date => {
+    const d = new Date(date);
+    const day = d.getDate().toString().padStart(2, '0');
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const year = d.getFullYear();
+
+    return `${day}-${month}-${year}`;
+  };
 
   return (
     <View style={{flex: 1, backgroundColor: 'white'}}>
@@ -94,7 +121,7 @@ const TodayReport = () => {
             fontWeight: 'bold',
             fontFamily: 'Inter-Bold',
           }}>
-          Today Report
+          Report History
         </Text>
       </View>
       <View
@@ -107,8 +134,11 @@ const TodayReport = () => {
           borderBottomWidth: 1,
           borderBottomColor: '#ddd',
         }}>
-        <Text style={{color: 'black', fontFamily: 'Inter-Bold', fontSize: 16}}>
-          {currentDate}
+        <Text
+          style={{color: 'black', fontFamily: 'Inter-Medium', fontSize: 16}}>
+          {fromDate === tillDate
+            ? formatDate(fromDate)
+            : `${formatDate(fromDate)}  To  ${formatDate(tillDate)}`}
         </Text>
       </View>
 
@@ -136,14 +166,23 @@ const TodayReport = () => {
             #App No
           </Text>
           <Text
-            style={{color: 'black', fontFamily: 'Inter-Bold', marginLeft: 5}}>
+            style={{color: 'black', fontFamily: 'Inter-Bold', marginLeft: 10}}>
             Student Name
           </Text>
         </View>
       </View>
 
       {/* Check if TodayHistory is empty, if so show error message */}
-      {TodayHistory.length === 0 ? (
+      {ReportLoading ? (
+        <View
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 20,
+          }}>
+          <ActivityIndicator size="large" color="Black" />
+        </View>
+      ) : TodayHistory.length === 0 ? (
         <View
           style={{
             justifyContent: 'center',
@@ -176,7 +215,6 @@ const TodayReport = () => {
                   }}>
                   <Text
                     style={{
-                      fontSize: 18,
                       fontFamily: 'Inter-Regular',
                       fontWeight: 'bold',
                       color: 'black',
@@ -188,44 +226,77 @@ const TodayReport = () => {
                 <View style={{marginBottom: 2, flex: 1, width: '70%'}}>
                   {/* Display Application No 1 and Student Name 1 */}
                   {item.application_no1 && item.student_name1 && (
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        fontFamily: 'Inter-Regular',
-                        color: 'black',
-                        marginBottom: 5, // Add margin to separate the items
-                      }}>
-                      {item.application_no1} -{' '}
-                      <Text style={{marginLeft: 10}}>{item.student_name1}</Text>
-                    </Text>
+                    <View style={{marginBottom: 5, flexDirection: 'row'}}>
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          fontFamily: 'Inter-Regular',
+                          color: 'black',
+                        }}>
+                        {item.application_no1}
+                      </Text>
+                      <View style={{marginLeft: 10}}>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontFamily: 'Inter-Regular',
+                            color: 'black',
+                            marginLeft: 10,
+                          }}>
+                          {item.student_name1}
+                        </Text>
+                      </View>
+                    </View>
                   )}
 
                   {/* Display Application No 2 and Student Name 2 */}
                   {item.application_no2 && item.student_name2 && (
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        fontFamily: 'Inter-Regular',
-                        color: 'black',
-                        marginBottom: 5, // Add margin to separate the items
-                      }}>
-                      {item.application_no2} -{' '}
-                      <Text style={{marginLeft: 10}}>{item.student_name2}</Text>
-                    </Text>
+                    <View style={{marginBottom: 5, flexDirection: 'row'}}>
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          fontFamily: 'Inter-Regular',
+                          color: 'black',
+                        }}>
+                        {item.application_no2}
+                      </Text>
+                      <View style={{marginLeft: 10}}>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontFamily: 'Inter-Regular',
+                            color: 'black',
+                            marginLeft: 10,
+                          }}>
+                          {item.student_name2}
+                        </Text>
+                      </View>
+                    </View>
                   )}
 
                   {/* Display Application No 3 and Student Name 3 */}
                   {item.application_no3 && item.student_name3 && (
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        fontFamily: 'Inter-Regular',
-                        color: 'black',
-                        marginBottom: 5, // Add margin to separate the items
-                      }}>
-                      {item.application_no3} -{' '}
-                      <Text style={{marginLeft: 10}}>{item.student_name3}</Text>
-                    </Text>
+                    <View style={{marginBottom: 5, flexDirection: 'row'}}>
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          fontFamily: 'Inter-Regular',
+                          color: 'black',
+                        }}>
+                        {item.application_no3}
+                      </Text>
+                      <View style={{marginLeft: 10}}>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontFamily: 'Inter-Regular',
+                            color: 'black',
+                            marginLeft: 10,
+                          }}>
+                          {item.student_name3}
+                        </Text>
+                      </View>
+                    </View>
                   )}
                 </View>
 
@@ -256,6 +327,13 @@ const TodayReport = () => {
               </View>
             </View>
           )}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing} // Set the refreshing state
+              onRefresh={onRefresh} // Call onRefresh function when pull-to-refresh
+              colors={['#9Bd35A', '#689F38']} // Optional, set the color of the spinner
+            />
+          }
         />
       )}
     </View>

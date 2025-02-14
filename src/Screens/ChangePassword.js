@@ -29,6 +29,8 @@ const ChangePassword = () => {
   const [oldPasswordError, setOldPasswordError] = useState(null);
   const [newPasswordError, setNewPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
+  const [LastError, setLastError] = useState('');
+  const [matcherror, setmatcherror] = useState('');
 
   // Eye icon states
   const [showOldPassword, setShowOldPassword] = useState(false);
@@ -36,32 +38,54 @@ const ChangePassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const ChangePasswordApi = async () => {
+    setLastError('');
+    setmatcherror('');
+    let formIsValid = true; // Flag to track if the form is valid
+
+    // Check if fields are empty and set error messages
     if (!oldPassword) {
-      setOldPasswordError('please enter the old password');
-      return;
-    } else if (!newPassword) {
-      setOldPasswordError('please enter the new password');
-      return;
-    } else if (!confirmPassword) {
-      setOldPasswordError('please enter the confirm password');
-      return;
+      setOldPasswordError('Please enter the old password');
+      formIsValid = false;
+    } else {
+      setOldPasswordError(null); // Reset the error if the field is filled
     }
-    if (newPassword.length < 6) {
-      setOldPasswordError('New password must be at least 6 characters long.');
+
+    if (!newPassword) {
+      setNewPasswordError('Please enter the new password');
+      formIsValid = false;
+    } else {
+      setNewPasswordError(null); // Reset the error if the field is filled
+    }
+
+    if (!confirmPassword) {
+      setConfirmPasswordError('Please enter the confirm password');
+      formIsValid = false;
+    } else {
+      setConfirmPasswordError(null); // Reset the error if the field is filled
+    }
+
+    // Check if passwords meet the length requirement
+    if (newPassword && newPassword.length < 5) {
+      setLastError('New password must be at least 5 characters long.');
+      formIsValid = false;
+    }
+
+    if (confirmPassword && confirmPassword.length < 5) {
+      setLastError('Confirm password must be at least 5 characters long.');
+      formIsValid = false;
+    }
+
+    // If form is invalid, return and prevent API call
+    if (!formIsValid) {
       return;
     }
 
-    if (confirmPassword.length < 6) {
-      setOldPasswordError(
-        'Confirm password must be at least 6 characters long.',
-      );
-      return;
-    }
     setchangeLoading(true);
     const trainerId = await AsyncStorage.getItem('trainer_id');
+    console.log('trainerid', trainerId);
 
     try {
-      const response = await fetch(ENDPOINTS.ChangePassword, {
+      const response = await fetch(ENDPOINTS.Trainer_Change_Password, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,14 +100,22 @@ const ChangePassword = () => {
       const data = await response.json();
       console.log('Response Data:', data);
 
-      if (data.code == 200 && data.status == 'True') {
+      if (data.code == 200) {
         console.log('Password changed successfully');
         ToastAndroid.show('Password changed successfully', ToastAndroid.SHORT);
         navigation.goBack();
       } else if (data.code == 400) {
-        setOldPasswordError(data.message);
+        if (
+          data.message
+            .toLowerCase()
+            .includes('new password and confirm password do not match')
+        ) {
+          setmatcherror('New password and confirm password do not match.');
+        } else {
+          setOldPasswordError(data.message); // For other errors, set to OldPasswordError
+        }
       } else {
-        console.log('unknown error');
+        console.log('Unknown error');
       }
     } catch (error) {
       console.error('Error changing password:', error);
@@ -143,10 +175,10 @@ const ChangePassword = () => {
             flexDirection: 'row',
             alignItems: 'center',
             borderWidth: 1,
-            borderColor: colors.primary,
+            borderColor: oldPasswordError ? 'red' : colors.primary,
             borderRadius: 8,
             paddingHorizontal: 15,
-            marginBottom: 20,
+            marginBottom: 10,
           }}>
           <TextInput
             placeholder="Old Password"
@@ -172,6 +204,18 @@ const ChangePassword = () => {
             />
           </TouchableOpacity>
         </View>
+        {oldPasswordError ? (
+          <Text
+            style={{
+              color: 'red',
+              fontSize: 14,
+              marginBottom: 7,
+              marginLeft: 7,
+              fontFamily: 'Inter-Regular',
+            }}>
+            {oldPasswordError}
+          </Text>
+        ) : null}
 
         {/* New Password */}
         <Text
@@ -190,10 +234,10 @@ const ChangePassword = () => {
             flexDirection: 'row',
             alignItems: 'center',
             borderWidth: 1,
-            borderColor: colors.primary,
+            borderColor: newPasswordError ? 'red' : colors.primary, // Red border on error
             borderRadius: 8,
             paddingHorizontal: 15,
-            marginBottom: 20,
+            marginBottom: 10,
           }}>
           <TextInput
             placeholder="New Password"
@@ -219,6 +263,20 @@ const ChangePassword = () => {
             />
           </TouchableOpacity>
         </View>
+        {/* Display errors if any */}
+
+        {newPasswordError ? (
+          <Text
+            style={{
+              color: 'red',
+              fontSize: 14,
+              marginBottom: 7,
+              marginLeft: 7,
+              fontFamily: 'Inter-Regular',
+            }}>
+            {newPasswordError}
+          </Text>
+        ) : null}
 
         {/* Confirm Password */}
         <Text
@@ -237,10 +295,10 @@ const ChangePassword = () => {
             flexDirection: 'row',
             alignItems: 'center',
             borderWidth: 1,
-            borderColor: colors.primary,
+            borderColor: confirmPasswordError ? 'red' : colors.primary, // Red border on error
             borderRadius: 8,
             paddingHorizontal: 15,
-            marginBottom: 20,
+            marginBottom: 10,
           }}>
           <TextInput
             placeholder="Confirm Password"
@@ -266,8 +324,53 @@ const ChangePassword = () => {
             />
           </TouchableOpacity>
         </View>
+        {confirmPasswordError ? (
+          <Text
+            style={{
+              color: 'red',
+              fontSize: 14,
+              marginBottom: 7,
+              marginLeft: 7,
+              fontFamily: 'Inter-Regular',
+            }}>
+            {confirmPasswordError}
+          </Text>
+        ) : null}
+
+        {matcherror ? (
+          <Text
+            style={{
+              color: 'red',
+              fontSize: 14,
+              marginBottom: 10,
+              marginLeft: 15,
+              fontFamily: 'Inter-Regular',
+            }}>
+            {matcherror}
+          </Text>
+        ) : null}
+
+        {LastError ? (
+          <Text
+            style={{
+              color: 'red',
+              fontSize: 14,
+              marginBottom: 10,
+              marginLeft: 15,
+              fontFamily: 'Inter-Regular',
+            }}>
+            {LastError}
+          </Text>
+        ) : null}
+
         {changeLoading ? (
-          <View>
+          <View
+            style={{
+              borderRadius: 10,
+              height: 50,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
             <ActivityIndicator color="black" size="small" />
           </View>
         ) : (
@@ -278,50 +381,13 @@ const ChangePassword = () => {
               height: 50,
               justifyContent: 'center',
               alignItems: 'center',
-            }}>
+            }}
+            onPress={ChangePasswordApi}>
             <Text style={{color: 'white', fontFamily: 'Inter-Regular'}}>
               Change password
             </Text>
           </TouchableOpacity>
         )}
-
-        {/* Display errors if any */}
-        {oldPasswordError ? (
-          <Text
-            style={{
-              color: 'red',
-              fontSize: 14,
-              marginBottom: 10,
-              marginLeft: 15,
-              fontFamily: 'Inter-Regular',
-            }}>
-            {oldPasswordError}
-          </Text>
-        ) : null}
-        {newPasswordError ? (
-          <Text
-            style={{
-              color: 'red',
-              fontSize: 14,
-              marginBottom: 10,
-              marginLeft: 15,
-              fontFamily: 'Inter-Regular',
-            }}>
-            {newPasswordError}
-          </Text>
-        ) : null}
-        {confirmPasswordError ? (
-          <Text
-            style={{
-              color: 'red',
-              fontSize: 14,
-              marginBottom: 10,
-              marginLeft: 15,
-              fontFamily: 'Inter-Regular',
-            }}>
-            {confirmPasswordError}
-          </Text>
-        ) : null}
       </View>
     </View>
   );

@@ -13,10 +13,11 @@ import Header from '../Component/Header';
 import Bottomtabnavigation from '../Component/Bottomtabnavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ENDPOINTS} from '../CommonFiles/Constant';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import colors from '../CommonFiles/Colors';
 
 const AttendenceScreen = () => {
+  const navigation = useNavigation();
   const [currentDate, setCurrentDate] = useState('');
   const [attendanceData, setAttendanceData] = useState([]);
   const [currentTime, setCurrentTime] = useState('');
@@ -87,7 +88,7 @@ const AttendenceScreen = () => {
       console.log('Attendance Response:', data);
 
       if (data.code == 200) {
-        ToastAndroid.show(`${actionType} Successful`, ToastAndroid.SHORT);
+        ToastAndroid.show(data.message, ToastAndroid.SHORT);
         await ShowTrainerAttendenceListApi();
       } else {
         // ToastAndroid.show('Error in Punching', ToastAndroid.SHORT);
@@ -141,25 +142,7 @@ const AttendenceScreen = () => {
 
   return (
     <View style={{flex: 1, backgroundColor: 'white'}}>
-      <View
-        style={{
-          backgroundColor: colors.Black,
-          padding: 15,
-          justifyContent: 'center',
-
-          alignItems: 'center',
-          flexDirection: 'row',
-        }}>
-        <Text
-          style={{
-            color: 'white',
-            fontSize: 20,
-            fontWeight: 'bold',
-            fontFamily: 'Inter-Bold',
-          }}>
-          Attendence
-        </Text>
-      </View>
+      <Header title="Attendence" onMenuPress={() => navigation.openDrawer()} />
       {/* Aaj ki Date */}
       <View
         style={{

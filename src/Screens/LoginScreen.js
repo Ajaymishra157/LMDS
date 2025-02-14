@@ -43,13 +43,13 @@ const LoginScreen = () => {
       setMobileno('Please Enter Mobile No');
       isValid = false;
     } else if (Mobile.length !== 10) {
-      setMobileno('Mobile Number must be exactly 10 digits');
+      setMobileno('Mobile Number Must be Exactly 10 Digits');
       isValid = false;
     }
 
     // Password validation (minimum 4 characters)
-    if (password.length < 6) {
-      setPasswordError('password must be 6 character');
+    if (password.length < 5) {
+      setPasswordError('Password Must be 5 Character');
       isValid = false;
     }
 
@@ -81,13 +81,24 @@ const LoginScreen = () => {
 
           const trainerId = data.payload.trainer_id;
           const trainername = data.payload.trainer_name;
+          const userType = data.payload.user_type;
           await AsyncStorage.setItem('trainer_id', trainerId);
           await AsyncStorage.setItem('trainer_name', trainername);
-          navigation.reset({
-            index: 0,
-            routes: [{name: 'HomeScreen'}],
-          });
-          // navigation.navigate('HomeScreen');
+          await AsyncStorage.setItem('user_type', userType);
+
+          if (userType === 'Trainer') {
+            // If user type is 'Trainer', go to HomeScreen
+            navigation.reset({
+              index: 0,
+              routes: [{name: 'HomeScreen'}],
+            });
+          } else {
+            // For any other user type, go to DashboardScreen
+            navigation.reset({
+              index: 0,
+              routes: [{name: 'DashboardScreen'}],
+            });
+          }
 
           // Navigate based on m_pin and user_type
         } else {
@@ -151,11 +162,11 @@ const LoginScreen = () => {
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            borderColor: '#d1d5db',
+            borderColor: MobilenoError ? 'red' : '#d1d5db',
             borderWidth: 1,
             borderRadius: 8,
             paddingHorizontal: 12,
-            marginBottom: 16,
+            marginBottom: 7,
           }}>
           <Ionicons name="mail-outline" size={20} color="gray" />
           <TextInput
@@ -168,7 +179,6 @@ const LoginScreen = () => {
             }}
             placeholder="Enter Mobile No"
             placeholderTextColor="grey"
-            keyboardType="numeric"
             value={Mobile}
             onChangeText={setMobile}
           />
@@ -178,7 +188,7 @@ const LoginScreen = () => {
             style={{
               color: 'red',
               fontSize: 14,
-              marginBottom: 10,
+              marginBottom: 5,
               marginLeft: 15,
               fontFamily: 'Inter-Regular',
             }}>
@@ -191,11 +201,11 @@ const LoginScreen = () => {
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            borderColor: '#d1d5db',
+            borderColor: passwordError ? 'red' : '#d1d5db',
             borderWidth: 1,
             borderRadius: 8,
             paddingHorizontal: 12,
-            marginBottom: 16,
+            marginBottom: 7,
           }}>
           <Ionicons name="lock-closed-outline" size={20} color="gray" />
           <TextInput
@@ -225,7 +235,7 @@ const LoginScreen = () => {
             style={{
               color: 'red',
               fontSize: 14,
-              marginBottom: 10,
+              marginBottom: 5,
               marginLeft: 15,
               fontFamily: 'Inter-Regular',
             }}>
