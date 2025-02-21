@@ -47,7 +47,6 @@ const Bottomtabnavigation = () => {
     if (isFocused) {
       const routeName = route.name;
 
-      // Dynamically set active tab based on the route name
       if (routeName === 'HomeScreen') {
         setActiveTab('Home');
       } else if (routeName === 'ProfileScreen') {
@@ -66,7 +65,11 @@ const Bottomtabnavigation = () => {
     // Navigate based on the selected tab
     if (tabName === 'Home') {
       navigation.navigate(
-        userType === 'Trainer' ? 'HomeScreen' : 'DashboardScreen',
+        userType === 'Trainer'
+          ? 'HomeScreen'
+          : userType === 'Manager'
+          ? 'ManagerDashboard'
+          : 'DashboardScreen',
       );
     } else if (tabName === 'Profile') {
       navigation.navigate('ProfileScreen');

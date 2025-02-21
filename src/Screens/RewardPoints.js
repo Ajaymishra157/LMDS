@@ -16,6 +16,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import colors from '../CommonFiles/Colors';
 import {ENDPOINTS} from '../CommonFiles/Constant';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Entypo from 'react-native-vector-icons/Entypo';
 
 const RewardPoints = () => {
   const [RewardPoints, setRewardPoints] = useState([]);
@@ -117,7 +118,7 @@ const RewardPoints = () => {
         <TouchableOpacity
           style={{position: 'absolute', top: 15, left: 15}}
           onPress={() => {
-            navigation.navigate('HomeScreen');
+            navigation.navigate('HomeScreen', {rewardPointsKey: true});
           }}>
           {' '}
           <Ionicons name="arrow-back" color="white" size={26} />
@@ -416,23 +417,49 @@ const RewardPoints = () => {
               width: '80%',
               backgroundColor: 'white',
               borderRadius: 10,
-              padding: 20,
+              padding: 10,
               shadowColor: '#000',
               shadowOffset: {width: 0, height: 2},
               shadowOpacity: 0.8,
               shadowRadius: 2,
               elevation: 5,
-            }}>
-            <Text
+            }}
+            onStartShouldSetResponder={() => true} // Prevent modal from closing on content click
+            onTouchEnd={e => e.stopPropagation()}>
+            <View
               style={{
-                fontSize: 18,
-                fontWeight: 'bold',
-                textAlign: 'center',
-                marginBottom: 20,
-                fontFamily: 'Inter-Medium',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                width: '100%',
+                marginBottom: 15,
               }}>
-              Student Details
-            </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                {' '}
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    textAlign: 'center',
+
+                    fontFamily: 'Inter-Medium',
+                  }}>
+                  Student Details
+                </Text>
+              </View>
+              <View style={{position: 'absolute', right: 10, top: 0}}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setModalVisible(false);
+                  }}>
+                  <Entypo name="cross" size={24} color="Black" />
+                </TouchableOpacity>
+              </View>
+            </View>
 
             {/* Display Application No and Student names */}
             {selectedItem && (
@@ -445,7 +472,7 @@ const RewardPoints = () => {
                       fontFamily: 'Inter-Regular',
                       color: 'black',
                     }}>
-                    {`• ${selectedItem.application_no1}-${selectedItem.student_name1}`}
+                    {`• ${selectedItem.application_no1} - ${selectedItem.student_name1}`}
                   </Text>
                 )}
                 {selectedItem.application_no2 && selectedItem.student_name2 && (
@@ -456,7 +483,7 @@ const RewardPoints = () => {
                       fontFamily: 'Inter-Regular',
                       color: 'black',
                     }}>
-                    {`• ${selectedItem.application_no2}-${selectedItem.student_name2}`}
+                    {`• ${selectedItem.application_no2} - ${selectedItem.student_name2}`}
                   </Text>
                 )}
                 {selectedItem.application_no3 && selectedItem.student_name3 && (
@@ -467,7 +494,7 @@ const RewardPoints = () => {
                       fontFamily: 'Inter-Regular',
                       color: 'black',
                     }}>
-                    {`• ${selectedItem.application_no3}-${selectedItem.student_name3}`}
+                    {`• ${selectedItem.application_no3} - ${selectedItem.student_name3}`}
                   </Text>
                 )}
               </View>

@@ -6,6 +6,7 @@ import {
   Text,
   ToastAndroid,
   TouchableOpacity,
+  RefreshControl,
   View,
 } from 'react-native';
 import React, {useCallback, useEffect, useState} from 'react';
@@ -17,6 +18,8 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import colors from '../CommonFiles/Colors';
 
 const AttendenceScreen = () => {
+  const [refreshing, setRefreshing] = useState(false);
+
   const navigation = useNavigation();
   const [currentDate, setCurrentDate] = useState('');
   const [attendanceData, setAttendanceData] = useState([]);
@@ -139,10 +142,16 @@ const AttendenceScreen = () => {
       TrainerAttendenceApi();
     }, []),
   );
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await ShowTrainerAttendenceListApi(); // Re-fetch data
+    setRefreshing(false); // Stop refreshing once data is fetched
+  };
 
   return (
     <View style={{flex: 1, backgroundColor: 'white'}}>
       <Header title="Attendence" onMenuPress={() => navigation.openDrawer()} />
+
       {/* Aaj ki Date */}
       <View
         style={{
@@ -161,22 +170,16 @@ const AttendenceScreen = () => {
           }}>
           {currentDate}
         </Text>
-        {/* <Text
-          style={{
-            fontSize: 18,
-            fontWeight: 'bold',
-            color: '#333',
-            fontFamily: 'Inter-Regular',
-            marginLeft: 10, // Space between date and time
-            paddingHorizontal: 10,
-          }}>
-          {currentTime}
-        </Text> */}
       </View>
 
       {/* Loading Spinner */}
       {loading && (
-        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
           <ActivityIndicator size="large" color="#0000ff" />
         </View>
       )}
@@ -189,6 +192,7 @@ const AttendenceScreen = () => {
             flexDirection: 'row',
             justifyContent: 'space-evenly',
             marginVertical: 20,
+            marginTop: 2,
           }}>
           {/* Punch In Button */}
           <TouchableOpacity
@@ -235,6 +239,7 @@ const AttendenceScreen = () => {
           </TouchableOpacity>
         </View>
       )}
+
       {/* Separator */}
       <View
         style={{
@@ -242,8 +247,17 @@ const AttendenceScreen = () => {
           backgroundColor: '#ccc',
         }}
       />
+
       {!loading && (
-        <ScrollView style={{flex: 1, padding: 10}}>
+        <ScrollView
+          style={{flex: 1, padding: 10}}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#9Bd35A', '#689F38']}
+            />
+          }>
           {/* Table Header */}
           <View
             style={{
@@ -311,6 +325,7 @@ const AttendenceScreen = () => {
                     fontFamily: 'Inter-Regular',
                     textAlign: 'center',
                     fontSize: 13,
+                    color: colors.Black,
                   }}>
                   {item.t_date}
                 </Text>
@@ -321,6 +336,7 @@ const AttendenceScreen = () => {
                     fontFamily: 'Inter-Regular',
                     textAlign: 'center',
                     fontSize: 13,
+                    color: colors.Black,
                   }}>
                   {item.punch_in_time || '----'}
                 </Text>
@@ -331,6 +347,7 @@ const AttendenceScreen = () => {
                     fontFamily: 'Inter-Regular',
                     textAlign: 'center',
                     fontSize: 13,
+                    color: colors.Black,
                   }}>
                   {item.punch_out_time || '----'}
                 </Text>
@@ -340,8 +357,14 @@ const AttendenceScreen = () => {
                     marginLeft: 5,
                     fontFamily: 'Inter-Regular',
                     textAlign: 'center',
+                    color:
+                      item.attendance_status == 'Present'
+                        ? 'green'
+                        : item.attendance_status == 'Absent'
+                        ? 'red'
+                        : 'black',
                   }}>
-                  {item.attendance_status}
+                  {item.attendance_status || '----'}
                 </Text>
               </View>
             ))
@@ -351,8 +374,9 @@ const AttendenceScreen = () => {
                 textAlign: 'center',
                 marginTop: 20,
                 fontFamily: 'Inter-Regular',
+                color: colors.black,
               }}>
-              No Data Found
+              No Attendence Found
             </Text>
           )}
         </ScrollView>

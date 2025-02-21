@@ -109,7 +109,7 @@ const TodayReport = () => {
         <TouchableOpacity
           style={{position: 'absolute', top: 15, left: 15}}
           onPress={() => {
-            navigation.navigate('HomeScreen');
+            navigation.navigate('HomeScreen', {openDrawerKey: true});
           }}>
           {' '}
           <Ionicons name="arrow-back" color="white" size={26} />

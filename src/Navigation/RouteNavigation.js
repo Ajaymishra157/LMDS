@@ -17,6 +17,9 @@ import TodayReport from '../Screens/TodayReport';
 import DashboardScreen from '../Screens/DashboardScreen';
 import AdvancePayment from '../Screens/AdvancePayment';
 import RewardPoints from '../Screens/RewardPoints';
+import OthersLeave from '../Screens/OthersLeave';
+import ManagerDashboard from '../Screens/ManagerDashboard';
+import OthersAdvancePayment from '../Screens/OthersAdvancePayment';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -32,9 +35,13 @@ const MainStack = () => {
       console.log('training_id', id, userType);
 
       if (userType && id) {
-        setInitialRoute(
-          userType === 'Trainer' ? 'HomeScreen' : 'DashboardScreen',
-        );
+        if (userType === 'Trainer') {
+          setInitialRoute('HomeScreen');
+        } else if (userType === 'Manager') {
+          setInitialRoute('ManagerDashboard');
+        } else {
+          setInitialRoute('DashboardScreen');
+        }
       } else {
         setInitialRoute('LoginScreen');
       }
@@ -106,6 +113,21 @@ const MainStack = () => {
       <Stack.Screen
         name="RewardPoints"
         component={RewardPoints}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="OthersLeave"
+        component={OthersLeave}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="ManagerDashboard"
+        component={ManagerDashboard}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="OthersAdvancePayment"
+        component={OthersAdvancePayment}
         options={{headerShown: false}}
       />
     </Stack.Navigator>

@@ -92,6 +92,11 @@ const LoginScreen = () => {
               index: 0,
               routes: [{name: 'HomeScreen'}],
             });
+          } else if (userType === 'Manager') {
+            navigation.reset({
+              index: 0,
+              routes: [{name: 'ManagerDashboard'}],
+            });
           } else {
             // For any other user type, go to DashboardScreen
             navigation.reset({
@@ -168,7 +173,7 @@ const LoginScreen = () => {
             paddingHorizontal: 12,
             marginBottom: 7,
           }}>
-          <Ionicons name="mail-outline" size={20} color="gray" />
+          <Ionicons name="phone-portrait-outline" size={20} color="gray" />
           <TextInput
             style={{
               flex: 1,
@@ -179,6 +184,8 @@ const LoginScreen = () => {
             }}
             placeholder="Enter Mobile No"
             placeholderTextColor="grey"
+            keyboardType="phone-pad"
+            maxLength={10}
             value={Mobile}
             onChangeText={setMobile}
           />
@@ -206,6 +213,7 @@ const LoginScreen = () => {
             borderRadius: 8,
             paddingHorizontal: 12,
             marginBottom: 7,
+            marginTop: 5,
           }}>
           <Ionicons name="lock-closed-outline" size={20} color="gray" />
           <TextInput

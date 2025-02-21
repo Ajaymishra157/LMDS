@@ -11,6 +11,7 @@ import {
   Button,
   Modal,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import Header from '../Component/Header';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -42,6 +43,7 @@ const LeaveApplication = () => {
   const [LeaveList, setLeaveList] = useState([]);
   const [LeaveListLaoding, setLeaveListLaoding] = useState(false);
   console.log('leaveList', LeaveList);
+  const [isTillDateDisabled, setIsTillDateDisabled] = useState(true);
   const [showFromDatePicker, setShowFromDatePicker] = useState(false);
   const [showTillDatePicker, setShowTillDatePicker] = useState(false);
 
@@ -226,6 +228,7 @@ const LeaveApplication = () => {
 
       if (type === 'from') {
         setFromDate(formattedDate);
+        setIsTillDateDisabled(false);
       } else {
         setTillDate(formattedDate);
       }
@@ -344,6 +347,15 @@ const LeaveApplication = () => {
     return `${year}-${month}-${day}`;
   };
 
+  const formattedDate = dateString => {
+    const date = new Date(dateString); // Convert the string to a Date object
+    const day = String(date.getDate()).padStart(2, '0'); // Get the day and ensure it's 2 digits
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Get the month (0-indexed, so add 1) and ensure it's 2 digits
+    const year = date.getFullYear(); // Get the year
+
+    return `${day}-${month}-${year}`; // Return the formatted date as "DD-MM-YYYY"
+  };
+
   return (
     <View style={{flex: 1, backgroundColor: '#f7f7f7'}}>
       <View
@@ -373,572 +385,854 @@ const LeaveApplication = () => {
           Leave Application
         </Text>
       </View>
-      <View
-        style={{
-          justifyContent: 'flex-start',
-          paddingHorizontal: 15,
-        }}>
-        {/* From and Till Date in a row */}
+
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#9Bd35A', '#689F38']}
+          />
+        }>
         <View
           style={{
-            marginTop: 15,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginBottom: 15,
+            justifyContent: 'flex-start',
+            paddingHorizontal: 15,
           }}>
-          {/* From Date */}
-          <View style={{flex: 1, marginRight: 10}}>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '500',
-                marginBottom: 5,
-                color: 'black',
-                fontFamily: 'Inter-Regular',
-              }}>
-              From Date
-            </Text>
-            <TouchableOpacity
-              style={{
-                padding: 10,
-                backgroundColor: '#ffffff',
-                borderRadius: 5,
-                borderWidth: 1,
-                borderColor: !isValidFromDate ? 'red' : '#cccccc',
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-              }}
-              onPress={() => setShowFromDatePicker(true)}>
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: '#333',
-                  fontFamily: 'Inter-Regular',
-                }}>
-                {fromDate || 'Select From Date'}
-              </Text>
-              <TouchableOpacity>
-                <FontAwesome name="calendar" size={25} />
-              </TouchableOpacity>
-            </TouchableOpacity>
-            {!isValidFromDate && (
-              <Text
-                style={{
-                  color: 'red',
-                  fontSize: 12,
-                  fontFamily: 'Inter-Regular',
-                }}>
-                From Date is required
-              </Text>
-            )}
-          </View>
-
-          {/* Till Date */}
-          <View style={{flex: 1}}>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '500',
-                marginBottom: 5,
-                color: 'black',
-                fontFamily: 'Inter-Regular',
-              }}>
-              Till Date
-            </Text>
-            <TouchableOpacity
-              style={{
-                padding: 10,
-                backgroundColor: '#ffffff',
-                borderRadius: 5,
-                borderWidth: 1,
-                borderColor: !isValidTillDate ? 'red' : '#cccccc',
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-              }}
-              onPress={() => setShowTillDatePicker(true)}>
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: '#333',
-                  fontFamily: 'Inter-Regular',
-                }}>
-                {tillDate || 'Select Till Date'}
-              </Text>
-              <TouchableOpacity>
-                <FontAwesome name="calendar" size={25} />
-              </TouchableOpacity>
-            </TouchableOpacity>
-            {!isValidTillDate && (
-              <Text
-                style={{
-                  color: 'red',
-                  fontSize: 12,
-                  fontFamily: 'Inter-Regular',
-                }}>
-                Till Date is required
-              </Text>
-            )}
-          </View>
-        </View>
-
-        {/* Reason */}
-        <View style={{marginBottom: 15}}>
-          <Text
+          {/* From and Till Date in a row */}
+          <View
             style={{
-              fontSize: 16,
-              fontWeight: '500',
-              marginBottom: 5,
-              color: 'black',
-              fontFamily: 'Inter-Regular',
+              marginTop: 15,
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              marginBottom: 15,
             }}>
-            Reason
-          </Text>
-          <TextInput
-            style={{
-              padding: 10,
-              backgroundColor: '#ffffff',
-              borderRadius: 5,
-              borderWidth: 1,
-              borderColor: !isValidReason ? 'red' : '#cccccc',
-              minHeight: 80,
-              textAlignVertical: 'top', // Ensures multiline input
-              color: 'black',
-              fontFamily: 'Inter-Regular',
-            }}
-            placeholder="Enter reason for leave"
-            placeholderTextColor="grey"
-            value={reason}
-            onChangeText={setReason}
-            multiline
-          />
-          {!isValidReason && (
+            {/* From Date */}
+            <View style={{flex: 1, marginRight: 10}}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '500',
+                  marginBottom: 5,
+                  color: 'black',
+                  fontFamily: 'Inter-Regular',
+                }}>
+                From Date
+              </Text>
+              <TouchableOpacity
+                style={{
+                  padding: 10,
+                  backgroundColor: '#ffffff',
+                  borderRadius: 5,
+                  borderWidth: 1,
+                  borderColor: !isValidFromDate ? 'red' : '#cccccc',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                }}
+                onPress={() => setShowFromDatePicker(true)}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: '#333',
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  {fromDate || 'Select From Date'}
+                </Text>
+                <TouchableOpacity onPress={() => setShowFromDatePicker(true)}>
+                  <FontAwesome name="calendar" size={25} />
+                </TouchableOpacity>
+              </TouchableOpacity>
+              {!isValidFromDate && (
+                <Text
+                  style={{
+                    color: 'red',
+                    fontSize: 12,
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  From Date is required
+                </Text>
+              )}
+            </View>
+
+            {/* Till Date */}
+            <View style={{flex: 1}}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '500',
+                  marginBottom: 5,
+                  color: 'black',
+                  fontFamily: 'Inter-Regular',
+                }}>
+                Till Date
+              </Text>
+              <TouchableOpacity
+                style={{
+                  padding: 10,
+                  backgroundColor: '#ffffff',
+                  borderRadius: 5,
+                  borderWidth: 1,
+                  borderColor: !isValidTillDate ? 'red' : '#cccccc',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  opacity: isTillDateDisabled ? 0.5 : 1,
+                }}
+                onPress={() => setShowTillDatePicker(true)}
+                disabled={isTillDateDisabled}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: '#333',
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  {tillDate || 'Select Till Date'}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowTillDatePicker(true)}
+                  disabled={isTillDateDisabled}>
+                  <FontAwesome name="calendar" size={25} />
+                </TouchableOpacity>
+              </TouchableOpacity>
+              {!isValidTillDate && (
+                <Text
+                  style={{
+                    color: 'red',
+                    fontSize: 12,
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  Till Date is required
+                </Text>
+              )}
+            </View>
+          </View>
+
+          {/* Reason */}
+          <View style={{marginBottom: 10}}>
             <Text
-              style={{color: 'red', fontSize: 12, fontFamily: 'Inte-Regualar'}}>
-              Reason is required
+              style={{
+                fontSize: 16,
+                fontWeight: '500',
+                marginBottom: 5,
+                color: 'black',
+                fontFamily: 'Inter-Regular',
+              }}>
+              Reason
             </Text>
+            <TextInput
+              style={{
+                padding: 10,
+                backgroundColor: '#ffffff',
+                borderRadius: 5,
+                borderWidth: 1,
+                borderColor: !isValidReason ? 'red' : '#cccccc',
+                minHeight: 80,
+                textAlignVertical: 'top', // Ensures multiline input
+                color: 'black',
+                fontFamily: 'Inter-Regular',
+              }}
+              placeholder="Enter reason for leave"
+              placeholderTextColor="grey"
+              value={reason}
+              onChangeText={setReason}
+              multiline
+            />
+            {!isValidReason && (
+              <Text
+                style={{
+                  color: 'red',
+                  fontSize: 12,
+                  fontFamily: 'Inte-Regualar',
+                }}>
+                Reason is required
+              </Text>
+            )}
+          </View>
+
+          {/* Add Leave Button */}
+          {addLoading ? (
+            <View>
+              <ActivityIndicator size="small" color="black" />
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#007BFF',
+                paddingVertical: 12,
+                borderRadius: 5,
+                marginTop: 5,
+                alignItems: 'center',
+              }}
+              onPress={handleSubmitLeave}>
+              <Text
+                style={{
+                  color: '#fff',
+                  fontSize: 16,
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter-Regular',
+                }}>
+                {selectedConfirmLeave ? 'Update Leave' : 'Add Leave'}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Date Picker for From Date */}
+          {showFromDatePicker && (
+            <DateTimePicker
+              value={
+                fromDate
+                  ? new Date(fromDate.split('-').reverse().join('-'))
+                  : new Date()
+              } // Current date
+              mode="date"
+              display="default"
+              onChange={(event, selectedDate) =>
+                handleDateChange(event, selectedDate, 'from')
+              }
+              minimumDate={new Date()} // This ensures no past dates can be selected
+            />
+          )}
+
+          {/* Date Picker for Till Date */}
+          {showTillDatePicker && (
+            <DateTimePicker
+              value={
+                tillDate
+                  ? new Date(tillDate.split('-').reverse().join('-'))
+                  : new Date()
+              }
+              mode="date"
+              display="default"
+              onChange={(event, selectedDate) =>
+                handleDateChange(event, selectedDate, 'till')
+              }
+              minimumDate={
+                fromDate
+                  ? new Date(fromDate.split('-').reverse().join('-'))
+                  : new Date()
+              }
+            />
           )}
         </View>
 
-        {/* Add Leave Button */}
-        {addLoading ? (
-          <View>
-            <ActivityIndicator size="small" color="black" />
-          </View>
-        ) : (
-          <TouchableOpacity
+        <ScrollView style={{marginTop: 10}}>
+          {/* Table Header */}
+          <View
             style={{
-              backgroundColor: '#007BFF',
-              paddingVertical: 12,
-              borderRadius: 5,
-              marginTop: 5,
+              flexDirection: 'row',
               alignItems: 'center',
-            }}
-            onPress={handleSubmitLeave}>
+              backgroundColor: '#ddd',
+              padding: 10,
+              borderRadius: 5,
+              marginBottom: 10,
+            }}>
             <Text
               style={{
-                color: '#fff',
-                fontSize: 16,
+                flex: 1,
                 fontWeight: 'bold',
                 fontFamily: 'Inter-Regular',
+                textAlign: 'center',
+                fontSize: 14,
+                color: 'black',
               }}>
-              {selectedConfirmLeave ? 'Update Leave' : 'Add Leave'}
+              From Date
             </Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Date Picker for From Date */}
-        {showFromDatePicker && (
-          <DateTimePicker
-            value={
-              fromDate
-                ? new Date(fromDate.split('-').reverse().join('-'))
-                : new Date()
-            } // Current date
-            mode="date"
-            display="default"
-            onChange={(event, selectedDate) =>
-              handleDateChange(event, selectedDate, 'from')
-            }
-            minimumDate={new Date()} // This ensures no past dates can be selected
-          />
-        )}
-
-        {/* Date Picker for Till Date */}
-        {showTillDatePicker && (
-          <DateTimePicker
-            value={
-              tillDate
-                ? new Date(tillDate.split('-').reverse().join('-'))
-                : new Date()
-            }
-            mode="date"
-            display="default"
-            onChange={(event, selectedDate) =>
-              handleDateChange(event, selectedDate, 'till')
-            }
-            minimumDate={new Date()}
-          />
-        )}
-      </View>
-
-      <ScrollView style={{flex: 1, padding: 5, marginTop: 15}}>
-        {/* Table Header */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: '#ddd',
-            padding: 10,
-            borderRadius: 5,
-            marginBottom: 10,
-          }}>
-          <Text
-            style={{
-              flex: 1,
-              fontWeight: 'bold',
-              fontFamily: 'Inter-Regular',
-              textAlign: 'center',
-              fontSize: 14,
-              color: 'black',
-            }}>
-            From Date
-          </Text>
-          <Text
-            style={{
-              flex: 1,
-              fontWeight: 'bold',
-              fontFamily: 'Inter-Regular',
-              textAlign: 'center',
-              fontSize: 14,
-              color: 'black',
-            }}>
-            Till Date
-          </Text>
-          <Text
-            style={{
-              flex: 1,
-              fontWeight: 'bold',
-              fontFamily: 'Inter-Regular',
-              textAlign: 'center',
-              fontSize: 14,
-              color: 'black',
-            }}>
-            Status
-          </Text>
-          <Text
-            style={{
-              flex: 1,
-              fontWeight: 'bold',
-              fontFamily: 'Inter-Regular',
-              textAlign: 'center',
-              fontSize: 14,
-              color: 'black',
-            }}>
-            Action
-          </Text>
-        </View>
-
-        {/* Loading Indicator */}
-        {LeaveListLaoding ? (
-          <View
-            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            <ActivityIndicator size="large" color="#0000ff" />
+            <Text
+              style={{
+                flex: 1,
+                fontWeight: 'bold',
+                fontFamily: 'Inter-Regular',
+                textAlign: 'center',
+                fontSize: 14,
+                color: 'black',
+              }}>
+              Till Date
+            </Text>
+            <Text
+              style={{
+                flex: 1,
+                fontWeight: 'bold',
+                fontFamily: 'Inter-Regular',
+                textAlign: 'center',
+                fontSize: 14,
+                color: 'black',
+              }}>
+              Status
+            </Text>
+            <Text
+              style={{
+                flex: 1,
+                fontWeight: 'bold',
+                fontFamily: 'Inter-Regular',
+                textAlign: 'center',
+                fontSize: 14,
+                color: 'black',
+              }}>
+              Action
+            </Text>
           </View>
-        ) : (
-          <>
-            {/* If no data */}
-            {LeaveList.length === 0 ? (
+
+          {/* Loading Indicator */}
+          {LeaveListLaoding ? (
+            <View
+              style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+              <ActivityIndicator size="large" color="black" />
+            </View>
+          ) : (
+            <>
+              {/* If no data */}
+              {LeaveList.length === 0 ? (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: 'red',
+                      fontFamily: 'Inter-Regular',
+                    }}>
+                    No Data Found
+                  </Text>
+                </View>
+              ) : (
+                // Data List using .map()
+                <FlatList
+                  data={LeaveList}
+                  keyExtractor={leave => leave.leave_id.toString()}
+                  renderItem={({item}) => {
+                    const currentDate = getCurrentDate();
+                    const isPending = item.leave_status === 'Pending';
+
+                    return (
+                      <View
+                        key={item.leave_id}
+                        style={{
+                          flexDirection: 'row',
+                          backgroundColor: '#f9f9f9',
+                          padding: 10,
+                          marginBottom: 5,
+                          borderRadius: 5,
+                        }}>
+                        <Text
+                          style={{
+                            flex: 1,
+                            textAlign: 'center',
+                            fontFamily: 'Inter-Regular',
+                            fontSize: 12,
+                            color: 'black',
+                          }}>
+                          {formattedDate(item.start_date)}
+                        </Text>
+                        <Text
+                          style={{
+                            flex: 1,
+                            textAlign: 'center',
+                            fontFamily: 'Inter-Regular',
+                            fontSize: 12,
+                            color: 'black',
+                          }}>
+                          {formattedDate(item.end_date)}
+                        </Text>
+                        <Text
+                          style={{
+                            flex: 1,
+                            textAlign: 'center',
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 12,
+                            color: getLeaveStatusColor(item.leave_status), // Use the function here
+                          }}>
+                          {item.leave_status}
+                        </Text>
+                        <View
+                          style={{
+                            width: '24%',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                          }}>
+                          <View style={{marginLeft: 25}}>
+                            <TouchableOpacity
+                              onPress={() => handleOpenModal(item)}
+                              style={{alignItems: 'center'}}>
+                              <Feather name="eye" size={18} color="black" />
+                            </TouchableOpacity>
+                          </View>
+                          <View style={{}}>
+                            <TouchableOpacity
+                              onPress={() => handleOpenModal2(item)}
+                              style={{alignItems: 'center'}}>
+                              {isPending && (
+                                <Entypo
+                                  name="dots-three-vertical"
+                                  size={18}
+                                  color="black" // Only render the icon when isPending is true
+                                />
+                              )}
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      </View>
+                    );
+                  }}
+                />
+              )}
+            </>
+          )}
+          {/* Leave Reason Modal */}
+          {selectedLeave && (
+            <Modal
+              visible={isModalVisible}
+              animationType="slide"
+              transparent={true}
+              onRequestClose={handleCloseModal}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                }}
+                activeOpacity={1}
+                onPress={() => {
+                  setIsModalVisible(false);
+                }}>
+                <View
+                  style={{
+                    backgroundColor: 'white',
+                    padding: 20,
+                    borderRadius: 10,
+                    width: '85%',
+                    maxHeight: '90%',
+                  }}>
+                  {/* Close Icon */}
+                  <View
+                    style={{
+                      justifyContent: 'flex-end',
+                      flexDirection: 'row',
+                      width: '100%',
+                    }}>
+                    <TouchableOpacity onPress={handleCloseModal}>
+                      <Entypo name="cross" size={28} color="black" />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Modal Content */}
+                  <View style={{width: '100%'}}>
+                    {/* Status */}
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        marginBottom: 15,
+                      }}>
+                      <View
+                        style={{
+                          width: '30%',
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                        }}>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 14,
+                            color: 'black',
+                          }}>
+                          Status
+                        </Text>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 14,
+                            color: 'black',
+                          }}>
+                          :
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          width: '70%',
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                        }}>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 14,
+                            color: getLeaveStatusColor(
+                              selectedLeave.leave_status,
+                            ),
+                            textAlign: 'center',
+                          }}>
+                          {selectedLeave.leave_status || '-----'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* From Date */}
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        marginBottom: 15,
+                      }}>
+                      <View
+                        style={{
+                          width: '30%',
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                        }}>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 14,
+                            color: 'black',
+                          }}>
+                          From Date
+                        </Text>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 14,
+                            color: 'black',
+                          }}>
+                          :
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          width: '70%',
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                        }}>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Regular',
+                            fontSize: 14,
+                            color: '#555',
+                            textAlign: 'center',
+                          }}>
+                          {formattedDate(selectedLeave.start_date) || '-----'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Till Date */}
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        marginBottom: 15,
+                      }}>
+                      <View
+                        style={{
+                          width: '30%',
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                        }}>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 14,
+                            color: 'black',
+                          }}>
+                          Till Date
+                        </Text>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 14,
+                            color: 'black',
+                          }}>
+                          :
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          width: '70%',
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                        }}>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Regular',
+                            fontSize: 14,
+                            color: '#555',
+                            textAlign: 'center',
+                          }}>
+                          {formattedDate(selectedLeave.end_date) || '-----'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Entry Date */}
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        marginBottom: 20,
+                      }}>
+                      <View
+                        style={{
+                          width: '30%',
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                        }}>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 14,
+                            color: 'black',
+                          }}>
+                          Entry Date
+                        </Text>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 14,
+                            color: 'black',
+                          }}>
+                          :
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          width: '70%',
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                        }}>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Regular',
+                            fontSize: 14,
+                            color: '#555',
+                            textAlign: 'center',
+                          }}>
+                          {selectedLeave.entry_date || '-----'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Approved By */}
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        marginBottom: 20,
+                      }}>
+                      <View
+                        style={{
+                          width: '30%',
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                        }}>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 14,
+                            color: 'black',
+                          }}>
+                          Approve By
+                        </Text>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 14,
+                            color: 'black',
+                          }}>
+                          :
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          width: '70%',
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                        }}>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Regular',
+                            fontSize: 14,
+                            color: '#555',
+                            textAlign: 'center',
+                          }}>
+                          {selectedLeave.approve_by || '-----'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Leave Reason */}
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        marginBottom: 20,
+                      }}>
+                      <View
+                        style={{
+                          width: '30%',
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                        }}>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 14,
+                            color: 'black',
+                          }}>
+                          Reason
+                        </Text>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 14,
+                            color: 'black',
+                          }}>
+                          :
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          width: '70%',
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                        }}>
+                        <Text
+                          style={{
+                            fontFamily: 'Inter-Regular',
+                            fontSize: 14,
+                            color: '#555',
+                            textAlign: 'center',
+                          }}>
+                          {selectedLeave.reason || '-----'}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          )}
+
+          {/* confirmation modal */}
+          {selectedConfirmLeave && (
+            <Modal
+              visible={ConfirmationModal}
+              animationType="slide"
+              transparent={true}
+              onRequestClose={handleCloseModal2}>
               <View
                 style={{
                   flex: 1,
                   justifyContent: 'center',
                   alignItems: 'center',
-                }}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    color: 'red',
-                    fontFamily: 'Inter-Regular',
-                  }}>
-                  No Data Found
-                </Text>
-              </View>
-            ) : (
-              // Data List using .map()
-              LeaveList.map(leave => {
-                const currentDate = getCurrentDate();
-                const isPending = leave.leave_status === 'Pending';
-                return (
-                  <View
-                    key={leave.leave_id}
-                    style={{
-                      flexDirection: 'row',
-                      backgroundColor: '#f9f9f9',
-                      padding: 10,
-                      marginBottom: 5,
-                      borderRadius: 5,
-                    }}>
-                    <Text
-                      style={{
-                        flex: 1,
-                        textAlign: 'center',
-                        fontFamily: 'Inter-Regular',
-                        fontSize: 12,
-                        color: 'black',
-                      }}>
-                      {leave.start_date}
-                    </Text>
-                    <Text
-                      style={{
-                        flex: 1,
-                        textAlign: 'center',
-                        fontFamily: 'Inter-Regular',
-                        fontSize: 12,
-                        color: 'black',
-                      }}>
-                      {leave.end_date}
-                    </Text>
-                    <Text
-                      style={{
-                        flex: 1,
-                        textAlign: 'center',
-                        fontFamily: 'Inter-Bold',
-                        fontSize: 12,
-                        color: getLeaveStatusColor(leave.leave_status), // Use the function here
-                      }}>
-                      {leave.leave_status}
-                    </Text>
-                    <View
-                      style={{
-                        width: '24%',
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                        gap: 22,
-                      }}>
-                      <TouchableOpacity
-                        onPress={() => handleOpenModal(leave)}
-                        style={{alignItems: 'center'}}>
-                        <Feather name="eye" size={18} color="black" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => handleOpenModal2(leave)}
-                        style={{alignItems: 'center'}}
-                        disabled={!isPending}>
-                        <Entypo
-                          name="dots-three-vertical"
-                          size={18}
-                          color={!isPending ? 'white' : 'black'}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                );
-              })
-            )}
-          </>
-        )}
-
-        {selectedLeave && (
-          <Modal
-            visible={isModalVisible}
-            animationType="slide"
-            transparent={true}
-            onRequestClose={handleCloseModal}>
-            <TouchableOpacity
-              style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              }}
-              activeOpacity={1}
-              onPress={() => {
-                setIsModalVisible(false);
-              }}>
-              <View
-                style={{
-                  backgroundColor: 'white',
-                  padding: 20,
-                  borderRadius: 10,
-                  width: '80%',
-                  alignItems: 'center',
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
                 }}>
                 <View
                   style={{
-                    justifyContent: 'flex-end',
-                    flexDirection: 'row',
-                    width: '100%',
+                    backgroundColor: 'white',
+                    padding: 20,
+                    borderRadius: 15,
+                    width: '80%',
+                    alignItems: 'center',
+                    elevation: 5, // Adds shadow for Android
+                    shadowColor: '#000', // Shadow for iOS
+                    shadowOffset: {width: 0, height: 2},
+                    shadowOpacity: 0.1,
+                    shadowRadius: 5,
                   }}>
-                  <TouchableOpacity onPress={handleCloseModal}>
-                    <Entypo name="cross" size={24} color="Black" />
-                  </TouchableOpacity>
-                </View>
-                {/* Entry Date Section */}
-                <View style={{alignItems: 'flex-start', width: '100%'}}>
                   <Text
                     style={{
-                      fontSize: 16,
-                      fontWeight: '600',
-                      marginBottom: 5,
-                      color: '#333',
-                      fontFamily: 'Inter-Bold',
-                    }}>
-                    Entry Date
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      marginBottom: 20,
-                      color: '#555',
-                      fontFamily: 'Inter-Regular',
-                    }}>
-                    {selectedLeave.entry_date}
-                  </Text>
-                </View>
-                <View style={{alignItems: 'flex-start', width: '100%'}}>
-                  <Text
-                    style={{
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: 'bold',
-                      marginBottom: 10,
-                      color: 'black',
-                      fontFamily: 'Inter-Regular',
-                    }}>
-                    Leave Reason
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 14,
                       marginBottom: 20,
-                      textAlign: 'center',
                       color: 'black',
                       fontFamily: 'Inter-Regular',
                     }}>
-                    {selectedLeave.reason}
+                    Select Action
                   </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          </Modal>
-        )}
-        {/* confirmation modal */}
-        {selectedConfirmLeave && (
-          <Modal
-            visible={ConfirmationModal}
-            animationType="slide"
-            transparent={true}
-            onRequestClose={handleCloseModal2}>
-            <View
-              style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              }}>
-              <View
-                style={{
-                  backgroundColor: 'white',
-                  padding: 20,
-                  borderRadius: 15,
-                  width: '80%',
-                  alignItems: 'center',
-                  elevation: 5, // Adds shadow for Android
-                  shadowColor: '#000', // Shadow for iOS
-                  shadowOffset: {width: 0, height: 2},
-                  shadowOpacity: 0.1,
-                  shadowRadius: 5,
-                }}>
-                <Text
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 'bold',
-                    marginBottom: 20,
-                    color: 'black',
-                    fontFamily: 'Inter-Regular',
-                  }}>
-                  Select Action
-                </Text>
-                <View style={{gap: 15, width: '100%'}}>
-                  {/* Delete Leave Button */}
-                  <TouchableOpacity
-                    style={{
-                      borderColor: 'red',
-                      borderWidth: 1,
-                      borderRadius: 10,
-                      width: '100%',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      paddingVertical: 12,
-                      flexDirection: 'row',
-                      gap: 15,
-                    }}
-                    onPress={() =>
-                      handleDeleteConfirmation(selectedConfirmLeave.leave_id)
-                    }>
-                    <AntDesign name="delete" size={24} color="red" />
-                    <Text
+                  <View style={{gap: 15, width: '100%'}}>
+                    {/* Delete Leave Button */}
+                    <TouchableOpacity
                       style={{
-                        color: 'red',
-                        fontFamily: 'Inter-Regular',
-                        fontSize: 16,
+                        borderColor: 'red',
+                        borderWidth: 1,
+                        borderRadius: 10,
+                        width: '100%',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        paddingVertical: 12,
+                        flexDirection: 'row',
+                        gap: 15,
+                      }}
+                      onPress={() =>
+                        handleDeleteConfirmation(selectedConfirmLeave.leave_id)
+                      }>
+                      <AntDesign name="delete" size={24} color="red" />
+                      <Text
+                        style={{
+                          color: 'red',
+                          fontFamily: 'Inter-Regular',
+                          fontSize: 16,
+                        }}>
+                        Delete Leave
+                      </Text>
+                    </TouchableOpacity>
+                    {/* Update Leave Button */}
+                    <TouchableOpacity
+                      style={{
+                        borderColor: 'black',
+                        borderWidth: 1,
+                        borderRadius: 10,
+                        width: '100%',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        paddingVertical: 12,
+                        marginTop: 10,
+                        flexDirection: 'row',
+                        gap: 15,
+                      }}
+                      onPress={() => {
+                        handleUpdateLeave();
+                        setConfirmationModal(false);
                       }}>
-                      Delete Leave
-                    </Text>
-                  </TouchableOpacity>
-                  {/* Update Leave Button */}
+                      <MaterialCommunityIcons
+                        name="update"
+                        size={24}
+                        color={colors.Black}
+                      />
+                      <Text
+                        style={{
+                          color: 'black',
+                          fontFamily: 'Inter-Regular',
+                          fontSize: 16,
+                        }}>
+                        Update Leave
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                   <TouchableOpacity
                     style={{
-                      borderColor: 'black',
-                      borderWidth: 1,
-                      borderRadius: 10,
-                      width: '100%',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      paddingVertical: 12,
-                      marginTop: 10,
-                      flexDirection: 'row',
-                      gap: 15,
+                      position: 'absolute',
+                      top: 10,
+                      right: 10,
                     }}
-                    onPress={() => {
-                      handleUpdateLeave();
-                      setConfirmationModal(false);
-                    }}>
-                    <MaterialCommunityIcons
-                      name="update"
-                      size={24}
-                      color={colors.Black}
-                    />
+                    onPress={handleCloseModal2}>
                     <Text
                       style={{
+                        fontSize: 24,
+                        fontWeight: 'bold',
                         color: 'black',
                         fontFamily: 'Inter-Regular',
-                        fontSize: 16,
                       }}>
-                      Update Leave
+                      ×
                     </Text>
                   </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  style={{
-                    position: 'absolute',
-                    top: 10,
-                    right: 10,
-                  }}
-                  onPress={handleCloseModal2}>
-                  <Text
-                    style={{
-                      fontSize: 24,
-                      fontWeight: 'bold',
-                      color: 'black',
-                      fontFamily: 'Inter-Regular',
-                    }}>
-                    ×
-                  </Text>
-                </TouchableOpacity>
               </View>
-            </View>
-          </Modal>
-        )}
+            </Modal>
+          )}
+        </ScrollView>
       </ScrollView>
     </View>
   );

@@ -22,4 +22,10 @@ export const ENDPOINTS = {
   Update_Advance_Payment: `${BASE_URL}update_advance_payment.php`,
   Delete_Advance_Payment: `${BASE_URL}delete_advance_payment.php`,
   Trainer_Reward_Point: `${BASE_URL}trainer_reward_point.php`,
+  Manager_Staff_Leave_List: `${BASE_URL}manager_staff_leave_list.php`,
+  Manager_Staff_Advance_Payment: `${BASE_URL}manager_staff_advance_payment.php`,
+  Manager_Staff_Attendence_List: `${BASE_URL}manager_group_staff_attendance_list.php`,
+  Leave_Status: `${BASE_URL}leave_status.php`,
+  Advance_Payment_Status: `${BASE_URL}advance_payment_status.php`,
+  Show_Attendence_Detail: `${BASE_URL}show_attendance_detail.php`,
 };
