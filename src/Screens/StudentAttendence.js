@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   View,
+  Alert,
 } from 'react-native';
 import React, {useCallback, useEffect, useState} from 'react';
 import Header from '../Component/Header';
@@ -17,17 +18,16 @@ import {ENDPOINTS} from '../CommonFiles/Constant';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import colors from '../CommonFiles/Colors';
 
-const AttendenceScreen = () => {
+const StudentAttendence = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   const navigation = useNavigation();
   const [currentDate, setCurrentDate] = useState('');
   const [attendanceData, setAttendanceData] = useState([]);
   const [currentTime, setCurrentTime] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const [isPunchOutDisabled, setIsPunchOutDisabled] = useState(true);
-  const [isPunchInDisabled, setIsPunchInDisabled] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [buttonDisable, setButtonDisable] = useState(false); // Track Punch In Status
+  console.log('buttonDisable', buttonDisable);
 
   useEffect(() => {
     // Date set karne ka function
@@ -52,77 +52,145 @@ const AttendenceScreen = () => {
     return () => clearInterval(interval); // Memory leak avoid karne ke liye cleanup
   }, []);
 
-  const TrainerAttendenceApi = async actionType => {
+  const CheckStudentApi = async () => {
+    const applicationNo = await AsyncStorage.getItem('application_number');
+    console.log('applicationNo:', applicationNo);
+    const today = new Date();
+    const currentDate = `${today.getFullYear()}-${(today.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+
+    try {
+      const response = await fetch(ENDPOINTS.Check_Student_Verification, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          application_no: applicationNo,
+          c_date: currentDate,
+        }),
+      });
+
+      const data = await response.json();
+      console.log('API Response Data:', data);
+
+      // Check the response status
+      if (data.code === 200) {
+        // If verification is successful, proceed with punch-in
+        handlePunchIn(); // Proceed with the punch-in process
+      } else if (data.code === 404) {
+        // If verification failed, show the error message
+        Alert.alert(
+          'Error',
+          data.message || 'Application number is not verified by Trainer.',
+        );
+      } else {
+        // Handle other error cases if any
+        Alert.alert('Error', data.message || 'Failed to verify student.');
+      }
+    } catch (error) {
+      console.error('Error:', error.message);
+      Alert.alert('Error', 'An error occurred while checking attendance.');
+    }
+  };
+
+  const handlePunchIn = () => {
+    Alert.alert(
+      'Confirm Punch In',
+      'Are you sure you want to punch in for today?',
+      [
+        {
+          text: 'No',
+          onPress: () => console.log('Punch In Cancelled'),
+          style: 'cancel',
+        },
+        {
+          text: 'Yes',
+          onPress: async () => {
+            await StudentAttendenceApi(); // Call your punch-in API function
+          },
+        },
+      ],
+      {cancelable: false},
+    );
+  };
+
+  const StudentAttendenceApi = async () => {
     setLoading(true);
 
-    const trainerId = await AsyncStorage.getItem('trainer_id');
-    // JavaScript se Date aur Time nikalna
-    const today = new Date();
+    // Ensure you are getting applicationId correctly
+    const applicationId = await AsyncStorage.getItem('application_id');
 
-    // Date ko DD-MM-YYYY format me convert karna
+    if (!applicationId) {
+      console.log('Missing application_id');
+      ToastAndroid.show('Application ID is missing', ToastAndroid.SHORT);
+      setLoading(false);
+      return;
+    }
+
+    // Get the current date and time
+    const today = new Date();
     const currentDate = `${today.getDate().toString().padStart(2, '0')}-${(
       today.getMonth() + 1
     )
       .toString()
       .padStart(2, '0')}-${today.getFullYear()}`;
-    // Time ko HH:mm:ss format me convert karna
     const currentTime = `${today.getHours().toString().padStart(2, '0')}:${today
       .getMinutes()
       .toString()
       .padStart(2, '0')}:${today.getSeconds().toString().padStart(2, '0')}`;
 
     try {
-      const response = await fetch(ENDPOINTS.Trainer_Attendence, {
+      const response = await fetch(ENDPOINTS.Student_Attendence, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          trainer_id: trainerId,
-          action: actionType,
-          date: currentDate,
+          application_id: applicationId,
+          attendance_date: currentDate,
           punch_time: currentTime,
         }),
       });
 
       const data = await response.json();
+      console.log('Attendance Response:', data);
 
-      if (data.code == 200) {
+      if (data.code === 200) {
         ToastAndroid.show(data.message, ToastAndroid.SHORT);
-        await ShowTrainerAttendenceListApi();
+        await ShowStudentAttendenceListApi();
       } else {
-        // ToastAndroid.show('Error in Punching', ToastAndroid.SHORT);
       }
     } catch (error) {
       console.error('Error:', error.message);
+      ToastAndroid.show('Something went wrong', ToastAndroid.SHORT);
     } finally {
       setLoading(false);
     }
   };
 
-  const ShowTrainerAttendenceListApi = async () => {
-    const trainerId = await AsyncStorage.getItem('trainer_id');
+  const ShowStudentAttendenceListApi = async () => {
+    const applicationId = await AsyncStorage.getItem('application_id');
     setLoading(true);
     try {
-      const response = await fetch(ENDPOINTS.Show_Trainer_Attendence_List, {
+      const response = await fetch(ENDPOINTS.Student_Attendence_List, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          trainer_id: trainerId,
+          application_id: applicationId,
         }),
       });
 
       const data = await response.json();
+      console.log('Full Delete  Data:', data);
 
       // Check response status
       if (data.code == 200) {
         setAttendanceData(data.payload);
-
-        // Agar punch_out_time null hai -> Punch Out enable, Punch In disable
-        setIsPunchOutDisabled(data.punch_out_time != null);
-        setIsPunchInDisabled(data.punch_out_time == null);
+        setButtonDisable(data.button_disable);
       } else {
       }
     } catch (error) {
@@ -133,19 +201,20 @@ const AttendenceScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
-      ShowTrainerAttendenceListApi();
-      TrainerAttendenceApi();
+      ShowStudentAttendenceListApi();
     }, []),
   );
   const onRefresh = async () => {
     setRefreshing(true);
-    await ShowTrainerAttendenceListApi(); // Re-fetch data
+    await ShowStudentAttendenceListApi(); // Re-fetch data
     setRefreshing(false); // Stop refreshing once data is fetched
   };
-
   return (
     <View style={{flex: 1, backgroundColor: 'white'}}>
-      <Header title="Attendence" onMenuPress={() => navigation.openDrawer()} />
+      <Header
+        title="Student Attendence"
+        onMenuPress={() => navigation.openDrawer()}
+      />
 
       {/* Aaj ki Date */}
       <View
@@ -175,7 +244,7 @@ const AttendenceScreen = () => {
             justifyContent: 'center',
             alignItems: 'center',
           }}>
-          <ActivityIndicator size="large" color={colors.Black} />
+          <ActivityIndicator size="large" color="#0000ff" />
         </View>
       )}
 
@@ -192,14 +261,16 @@ const AttendenceScreen = () => {
           {/* Punch In Button */}
           <TouchableOpacity
             style={{
-              backgroundColor: isPunchInDisabled ? '#18d26b' : '#18d26b',
+              backgroundColor: buttonDisable ? '#18d26b' : '#18d26b',
               paddingVertical: 12,
               paddingHorizontal: 30,
               borderRadius: 8,
-              opacity: isPunchInDisabled ? 0.5 : 1,
+              opacity: buttonDisable ? 0.5 : 1, // Decrease opacity if disabled
             }}
-            onPress={() => TrainerAttendenceApi('punch_in')}
-            disabled={isPunchInDisabled}>
+            onPress={buttonDisable ? null : CheckStudentApi} // Disable onPress if button_disable is true
+            disabled={buttonDisable}>
+            {' '}
+            {/* Disable the button based on the buttonDisable state */}
             <Text
               style={{
                 color: 'white',
@@ -208,28 +279,6 @@ const AttendenceScreen = () => {
                 fontFamily: 'Inter-Regular',
               }}>
               Punch In
-            </Text>
-          </TouchableOpacity>
-
-          {/* Punch Out Button */}
-          <TouchableOpacity
-            style={{
-              backgroundColor: isPunchOutDisabled ? '#dc3545' : '#dc3545',
-              paddingVertical: 12,
-              paddingHorizontal: 30,
-              borderRadius: 8,
-              opacity: isPunchOutDisabled ? 0.5 : 1,
-            }}
-            onPress={() => TrainerAttendenceApi('punch_out')}
-            disabled={isPunchOutDisabled}>
-            <Text
-              style={{
-                color: 'white',
-                fontSize: 16,
-                fontWeight: 'bold',
-                fontFamily: 'Inter-Regular',
-              }}>
-              Punch Out
             </Text>
           </TouchableOpacity>
         </View>
@@ -246,9 +295,7 @@ const AttendenceScreen = () => {
       {!loading && (
         <ScrollView
           style={{flex: 1, padding: 10}}
-          contentContainerStyle={{paddingBottom: 80}}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -284,16 +331,7 @@ const AttendenceScreen = () => {
               }}>
               In Time
             </Text>
-            <Text
-              style={{
-                flex: 1,
-                fontWeight: 'bold',
-                marginLeft: 5,
-                fontFamily: 'Inter-Regular',
-                textAlign: 'center',
-              }}>
-              Out Time
-            </Text>
+
             <Text
               style={{
                 flex: 1,
@@ -325,7 +363,7 @@ const AttendenceScreen = () => {
                     fontSize: 13,
                     color: colors.Black,
                   }}>
-                  {item.t_date}
+                  {item.attendance_date}
                 </Text>
                 <Text
                   style={{
@@ -338,17 +376,7 @@ const AttendenceScreen = () => {
                   }}>
                   {item.punch_in_time || '----'}
                 </Text>
-                <Text
-                  style={{
-                    flex: 1,
-                    marginLeft: 5,
-                    fontFamily: 'Inter-Regular',
-                    textAlign: 'center',
-                    fontSize: 13,
-                    color: colors.Black,
-                  }}>
-                  {item.punch_out_time || '----'}
-                </Text>
+
                 <Text
                   style={{
                     flex: 1,
@@ -387,6 +415,6 @@ const AttendenceScreen = () => {
   );
 };
 
-export default AttendenceScreen;
+export default StudentAttendence;
 
 const styles = StyleSheet.create({});

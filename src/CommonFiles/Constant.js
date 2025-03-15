@@ -1,7 +1,9 @@
 export const BASE_URL = 'https://drivingschoolindia.com/webmasters_admin/api/';
+// export const BASE_URL = 'https://drivingschoolindia.com/NEWLUCKY/api/';
 
 export const ENDPOINTS = {
   LOGIN: `${BASE_URL}login.php`,
+  Student_LOGIN: `${BASE_URL}student_login.php`,
   Trainer_Profile: `${BASE_URL}trainer_profile.php`,
   Trainer_Student_List: `${BASE_URL}trainer_student_list.php`,
   Status_Verification: `${BASE_URL}status_verify.php`,
@@ -28,4 +30,22 @@ export const ENDPOINTS = {
   Leave_Status: `${BASE_URL}leave_status.php`,
   Advance_Payment_Status: `${BASE_URL}advance_payment_status.php`,
   Show_Attendence_Detail: `${BASE_URL}show_attendance_detail.php`,
+  Leave_List_According_Status: `${BASE_URL}leave_list_according_status.php`,
+  Advance_Payment_According_Status: `${BASE_URL}advance_payment_according_status.php`,
+  Student_Profile: `${BASE_URL}student_profile.php`,
+  Change_Student_Password: `${BASE_URL}change_student_password.php`,
+  Student_Attendence: `${BASE_URL}student_attendance.php`,
+  Student_Attendence_List: `${BASE_URL}student_attendance_list.php`,
+  Complaint_Type_List: `${BASE_URL}complaint_type_list.php`,
+  Add_Student_Complaint: `${BASE_URL}add_student_complaint.php`,
+  Student_Complaint_List: `${BASE_URL}student_complaint_list.php`,
+  Add_Student_Leave: `${BASE_URL}add_student_leave.php`,
+  Student_Leave_List: `${BASE_URL}student_leave_list.php`,
+  Update_Student_Leave: `${BASE_URL}update_student_leave.php`,
+  Delete_Student_Complaint: `${BASE_URL}delete_student_complaint.php`,
+  Update_Student_Complaint: `${BASE_URL}update_student_complaint.php`,
+  Delete_Student_Leave: `${BASE_URL}delete_student_leave.php`,
+  Check_Student_Verification: `${BASE_URL}check_student_verification.php`,
+  Count_Student_Leave_Complaint: `${BASE_URL}count_student_leave_complaint.php`,
+  Update_Trainer_Profile: `${BASE_URL}update_trainer_profile.php`,
 };

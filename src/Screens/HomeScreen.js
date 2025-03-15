@@ -15,6 +15,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import Fontisto from 'react-native-vector-icons/Fontisto';
+import Entypo from 'react-native-vector-icons/Entypo';
 
 import Bottomtabnavigation from '../Component/Bottomtabnavigation';
 import Header from '../Component/Header';
@@ -53,12 +54,9 @@ const HomeScreen = () => {
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const [HistoryModal, SetHistoryModal] = useState(false);
   const [selectedValue, setSelectedValue] = useState(null); // Default text
-  console.log('selectedvalue yyyy', selectedValue);
   const [data, setData] = useState([]);
-  console.log('data xxxx', data);
   const [TrainerStudent, setTrainerStudent] = useState([]);
   const [times, setTimes] = useState([]);
-  console.log('times xxxx', times);
 
   const [CheckData, setCheckData] = useState(null);
   const [checkdataLoading, setcheckdataLoading] = useState(false);
@@ -70,7 +68,6 @@ const HomeScreen = () => {
   const [appNo, setAppNo] = useState('');
   const [studentName, setStudentName] = useState(''); // Fetched Student Name
   const [studentsList, setStudentsList] = useState([]);
-  console.log('studentlist', studentsList);
   const [error, setError] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -94,8 +91,17 @@ const HomeScreen = () => {
     }
   }, [route.params, navigation]);
 
-  const handleDelete = appNo => {
-    const updatedList = studentsList.filter(student => student.appNo !== appNo);
+  // const handleDelete = appNo => {
+  //   const updatedList = studentsList.filter(student => student.appNo !== appNo);
+  //   setStudentsList(updatedList);
+
+  // };
+
+  const handleDelete = (appNo, orderNo) => {
+    // Filter out the student based on both appNo and orderNo
+    const updatedList = studentsList.filter(
+      student => !(student.appNo === appNo && student.orderNo === orderNo),
+    );
     setStudentsList(updatedList);
     setIsCheckButtonDisabled(false);
   };
@@ -141,6 +147,35 @@ const HomeScreen = () => {
   };
 
   // Handle "Add" button click
+  // const handleAddButtonClick = () => {
+  //   if (studentName !== 'Not Found' && studentName !== '') {
+
+  //     const existingCount = studentsList.filter(
+  //       student => student.appNo === appNo,
+  //     ).length;
+
+  //     // Create a new student entry with an appNo and orderNo
+  //     const newStudent = {appNo, studentName, orderNo: existingCount + 1};
+
+  //     setStudentsList(prevList => {
+  //       const updatedList = [...prevList, newStudent];
+
+  //       // Disable Check button if 3 students are added
+  //       if (updatedList.length >= 3) {
+  //         setIsCheckButtonDisabled(true); // Disable Check button
+  //       }
+
+  //       return updatedList;
+  //     });
+
+  //     setAppNo(''); // Clear the input field
+  //     setStudentName(''); // Clear the fetched student name
+  //     setError(''); // Clear any existing error message after successful addition
+  //   } else {
+  //     setError('Student not found');
+  //   }
+  // };
+
   const handleAddButtonClick = () => {
     if (studentName !== 'Not Found' && studentName !== '') {
       const isAppNoExist = studentsList.some(
@@ -383,7 +418,7 @@ const HomeScreen = () => {
         setTodayHistory(data.payload);
         setErrorMessage('');
       } else {
-        setErrorMessage('No data found');
+        setErrorMessage('No Data Found');
       }
     } catch (error) {
       console.error('Error:', error.message);
@@ -425,7 +460,6 @@ const HomeScreen = () => {
           // Assuming `result.payload` is the array you get from the response
           const timesArray = result.payload.map(item => item.training_time);
 
-          console.log('Mapped Times Array:', timesArray); // Check if the array is populated
           setTimes(timesArray);
         } else {
           console.log('Error:', 'Failed to load categories');
@@ -948,25 +982,45 @@ const HomeScreen = () => {
                   <View
                     style={{
                       flexDirection: 'row',
-                      alignItems: 'center',
+                      width: '100%',
+                      gap: 15,
                     }}>
-                    <TextInput
+                    <View
                       style={{
+                        flexDirection: 'row',
                         width: '60%',
-                        height: 40,
                         borderWidth: 1,
                         borderRadius: 8,
-                        marginRight: 10,
-                        paddingLeft: 10,
-                        color: 'black',
-                        fontFamily: 'Inter-Regular',
-                      }}
-                      placeholder="Application No"
-                      placeholderTextColor="black"
-                      value={appNo}
-                      onChangeText={handleAppNoChange}
-                      editable={!isCheckButtonDisabled} // Disable the input after 3 students are added
-                    />
+                      }}>
+                      <TextInput
+                        style={{
+                          flex: 1,
+                          height: 40,
+                          marginRight: 10,
+                          paddingLeft: 10,
+                          color: 'black',
+                          fontFamily: 'Inter-Regular',
+                        }}
+                        placeholder="Enter Application No"
+                        placeholderTextColor="grey"
+                        value={appNo}
+                        onChangeText={handleAppNoChange}
+                        editable={!isCheckButtonDisabled} // Disable the input after 3 students are added
+                      />
+                      {appNo ? (
+                        <TouchableOpacity
+                          onPress={() => setAppNo('')}
+                          style={{
+                            height: 40,
+                            width: '15%',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}>
+                          <Entypo name="cross" size={18} color="grey" />
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+
                     <TouchableOpacity
                       style={{
                         backgroundColor: isCheckButtonDisabled
@@ -1062,7 +1116,9 @@ const HomeScreen = () => {
                             width: '30%',
                             alignItems: 'flex-end',
                           }}
-                          onPress={() => handleDelete(student.appNo)} // Delete student when icon is pressed
+                          onPress={() =>
+                            handleDelete(student.appNo, student.orderNo)
+                          } // Delete student when icon is pressed
                         >
                           <Icon name="delete" size={24} color="red" />
                         </TouchableOpacity>
@@ -1192,7 +1248,7 @@ const HomeScreen = () => {
                         paddingVertical: 20,
                       }}>
                       <Text style={{color: 'red', fontFamily: 'Inter-Regular'}}>
-                        No data found
+                        No Data Found
                       </Text>
                     </View>
                   ) : (

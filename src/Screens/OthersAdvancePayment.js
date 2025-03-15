@@ -55,6 +55,8 @@ const OthersAdvancePayment = () => {
   const [showFromDatePicker, setShowFromDatePicker] = useState(false);
   const [showTillDatePicker, setShowTillDatePicker] = useState(false);
 
+  const [StatusList, setStatusList] = useState([]);
+
   const getFormattedCurrentDate = () => {
     const today = new Date();
     const day = today.getDate();
@@ -87,7 +89,9 @@ const OthersAdvancePayment = () => {
     return `${year}-${month < 10 ? `0${month}` : month}-01`;
   };
 
-  const filters = ['Today', 'Yesterday', 'Month', 'custom'];
+  const filters = openDrawerKey
+    ? ['Pending', 'Approve', 'Reject']
+    : ['Today', 'Yesterday', 'Month', 'custom'];
   const status = ['Pending', 'Approve', 'Reject'];
 
   const handleFilterPress = filter => {
@@ -119,6 +123,7 @@ const OthersAdvancePayment = () => {
       setFromDate(updatedFromDate);
       setTillDate(updatedTillDate);
       OtherAdvancePaymentApi(); // Call API immediately after setting the dates
+      StatusFilterApi(filter);
     }
     closeModal();
   };
@@ -242,6 +247,32 @@ const OthersAdvancePayment = () => {
     }
   };
 
+  const StatusFilterApi = async status => {
+    console.log('status api called', status);
+    const trainerId = await AsyncStorage.getItem('trainer_id');
+    try {
+      const response = await fetch(ENDPOINTS.Advance_Payment_According_Status, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          staff_id: trainerId,
+          status: status,
+        }),
+      });
+      const data = await response.json();
+      if (data.code === 200) {
+        setStatusList(data.payload);
+      } else {
+        setStatusList([]);
+      }
+    } catch (error) {
+      console.error('Error:', error.message);
+    } finally {
+    }
+  };
+
   // useFocusEffect(
   //   useCallback(() => {
   //     // Call the API when the screen is focused
@@ -253,6 +284,14 @@ const OthersAdvancePayment = () => {
   //     };
   //   }, [fromDate, tillDate]), // Dependencies: will re-run the effect if fromDate or tillDate changes
   // );
+  useFocusEffect(
+    React.useCallback(() => {
+      if (openDrawerKey) {
+        // If openDrawerKey exists, call StatusFilterApi with 'Pending'
+        StatusFilterApi('Pending');
+      }
+    }, [openDrawerKey]), // This will run whenever `openDrawerKey` changes or screen comes into focus
+  );
   useEffect(() => {
     if (fromDate && tillDate) {
       OtherAdvancePaymentApi(fromDate, tillDate);
@@ -265,6 +304,9 @@ const OthersAdvancePayment = () => {
     setFromDate(getFormattedCurrentDate());
     setTillDate(getFormattedCurrentDate());
     OtherAdvancePaymentApi();
+    if (openDrawerKey) {
+      StatusFilterApi('Pending');
+    }
     setIsFilterActive(false);
     setRefreshing(false); // Stop refreshing after data is fetched
   }, []);
@@ -484,13 +526,15 @@ const OthersAdvancePayment = () => {
                 fontFamily: 'Inter-Medium',
                 fontSize: 16,
               }}>
-              {isNaN(new Date(fromDate)) || isNaN(new Date(tillDate))
-                ? null // Don't render the text if the date is invalid (NaN)
+              {openDrawerKey // Check if the drawer is open
+                ? null // Don't render the date if the drawer is open
+                : isNaN(new Date(fromDate)) || isNaN(new Date(tillDate)) // Check if dates are valid
+                ? null // Don't render the text if the date is invalid
                 : fromDate === tillDate
-                ? advancePaymentDate(fromDate)
+                ? advancePaymentDate(fromDate) // Single date
                 : `${advancePaymentDate(fromDate)}  To  ${advancePaymentDate(
                     tillDate,
-                  )}`}
+                  )}`}{' '}
             </Text>
           </View>
           <View
@@ -601,7 +645,7 @@ const OthersAdvancePayment = () => {
             />
           ) : (
             <FlatList
-              data={AdvanceList}
+              data={openDrawerKey ? StatusList : AdvanceList}
               renderItem={renderItem}
               keyExtractor={item => item.advance_id.toString()}
               showsVerticalScrollIndicator={false}
@@ -614,7 +658,7 @@ const OthersAdvancePayment = () => {
                     color: 'red',
                     marginTop: 20,
                   }}>
-                  No data found
+                  No Data Found
                 </Text>
               }
               refreshControl={
@@ -638,6 +682,24 @@ const OthersAdvancePayment = () => {
               justifyContent: 'flex-end',
               alignItems: 'center',
             }}>
+            {/* Close Icon */}
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                width: '100%',
+                paddingVertical: 5,
+              }}>
+              <TouchableOpacity
+                onPress={closeModal}
+                style={{
+                  marginRight: 10,
+                  backgroundColor: 'white',
+                  borderRadius: 50,
+                }}>
+                <Entypo name="cross" size={25} color="black" />
+              </TouchableOpacity>
+            </View>
             <View
               onStartShouldSetResponder={e => e.stopPropagation()}
               style={{
@@ -699,6 +761,24 @@ const OthersAdvancePayment = () => {
               justifyContent: 'flex-end',
               alignItems: 'center',
             }}>
+            {/* Close Icon */}
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                width: '100%',
+                paddingVertical: 5,
+              }}>
+              <TouchableOpacity
+                onPress={closeModal2}
+                style={{
+                  marginRight: 10,
+                  backgroundColor: 'white',
+                  borderRadius: 50,
+                }}>
+                <Entypo name="cross" size={25} color="black" />
+              </TouchableOpacity>
+            </View>
             <View
               onStartShouldSetResponder={e => e.stopPropagation()}
               style={{
@@ -787,8 +867,9 @@ const OthersAdvancePayment = () => {
             <Text
               style={{
                 fontSize: 18,
-                fontWeight: 'bold',
                 marginBottom: 20,
+                fontFamily: 'Inter-Medium',
+                color: 'black',
               }}>
               Custom Report
             </Text>
@@ -809,6 +890,7 @@ const OthersAdvancePayment = () => {
                     fontWeight: '500',
                     marginBottom: 5,
                     color: 'black',
+                    fontFamily: 'Inter-Medium',
                   }}>
                   From Date
                 </Text>
@@ -827,6 +909,7 @@ const OthersAdvancePayment = () => {
                     style={{
                       fontSize: 10,
                       color: '#333',
+                      fontFamily: 'Inter-Regular',
                     }}>
                     {fromDate ? formattedDate(fromDate) : 'Select From Date'}
                   </Text>
@@ -853,6 +936,7 @@ const OthersAdvancePayment = () => {
                     fontWeight: '500',
                     marginBottom: 5,
                     color: 'black',
+                    fontFamily: 'Inter-Medium',
                   }}>
                   Till Date
                 </Text>
@@ -871,6 +955,7 @@ const OthersAdvancePayment = () => {
                     style={{
                       fontSize: 10,
                       color: '#333',
+                      fontFamily: 'Inter-Regular',
                     }}>
                     {tillDate ? formattedDate(tillDate) : 'Select Till Date'}
                   </Text>
@@ -948,6 +1033,7 @@ const OthersAdvancePayment = () => {
                   style={{
                     fontSize: 16,
                     color: 'white',
+                    fontFamily: 'Inter-Bold',
                   }}>
                   View
                 </Text>
@@ -958,7 +1044,7 @@ const OthersAdvancePayment = () => {
       </Modal>
 
       {/* Payment Details Modal */}
-      {selectedEye && (
+      {/* {selectedEye && (
         <Modal
           transparent={true}
           animationType="slide"
@@ -991,7 +1077,6 @@ const OthersAdvancePayment = () => {
               }}
               onStartShouldSetResponder={() => true}
               onTouchEnd={e => e.stopPropagation()}>
-              {/* Close Button */}
               <View style={{flexDirection: 'row', width: '100%'}}>
                 <View
                   style={{
@@ -1000,7 +1085,6 @@ const OthersAdvancePayment = () => {
                     alignItems: 'center',
                     flexDirection: 'row',
                   }}>
-                  {/* Modal Title */}
                   <Text
                     style={{
                       fontSize: 20,
@@ -1012,23 +1096,8 @@ const OthersAdvancePayment = () => {
                     Payment Details
                   </Text>
                 </View>
-                <View
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    height: 30,
-                    width: 30,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}>
-                  <TouchableOpacity onPress={() => setEyeModal(false)}>
-                    <Entypo name="cross" size={25} color="black" />
-                  </TouchableOpacity>
-                </View>
               </View>
 
-              {/* Displaying the data */}
               <View>
                 <View
                   style={{
@@ -1270,6 +1339,238 @@ const OthersAdvancePayment = () => {
                     </Text>
                   </View>
                 </View>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )} */}
+
+      {selectedEye && (
+        <Modal
+          transparent={true}
+          animationType="slide"
+          visible={EyeModal}
+          onRequestClose={() => {
+            setEyeModal(false);
+          }}>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            }}
+            activeOpacity={1}
+            onPress={() => {
+              setEyeModal(false);
+            }}>
+            <View
+              style={{
+                width: '85%',
+                backgroundColor: 'white',
+                borderRadius: 15,
+                padding: 20,
+                shadowColor: '#000',
+                shadowOffset: {width: 0, height: 2},
+                shadowOpacity: 0.8,
+                shadowRadius: 4,
+                elevation: 8,
+              }}
+              onStartShouldSetResponder={() => true}
+              onTouchEnd={e => e.stopPropagation()}>
+              {/* Payment Details Title */}
+              <View style={{alignItems: 'center', marginBottom: 15}}>
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 'bold',
+                    fontFamily: 'Inter-Medium',
+                  }}>
+                  Payment Details
+                </Text>
+              </View>
+
+              {/* Status (Pending, Approved, etc.) */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'flex-end',
+                  marginBottom: 15,
+                  borderRadius: 10,
+                  overflow: 'hidden',
+                }}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    paddingVertical: 5,
+                    paddingHorizontal: 14,
+                    backgroundColor:
+                      selectedEye.advance_status === 'Approve'
+                        ? 'green'
+                        : selectedEye.advance_status === 'Reject'
+                        ? 'red'
+                        : selectedEye.advance_status === 'Pending'
+                        ? 'orange'
+                        : 'black',
+                    color: 'white',
+                    textAlign: 'center',
+                    borderRadius: 50,
+                  }}>
+                  {selectedEye.advance_status || 'Pending'}
+                </Text>
+              </View>
+
+              {/* Staff Name */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 10,
+                  width: '100%', // Ensures it doesn't go out of bounds
+                }}>
+                <Text
+                  style={{
+                    fontFamily: 'Inter-Medium',
+                    fontSize: 14,
+                    color: 'grey',
+                    width: '30%', // Sets a fixed width for the label
+                  }}>
+                  Staff Name
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: 'Inter-Bold',
+                    fontSize: 14,
+                    color: 'black',
+                    textAlign: 'center',
+                    width: '65%', // Ensures the value stays inside the available space
+                    flexWrap: 'wrap', // Allows wrapping if the text is long
+                  }}>
+                  {selectedEye.staff_name || '----'}
+                </Text>
+              </View>
+
+              {/* Amount */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 10,
+                  width: '100%', // Ensures it doesn't go out of bounds
+                }}>
+                <Text
+                  style={{
+                    fontFamily: 'Inter-Medium',
+                    fontSize: 14,
+                    color: 'grey',
+                    width: '30%', // Sets a fixed width for the label
+                  }}>
+                  Amount
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: 'Inter-Bold',
+                    fontSize: 14,
+                    color: 'black',
+                    textAlign: 'center',
+                    width: '65%', // Ensures the value stays inside the available space
+                    flexWrap: 'wrap', // Allows wrapping if the text is long
+                  }}>
+                  ₹{selectedEye.advance_amount || '----'}
+                </Text>
+              </View>
+
+              {/* Date */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 10,
+                  width: '100%', // Ensures it doesn't go out of bounds
+                }}>
+                <Text
+                  style={{
+                    fontFamily: 'Inter-Medium',
+                    fontSize: 14,
+                    color: 'grey',
+                    width: '30%', // Sets a fixed width for the label
+                  }}>
+                  Date
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: 'Inter-Bold',
+                    fontSize: 14,
+                    color: 'black',
+                    textAlign: 'center',
+                    width: '65%', // Ensures the value stays inside the available space
+                    flexWrap: 'wrap', // Allows wrapping if the text is long
+                  }}>
+                  {advancePaymentDate(selectedEye.c_date) || '----'}
+                </Text>
+              </View>
+
+              {/* Reason */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 3,
+                  width: '100%', // Ensures it doesn't go out of bounds
+                }}>
+                <Text
+                  style={{
+                    fontFamily: 'Inter-Medium',
+                    fontSize: 14,
+                    color: 'grey',
+                    width: '30%', // Sets a fixed width for the label
+                  }}>
+                  Reason
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'flex-start',
+                  marginBottom: 20,
+                }}>
+                <Text
+                  style={{
+                    fontFamily: 'Inter-Bold',
+                    fontSize: 14,
+                    color: 'black',
+
+                    padding: 5,
+                  }}>
+                  {selectedEye.reason || '----'}
+                </Text>
+              </View>
+
+              {/* Cancel Button */}
+              <View style={{alignItems: 'center', justifyContent: 'center'}}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setEyeModal(false);
+                  }}
+                  style={{
+                    backgroundColor: 'white',
+                    borderWidth: 1,
+                    borderColor: '#CCC',
+                    padding: 10,
+                    borderRadius: 5,
+                    alignItems: 'center',
+                    marginTop: 15,
+                    width: '50%',
+                  }}>
+                  <Text
+                    style={{
+                      color: 'Black',
+                      fontFamily: 'Inter-Bold',
+                      fontSize: 14,
+                    }}>
+                    Close
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
           </TouchableOpacity>

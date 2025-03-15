@@ -7,7 +7,6 @@ import HomeScreen from '../Screens/HomeScreen';
 import ProfileScreen from '../Screens/ProfileScreen';
 import colors from '../CommonFiles/Colors';
 import AttendenceScreen from '../Screens/AttendenceScreen';
-import CustomerListing from '../Screens/CustomerListing';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DrawerNavigation from './DrawerNavigation';
 import LeaveApplication from '../Screens/LeaveApplication';
@@ -20,6 +19,13 @@ import RewardPoints from '../Screens/RewardPoints';
 import OthersLeave from '../Screens/OthersLeave';
 import ManagerDashboard from '../Screens/ManagerDashboard';
 import OthersAdvancePayment from '../Screens/OthersAdvancePayment';
+import StudentDashboard from '../Screens/StudentDashboard';
+import ComplainScreen from '../Screens/ComplainScreen';
+import StudentAttendence from '../Screens/StudentAttendence';
+import CreateComplaint from '../Screens/CreateComplaint';
+import ComplaintDetails from '../Screens/ComplaintDetails';
+import SplashScreen from '../Screens/SplashScreen';
+import EditProfileScreen from '../Screens/EditProfileScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -27,18 +33,23 @@ const Drawer = createDrawerNavigator();
 const MainStack = () => {
   const [initialRoute, setInitialRoute] = useState(null);
   console.log('initialroute', initialRoute);
+
   useEffect(() => {
     const checkLoginStatus = async () => {
       const userType = await AsyncStorage.getItem('user_type');
 
-      const id = await AsyncStorage.getItem('trainer_id');
-      console.log('training_id', id, userType);
+      const id =
+        (await AsyncStorage.getItem('trainer_id')) ||
+        (await AsyncStorage.getItem('application_id'));
+      console.log('training_id and usertype ye hai', id, userType);
 
       if (userType && id) {
         if (userType === 'Trainer') {
           setInitialRoute('HomeScreen');
         } else if (userType === 'Manager') {
           setInitialRoute('ManagerDashboard');
+        } else if (userType === 'Student') {
+          setInitialRoute('StudentDashboard');
         } else {
           setInitialRoute('DashboardScreen');
         }
@@ -80,11 +91,7 @@ const MainStack = () => {
         component={AttendenceScreen}
         options={{headerShown: false}}
       />
-      <Stack.Screen
-        name="CustomerListing"
-        component={CustomerListing}
-        options={{headerShown: false}}
-      />
+
       <Stack.Screen
         name="LeaveApplication"
         component={LeaveApplication}
@@ -128,6 +135,41 @@ const MainStack = () => {
       <Stack.Screen
         name="OthersAdvancePayment"
         component={OthersAdvancePayment}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="StudentDashboard"
+        component={StudentDashboard}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="ComplainScreen"
+        component={ComplainScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="StudentAttendence"
+        component={StudentAttendence}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="CreateComplaint"
+        component={CreateComplaint}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="ComplaintDetails"
+        component={ComplaintDetails}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="SplashScreen"
+        component={SplashScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="EditProfileScreen"
+        component={EditProfileScreen}
         options={{headerShown: false}}
       />
     </Stack.Navigator>

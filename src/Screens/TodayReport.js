@@ -121,7 +121,7 @@ const TodayReport = () => {
             fontWeight: 'bold',
             fontFamily: 'Inter-Bold',
           }}>
-          Report History
+          History Report
         </Text>
       </View>
       <View
@@ -190,7 +190,7 @@ const TodayReport = () => {
             paddingVertical: 20,
           }}>
           <Text style={{color: 'red', fontFamily: 'Inter-Regular'}}>
-            No data found
+            No Data Found
           </Text>
         </View>
       ) : (

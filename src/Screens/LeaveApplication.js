@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   Text,
   View,
@@ -41,6 +41,7 @@ const LeaveApplication = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   const [LeaveList, setLeaveList] = useState([]);
+  console.log('LeaveListxxxxx', LeaveList);
   const [LeaveListLaoding, setLeaveListLaoding] = useState(false);
   console.log('leaveList', LeaveList);
   const [isTillDateDisabled, setIsTillDateDisabled] = useState(true);
@@ -55,13 +56,46 @@ const LeaveApplication = () => {
   const [selectedConfirmLeave, setselectedConfirmLeave] = useState(null);
   console.log('selectedConfirmLeave ', selectedConfirmLeave);
 
+  const [userType, setUsertype] = useState(null);
+  console.log('Leave Application par userType', userType);
+
+  useEffect(() => {
+    let usertype = null;
+
+    const fetchUsertype = async () => {
+      usertype = await AsyncStorage.getItem('user_type');
+      setUsertype(usertype);
+    };
+
+    fetchUsertype();
+  }, []); // Empty dependency array ensures this runs only once on mount
+
   const handleOpenModal = leave => {
     setSelectedLeave(leave); // Set the selected leave data
     setIsModalVisible(true); // Open the modal
   };
+  const formatDateManually = dateString => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0'); // Adds leading 0 if single digit
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed, so add 1
+    const year = date.getFullYear();
+
+    return `${day}-${month}-${year}`; // Returns "25-02-2025"
+  };
+
   const handleOpenModal2 = leave => {
+    // Format the dates before setting the state
+    const formattedStartDate = formatDateManually(leave.start_date);
+    const formattedEndDate = formatDateManually(leave.end_date);
+
     setConfirmationModal(true); // Open the modal
-    setselectedConfirmLeave(leave);
+
+    // Set the formatted leave data with dates
+    setselectedConfirmLeave({
+      ...leave,
+      start_date: formattedStartDate, // Format and set start date
+      end_date: formattedEndDate, // Format and set end date
+    });
   };
 
   const handleCloseModal = () => {
@@ -103,9 +137,24 @@ const LeaveApplication = () => {
   };
 
   const handleAddLeaveApi = async () => {
+    if (!userType) {
+      console.log('User type is not defined');
+      return; // Prevent the function from continuing if userType is not set
+    }
+
     setaddLoading(true);
     console.log('fromdate and tilldate', fromDate, tillDate);
-    const trainerId = await AsyncStorage.getItem('trainer_id');
+
+    const userId = await AsyncStorage.getItem(
+      userType === 'Student' ? 'application_id' : 'trainer_id',
+    );
+
+    console.log('user id', userId);
+
+    if (!userId) {
+      console.log('User ID is not found');
+      return; // Prevent the API call if userId is not found
+    }
 
     // Format the dates to the correct format (YYYY-MM-DD)
     // const formattedFromDate = formatDate(fromDate);
@@ -116,15 +165,19 @@ const LeaveApplication = () => {
     //   formattedFromDate,
     //   formattedTillDate,
     // );
+    let apiEndpoint =
+      userType === 'Student'
+        ? ENDPOINTS.Add_Student_Leave
+        : ENDPOINTS.Add_Trainer_Leave;
 
     try {
-      const response = await fetch(ENDPOINTS.Add_Trainer_Leave, {
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          trainer_id: trainerId,
+          [userType === 'Student' ? 'application_id' : 'trainer_id']: userId,
           start_date: fromDate, // Pass formatted dates
           end_date: tillDate,
           reason: reason,
@@ -150,28 +203,46 @@ const LeaveApplication = () => {
   };
 
   const TrainerLeaveList = async () => {
+    console.log('Trainer Leave list called');
     setLeaveListLaoding(true);
-    const trainerId = await AsyncStorage.getItem('trainer_id');
-    console.log('trinerid', trainerId);
+
+    const userId = await AsyncStorage.getItem(
+      userType === 'Student' ? 'application_id' : 'trainer_id',
+    );
+
+    let apiEndpoint =
+      userType === 'Student'
+        ? ENDPOINTS.Student_Leave_List
+        : ENDPOINTS.Trainer_Leave_List;
+
     try {
-      const response = await fetch(ENDPOINTS.Trainer_Leave_List, {
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          trainer_id: trainerId,
+          [userType === 'Student' ? 'application_id' : 'trainer_id']: userId,
         }),
       });
 
       const data = await response.json();
 
-      // Check if the response contains the list directly (as an array)
+      let transformedData = [];
       if (Array.isArray(data.payload)) {
-        setLeaveList(data.payload); // Set the leave list data directly to the state
-      } else {
-        setLeaveList([]); // Empty list if the response is not an array
+        transformedData = data.payload.map(item => ({
+          leave_id: item.leave_id || item.application_leave_id, // Unify the leave_id
+          start_date: item.start_date || item.leave_start_date, // Unify the start date
+          end_date: item.end_date || item.leave_end_date, // Unify the end date
+          reason: item.reason || item.application_leave_note, // Unify the reason
+          entry_date: item.entry_date || item.application_leave_entry_date, // Unify the entry date
+          leave_status: item.leave_status,
+          approve_by: item.approve_by || null, // Handle the approve_by field
+        }));
       }
+
+      // Set the transformed data
+      setLeaveList(transformedData);
     } catch (error) {
       console.error('Error:', error.message);
     } finally {
@@ -181,10 +252,13 @@ const LeaveApplication = () => {
 
   useFocusEffect(
     useCallback(() => {
-      console.log('called');
-      TrainerLeaveList();
-    }, []),
+      if (userType) {
+        console.log('called');
+        TrainerLeaveList(); // Call the API only if userType is available
+      }
+    }, [userType]), // Dependency array ensures it runs when userType is updated
   );
+
   const onRefresh = async () => {
     setRefreshing(true);
     await TrainerLeaveList(); // Re-fetch data
@@ -263,8 +337,12 @@ const LeaveApplication = () => {
   };
 
   const handleDeleteApi = async leaveId => {
+    let apiEndpoint =
+      userType === 'Student'
+        ? ENDPOINTS.Delete_Student_Leave
+        : ENDPOINTS.Delete_Trainer_Leave;
     try {
-      const response = await fetch(ENDPOINTS.Delete_Trainer_Leave, {
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -291,15 +369,21 @@ const LeaveApplication = () => {
   const UpdateLeaveApi = async leaveId => {
     setaddLoading(true);
 
-    console.log('leaveId', leaveId, fromDate, tillDate, reason);
+    console.log('leaveId', leaveId, fromDate, tillDate, reason, userType);
+    let apiEndpoint =
+      userType === 'Student'
+        ? ENDPOINTS.Update_Student_Leave
+        : ENDPOINTS.Update_Trainer_Leave;
+
     try {
-      const response = await fetch(ENDPOINTS.Update_Trainer_Leave, {
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          leave_id: leaveId,
+          [userType === 'Student' ? 'application_leave_id' : 'leave_id']:
+            leaveId,
           start_date: fromDate, // Pass formatted dates
           end_date: tillDate,
           reason: reason,
@@ -307,6 +391,7 @@ const LeaveApplication = () => {
       });
 
       const data = await response.json();
+      console.log('data', data);
 
       // Check if the response contains the list directly (as an array)
       if (data.code == 200) {
@@ -387,6 +472,7 @@ const LeaveApplication = () => {
       </View>
 
       <ScrollView
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -614,7 +700,7 @@ const LeaveApplication = () => {
           )}
         </View>
 
-        <ScrollView style={{marginTop: 10}}>
+        <ScrollView keyboardShouldPersistTaps="handled" style={{marginTop: 10}}>
           {/* Table Header */}
           <View
             style={{
@@ -780,7 +866,7 @@ const LeaveApplication = () => {
             </>
           )}
           {/* Leave Reason Modal */}
-          {selectedLeave && (
+          {/* {selectedLeave && (
             <Modal
               visible={isModalVisible}
               animationType="slide"
@@ -805,7 +891,6 @@ const LeaveApplication = () => {
                     width: '85%',
                     maxHeight: '90%',
                   }}>
-                  {/* Close Icon */}
                   <View
                     style={{
                       justifyContent: 'flex-end',
@@ -817,9 +902,7 @@ const LeaveApplication = () => {
                     </TouchableOpacity>
                   </View>
 
-                  {/* Modal Content */}
                   <View style={{width: '100%'}}>
-                    {/* Status */}
                     <View
                       style={{
                         flexDirection: 'row',
@@ -869,7 +952,6 @@ const LeaveApplication = () => {
                       </View>
                     </View>
 
-                    {/* From Date */}
                     <View
                       style={{
                         flexDirection: 'row',
@@ -917,7 +999,6 @@ const LeaveApplication = () => {
                       </View>
                     </View>
 
-                    {/* Till Date */}
                     <View
                       style={{
                         flexDirection: 'row',
@@ -965,7 +1046,6 @@ const LeaveApplication = () => {
                       </View>
                     </View>
 
-                    {/* Entry Date */}
                     <View
                       style={{
                         flexDirection: 'row',
@@ -1013,7 +1093,6 @@ const LeaveApplication = () => {
                       </View>
                     </View>
 
-                    {/* Approved By */}
                     <View
                       style={{
                         flexDirection: 'row',
@@ -1061,7 +1140,6 @@ const LeaveApplication = () => {
                       </View>
                     </View>
 
-                    {/* Leave Reason */}
                     <View
                       style={{
                         flexDirection: 'row',
@@ -1108,6 +1186,365 @@ const LeaveApplication = () => {
                         </Text>
                       </View>
                     </View>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          )} */}
+
+          {/* {selectedLeave && (
+            <Modal
+              visible={isModalVisible}
+              animationType="slide"
+              transparent={true}
+              onRequestClose={handleCloseModal}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                }}
+                activeOpacity={1}
+                onPress={() => {
+                  setIsModalVisible(false);
+                }}>
+                <View
+                  style={{
+                    backgroundColor: 'white',
+                    padding: 10,
+                    borderRadius: 12,
+                    width: '90%',
+                    maxHeight: '85%',
+                    overflow: 'hidden',
+                    elevation: 10,
+                  }}
+                  onStartShouldSetResponder={() => true}
+                  onTouchEnd={e => e.stopPropagation()}>
+                  <View
+                    style={{
+                      justifyContent: 'flex-end',
+                      flexDirection: 'row',
+                      marginBottom: 10,
+                    }}>
+                    <TouchableOpacity onPress={handleCloseModal}>
+                      <Entypo name="cross" size={28} color="#333" />
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={{width: '100%'}}>
+                    {[
+                      {label: 'Status', value: selectedLeave.leave_status},
+                      {
+                        label: 'From Date',
+                        value: formattedDate(selectedLeave.start_date),
+                      },
+                      {
+                        label: 'Till Date',
+                        value: formattedDate(selectedLeave.end_date),
+                      },
+                      {label: 'Entry Date', value: selectedLeave.entry_date},
+                      {label: 'Approve By', value: selectedLeave.approve_by},
+                      {label: 'Reason', value: selectedLeave.reason},
+                    ].map((item, index) => (
+                      <View
+                        key={index}
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          marginBottom: 2,
+                          backgroundColor:
+                            index % 2 === 0 ? '#f0eeee' : '#e1dddd', // Alternating grey and white
+                          paddingVertical: 7,
+                          paddingHorizontal: 7,
+                          borderRadius: 8,
+                        }}>
+                        <View
+                          style={{
+                            width: '35%',
+                            justifyContent: 'space-between',
+                          }}>
+                          <Text
+                            style={{
+                              fontFamily: 'Inter-Bold',
+                              fontSize: 16,
+                              color: '#333',
+                            }}>
+                            {item.label}
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            width: '5%',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}>
+                          <Text
+                            style={{
+                              color: 'black',
+                              fontFamily: 'Inter-Bold',
+                            }}>
+                            :
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            width: '60%',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}>
+                          <Text
+                            style={{
+                              fontFamily: 'Inter-Regular',
+                              fontSize: 14,
+                              color:
+                                item.label === 'Status'
+                                  ? getLeaveStatusColor(item.value)
+                                  : '#555',
+                              textAlign: 'center',
+                            }}>
+                            {item.value || '-----'}
+                          </Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          )} */}
+
+          {selectedLeave && (
+            <Modal
+              visible={isModalVisible}
+              animationType="slide"
+              transparent={true}
+              onRequestClose={handleCloseModal}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                }}
+                activeOpacity={1}
+                onPress={() => {
+                  setIsModalVisible(false);
+                }}>
+                <View
+                  style={{
+                    backgroundColor: 'white',
+                    padding: 20,
+                    borderRadius: 10,
+                    width: '85%',
+                    maxHeight: '90%',
+                  }}
+                  onStartShouldSetResponder={() => true}
+                  onTouchEnd={e => e.stopPropagation()}>
+                  {/* <View
+                    style={{
+                      justifyContent: 'flex-end',
+                      flexDirection: 'row',
+                      width: '100%',
+                    }}>
+                    <TouchableOpacity onPress={handleCloseModal}>
+                      <Entypo name="cross" size={28} color="black" />
+                    </TouchableOpacity>
+                  </View> */}
+
+                  {/* Status Section */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'flex-end',
+                      marginBottom: 15,
+                      borderRadius: 10,
+                      overflow: 'hidden',
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Medium',
+                        fontSize: 14,
+                        paddingVertical: 5,
+                        paddingHorizontal: 14,
+                        backgroundColor: getLeaveStatusColor(
+                          selectedLeave.leave_status,
+                        ),
+                        color: 'white',
+                        textAlign: 'center',
+                        borderRadius: 50, // To make the text background round (circle)
+                      }}>
+                      {selectedLeave.leave_status || 'Pending'}
+                    </Text>
+                  </View>
+
+                  {/* From and Till Date Section */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      marginBottom: 15,
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Medium',
+                        fontSize: 14,
+                        color: 'grey',
+                      }}>
+                      From Date
+                    </Text>
+                    <View style={{marginRight: 30}}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Bold',
+                          fontSize: 14,
+                          color: '#555',
+                          textAlign: 'center',
+                        }}>
+                        {formattedDate(selectedLeave.start_date) || '-----'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      marginBottom: 15,
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Medium',
+                        fontSize: 14,
+                        color: 'grey',
+                      }}>
+                      Till Date
+                    </Text>
+                    <View style={{marginRight: 30}}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Bold',
+                          fontSize: 14,
+                          color: '#555',
+                          textAlign: 'center',
+                        }}>
+                        {formattedDate(selectedLeave.end_date) || '-----'}
+                      </Text>
+                    </View>
+                  </View>
+                  {/* Approved By Section */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      marginBottom: 20,
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Medium',
+                        fontSize: 14,
+                        color: 'grey',
+                      }}>
+                      Approved By
+                    </Text>
+                    <View style={{marginRight: 30}}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Bold',
+                          fontSize: 14,
+                          color: '#555',
+                          textAlign: 'center',
+                        }}>
+                        {selectedLeave.approve_by || '-----'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Reason Section */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      marginBottom: 5,
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Medium',
+                        fontSize: 14,
+                        color: 'grey',
+                      }}>
+                      Reason
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'flex-start',
+                      marginBottom: 20,
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Bold',
+                        fontSize: 14,
+                        color: '#555',
+                        textAlign: 'center',
+                      }}>
+                      {selectedLeave.reason || '-----'}
+                    </Text>
+                  </View>
+
+                  {/* Applied on (Entry Date) Section */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'flex-start',
+                      marginBottom: 20,
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Medium',
+                        fontSize: 15,
+                        color: 'grey',
+                      }}>
+                      Applied on
+                    </Text>
+                    <View style={{marginLeft: 10, justifyContent: 'center'}}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Regular',
+                          fontSize: 14,
+                          color: '#555',
+                          textAlign: 'center',
+                        }}>
+                        {selectedLeave.entry_date || '-----'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Cancel Button */}
+                  <View
+                    style={{alignItems: 'center', justifyContent: 'center'}}>
+                    <TouchableOpacity
+                      onPress={handleCloseModal}
+                      style={{
+                        backgroundColor: 'white',
+                        borderWidth: 1,
+                        borderColor: '#CCC',
+                        padding: 10,
+                        borderRadius: 5,
+                        alignItems: 'center',
+                        marginTop: 15,
+                        width: '50%',
+                      }}>
+                      <Text
+                        style={{
+                          color: 'Black',
+                          fontFamily: 'Inter-Bold',
+                          fontSize: 14,
+                        }}>
+                        Close
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
               </TouchableOpacity>

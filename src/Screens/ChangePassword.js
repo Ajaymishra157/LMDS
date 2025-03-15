@@ -12,7 +12,7 @@ import React, {useState} from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import colors from '../CommonFiles/Colors';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ENDPOINTS} from '../CommonFiles/Constant';
 
@@ -37,6 +37,21 @@ const ChangePassword = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const [userType, setUsertype] = useState(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      let usertype = null;
+
+      const fetchUsertype = async () => {
+        usertype = await AsyncStorage.getItem('user_type');
+        setUsertype(usertype);
+      };
+
+      fetchUsertype();
+    }, []),
+  );
+
   const ChangePasswordApi = async () => {
     setLastError('');
     setmatcherror('');
@@ -44,21 +59,21 @@ const ChangePassword = () => {
 
     // Check if fields are empty and set error messages
     if (!oldPassword) {
-      setOldPasswordError('Please enter the old password');
+      setOldPasswordError('Please Enter The Old Password');
       formIsValid = false;
     } else {
       setOldPasswordError(null); // Reset the error if the field is filled
     }
 
     if (!newPassword) {
-      setNewPasswordError('Please enter the new password');
+      setNewPasswordError('Please Enter The New Password');
       formIsValid = false;
     } else {
       setNewPasswordError(null); // Reset the error if the field is filled
     }
 
     if (!confirmPassword) {
-      setConfirmPasswordError('Please enter the confirm password');
+      setConfirmPasswordError('Please Enter The Confirm Password');
       formIsValid = false;
     } else {
       setConfirmPasswordError(null); // Reset the error if the field is filled
@@ -66,12 +81,12 @@ const ChangePassword = () => {
 
     // Check if passwords meet the length requirement
     if (newPassword && newPassword.length < 5) {
-      setLastError('New password must be at least 5 characters long.');
+      setLastError('New Password Must Be At Least 5 Characters Long.');
       formIsValid = false;
     }
 
     if (confirmPassword && confirmPassword.length < 5) {
-      setLastError('Confirm password must be at least 5 characters long.');
+      setLastError('Confirm Password Must Be At Least 5 Characters Long.');
       formIsValid = false;
     }
 
@@ -81,36 +96,40 @@ const ChangePassword = () => {
     }
 
     setchangeLoading(true);
-    const trainerId = await AsyncStorage.getItem('trainer_id');
-    console.log('trainerid', trainerId);
+    const userId = await AsyncStorage.getItem(
+      userType === 'Student' ? 'application_id' : 'trainer_id',
+    );
+
+    let apiEndpoint =
+      userType === 'Student'
+        ? ENDPOINTS.Change_Student_Password
+        : ENDPOINTS.Trainer_Change_Password;
 
     try {
-      const response = await fetch(ENDPOINTS.Trainer_Change_Password, {
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          trainer_id: trainerId,
+          [userType === 'Student' ? 'application_id' : 'trainer_id']: userId,
           old_password: oldPassword,
           new_password: newPassword,
           confirm_password: confirmPassword,
         }),
       });
       const data = await response.json();
-      console.log('Response Data:', data);
 
       if (data.code == 200) {
-        console.log('Password changed successfully');
-        ToastAndroid.show('Password changed successfully', ToastAndroid.SHORT);
+        ToastAndroid.show('Password Changed Successfully', ToastAndroid.SHORT);
         navigation.goBack();
       } else if (data.code == 400) {
         if (
           data.message
             .toLowerCase()
-            .includes('new password and confirm password do not match')
+            .includes('New Password And Confirm Password Do Not Match')
         ) {
-          setmatcherror('New password and confirm password do not match.');
+          setmatcherror('New Password And Confirm Password Do Not Match.');
         } else {
           setOldPasswordError(data.message); // For other errors, set to OldPasswordError
         }
@@ -137,7 +156,7 @@ const ChangePassword = () => {
         <TouchableOpacity
           style={{position: 'absolute', top: 15, left: 15}}
           onPress={() => {
-            navigation.navigate('ProfileScreen');
+            navigation.goBack();
           }}>
           {' '}
           <Ionicons name="arrow-back" color="white" size={26} />
@@ -371,7 +390,7 @@ const ChangePassword = () => {
               justifyContent: 'center',
               alignItems: 'center',
             }}>
-            <ActivityIndicator color="black" size="small" />
+            <ActivityIndicator color={colors.Black} size="small" />
           </View>
         ) : (
           <TouchableOpacity

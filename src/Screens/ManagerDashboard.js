@@ -8,12 +8,16 @@ import {
   Text,
   ToastAndroid,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import React, {useCallback, useEffect, useState} from 'react';
 import Header from '../Component/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Entypo from 'react-native-vector-icons/Entypo';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 import {
   useFocusEffect,
@@ -39,6 +43,156 @@ const ManagerDashboard = () => {
   const [selectedEye, setselectedEye] = useState(null);
   const [TimingList, setTimingList] = useState([]);
   const [TimingLoading, setTimingLoading] = useState(false);
+
+  const [ModalVisible, setModalVisible] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState('Today'); // Selected filter state
+  const [isFilterActive, setIsFilterActive] = useState(false);
+  const [Customodal, setCustomodal] = useState(false);
+  const [isValidFromDate, setIsValidFromDate] = useState(true);
+  const [isValidTillDate, setIsValidTillDate] = useState(true);
+  const [showFromDatePicker, setShowFromDatePicker] = useState(false);
+  const [showTillDatePicker, setShowTillDatePicker] = useState(false);
+
+  const filters = ['Today', 'Yesterday', 'Month', 'custom'];
+  const getFormattedCurrentDate = () => {
+    const today = new Date();
+    const day = today.getDate();
+    const month = today.getMonth() + 1; // Months are zero-indexed
+    const year = today.getFullYear();
+    return `${year}-${month < 10 ? `0${month}` : month}-${
+      day < 10 ? `0${day}` : day
+    }`;
+  };
+
+  // Get formatted yesterday's date
+  const getYesterdayDate = () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1); // Subtract one day
+    const day = yesterday.getDate();
+    const month = yesterday.getMonth() + 1;
+    const year = yesterday.getFullYear();
+    return `${year}-${month < 10 ? `0${month}` : month}-${
+      day < 10 ? `0${day}` : day
+    }`;
+  };
+
+  // Get the first date of the current month
+  const getFirstDateOfCurrentMonth = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    return `${year}-${month < 10 ? `0${month}` : month}-01`;
+  };
+
+  const [fromDate, setFromDate] = useState(getFormattedCurrentDate());
+  console.log('From date xxxx', fromDate);
+  const [tillDate, setTillDate] = useState(getFormattedCurrentDate());
+  console.log('From date yyyy', tillDate);
+
+  const handleFilterPress = filter => {
+    setSelectedFilter(filter); // Update selected filter
+    setIsFilterActive(filter !== '');
+
+    let updatedFromDate = '';
+    let updatedTillDate = '';
+
+    // Handle date range based on selected filter
+    if (filter === 'Today') {
+      updatedFromDate = getFormattedCurrentDate();
+      updatedTillDate = getFormattedCurrentDate();
+    } else if (filter === 'Yesterday') {
+      updatedFromDate = getYesterdayDate();
+      updatedTillDate = getYesterdayDate();
+    } else if (filter === 'Month') {
+      updatedFromDate = getFirstDateOfCurrentMonth();
+      updatedTillDate = getFormattedCurrentDate();
+    } else if (filter === 'custom') {
+      setCustomodal(true);
+      setIsValidFromDate(true);
+      setIsValidTillDate(true);
+      setFromDate('');
+      setTillDate('');
+    }
+
+    if (filter !== 'custom') {
+      setFromDate(updatedFromDate);
+      setTillDate(updatedTillDate);
+      ManagerAttendenceListApi(); // Call API immediately after setting the dates
+    }
+
+    closeModal();
+  };
+
+  useEffect(() => {
+    if (fromDate && tillDate) {
+      ManagerAttendenceListApi(fromDate, tillDate);
+    }
+  }, [fromDate, tillDate]); // This effect will run whenever fromDate or tillDate changes
+
+  const formatDate = date => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Adding leading zero
+    const day = String(date.getDate()).padStart(2, '0'); // Adding leading zero
+    return `${year}-${month}-${day}`; // New format: "YYYY-MM-DD"
+  };
+
+  const handleDateChange = (event, selectedDate, type) => {
+    if (event.type === 'dismissed') {
+      if (type === 'from') {
+        setShowFromDatePicker(false); // Close From Date picker if cancelled
+      } else {
+        setShowTillDatePicker(false); // Close Till Date picker if cancelled
+      }
+      return;
+    }
+    // If selectedDate is null (meaning the user cancelled), don't update the date
+    if (!selectedDate) {
+      return;
+    }
+
+    const currentDate = selectedDate || new Date(); // Default to the selected date or current date
+    if (type === 'from') {
+      setFromDate(formatDate(currentDate)); // Set formatted 'from' date
+    } else {
+      setTillDate(formatDate(currentDate)); // Set formatted 'till' date
+    }
+
+    // Close the date picker after selecting the date
+    if (type === 'from') {
+      setShowFromDatePicker(false);
+    } else {
+      setShowTillDatePicker(false);
+    }
+  };
+
+  const handleSubmit = () => {
+    const isFromDateValid = fromDate !== '';
+    const isTillDateValid = tillDate !== '';
+
+    // Set validation states
+    setIsValidFromDate(isFromDateValid);
+    setIsValidTillDate(isTillDateValid);
+
+    // Check if both dates are valid
+    if (!isFromDateValid || !isTillDateValid) {
+      // If either fromDate or tillDate is invalid, show the validation error
+      if (!isFromDateValid) {
+      }
+      if (!isTillDateValid) {
+      }
+      return; // Prevent form submission if validation fails
+    }
+
+    // If both dates are valid, proceed with the API call
+    setCustomodal(false); // Close modal after submitting
+    ManagerAttendenceListApi(); // Make the API call with selected dates
+  };
+  const openModal = () => {
+    setModalVisible(true);
+  };
+  const closeModal = () => {
+    setModalVisible(false);
+  };
 
   useEffect(() => {
     // Fetch userType from AsyncStorage when the component mounts
@@ -74,19 +228,8 @@ const ManagerDashboard = () => {
     }
   }, [route.params, navigation]);
 
-  const ManagerAttendenceListApi = async () => {
+  const ManagerAttendenceListApi = async (fromdate, tilldate) => {
     setManagerLoading(true);
-
-    // Helper function to get today's date in the format YYYY-MM-DD
-    const getTodayDate = () => {
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = (today.getMonth() + 1).toString().padStart(2, '0'); // Add leading zero if month is less than 10
-      const day = today.getDate().toString().padStart(2, '0'); // Add leading zero if day is less than 10
-      return `${year}-${month}-${day}`; // Returns date in YYYY-MM-DD format
-    };
-
-    const currentDate = getTodayDate();
 
     const trainerId = await AsyncStorage.getItem('trainer_id');
 
@@ -98,7 +241,8 @@ const ManagerDashboard = () => {
         },
         body: JSON.stringify({
           staff_id: trainerId,
-          t_date: currentDate,
+          from_date: fromdate,
+          till_date: tilldate,
         }),
       });
       const data = await response.json();
@@ -125,17 +269,17 @@ const ManagerDashboard = () => {
 
   const showAttendenceListApi = async id => {
     setTimingLoading(true);
-    // Helper function to get today's date in the format YYYY-MM-DD
-    const getTodayDate = () => {
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = (today.getMonth() + 1).toString().padStart(2, '0'); // Add leading zero if month is less than 10
-      const day = today.getDate().toString().padStart(2, '0'); // Add leading zero if day is less than 10
-      return `${year}-${month}-${day}`; // Returns date in YYYY-MM-DD format
-    };
+    // // Helper function to get today's date in the format YYYY-MM-DD
+    // const getTodayDate = () => {
+    //   const today = new Date();
+    //   const year = today.getFullYear();
+    //   const month = (today.getMonth() + 1).toString().padStart(2, '0'); // Add leading zero if month is less than 10
+    //   const day = today.getDate().toString().padStart(2, '0'); // Add leading zero if day is less than 10
+    //   return `${year}-${month}-${day}`; // Returns date in YYYY-MM-DD format
+    // };
 
-    const currentDate = getTodayDate();
-    console.log('id and current date', id, currentDate);
+    // const currentDate = getTodayDate();
+    console.log('id and current date', id, fromDate, tillDate);
 
     try {
       const response = await fetch(ENDPOINTS.Show_Attendence_Detail, {
@@ -145,13 +289,15 @@ const ManagerDashboard = () => {
         },
         body: JSON.stringify({
           staff_id: id,
-          t_date: currentDate,
+          t_date: fromDate,
+          till_date: tillDate,
         }),
       });
       const data = await response.json();
       if (data.code === 200) {
         setTimingList(data.payload);
       } else {
+        setTimingList([]);
       }
     } catch (error) {
       console.error('Error:', error.message);
@@ -220,7 +366,7 @@ const ManagerDashboard = () => {
 
       {/* Status */}
       <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-        <TouchableOpacity>
+        <TouchableOpacity disabled={true}>
           <Text
             style={{
               fontFamily: 'Inter-Regular',
@@ -264,6 +410,10 @@ const ManagerDashboard = () => {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
+    setIsFilterActive(false);
+    setSelectedFilter('Today');
+    setFromDate(getFormattedCurrentDate());
+    setTillDate(getFormattedCurrentDate());
 
     ManagerAttendenceListApi();
 
@@ -404,7 +554,33 @@ const ManagerDashboard = () => {
               Today Staff Attendance
             </Text>
           </View>
-
+          <View
+            style={{
+              top: 5,
+              right: 5,
+              position: 'absolute',
+            }}>
+            {isFilterActive && (
+              <View
+                style={{
+                  position: 'absolute',
+                  right: 7,
+                  top: 0,
+                  width: 8,
+                  height: 8,
+                  borderRadius: 5,
+                  backgroundColor: colors.Green,
+                }}
+              />
+            )}
+            <TouchableOpacity
+              onPress={openModal}
+              style={{
+                marginRight: 10,
+              }}>
+              <AntDesign name="filter" size={28} color="black" />
+            </TouchableOpacity>
+          </View>
           {/* Attendance Table */}
           <View
             style={{
@@ -483,12 +659,15 @@ const ManagerDashboard = () => {
                     color: 'red',
                     marginTop: 20,
                   }}>
-                  No data found
+                  No Data Found
                 </Text>
               }
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
               }
+              contentContainerStyle={{
+                paddingBottom: 20, // Adding padding to the bottom of the content
+              }}
             />
           )}
         </View>
@@ -526,8 +705,11 @@ const ManagerDashboard = () => {
                 }}
                 onStartShouldSetResponder={() => true}
                 onTouchEnd={e => e.stopPropagation()}>
-                {/* Close Button */}
-                <View style={{flexDirection: 'row', width: '100%'}}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    width: '100%',
+                  }}>
                   <View
                     style={{
                       width: '100%',
@@ -535,13 +717,13 @@ const ManagerDashboard = () => {
                       alignItems: 'center',
                       flexDirection: 'row',
                     }}>
-                    {/* Modal Title */}
                     <Text
                       style={{
                         fontSize: 20,
                         fontWeight: 'bold',
                         textAlign: 'center',
                         fontFamily: 'Inter-Medium',
+                        color: 'black',
                       }}>
                       Attendence Details
                     </Text>
@@ -562,7 +744,6 @@ const ManagerDashboard = () => {
                   </View>
                 </View>
 
-                {/* Date */}
                 <View>
                   <Text
                     style={{
@@ -573,11 +754,14 @@ const ManagerDashboard = () => {
                       marginTop: 10,
                       fontFamily: 'Inter-Medium',
                     }}>
-                    {formattedDate(selectedEye.t_date) || '------'}
+                    {fromDate === tillDate
+                      ? formattedDate(fromDate)
+                      : `${formattedDate(fromDate)}  To  ${formattedDate(
+                          tillDate,
+                        )}` || '------'}
                   </Text>
                 </View>
 
-                {/* Staff Name */}
                 <View
                   style={{
                     flexDirection: 'row',
@@ -593,13 +777,13 @@ const ManagerDashboard = () => {
                     }}>
                     <Text
                       style={{
-                        fontFamily: 'Inter-Bold',
+                        fontFamily: 'Inter-Medium',
                         fontSize: 14,
-                        color: 'black',
+                        color: 'grey',
                       }}>
                       Staff Name
                     </Text>
-                    <Text style={{color: 'black', fontFamily: 'Inter-Bold'}}>
+                    <Text style={{color: 'black', fontFamily: 'Inter-Medium'}}>
                       :
                     </Text>
                   </View>
@@ -612,7 +796,7 @@ const ManagerDashboard = () => {
                     }}>
                     <Text
                       style={{
-                        fontFamily: 'Inter-Regular',
+                        fontFamily: 'Inter-Bold',
                         fontSize: 14,
                         color: 'black',
                         marginLeft: 10,
@@ -622,128 +806,120 @@ const ManagerDashboard = () => {
                   </View>
                 </View>
 
-                {/* Punch In, Punch Out, Status Table */}
-
-                <View>
+                <View style={{}}>
                   {TimingLoading ? (
-                    <View
-                      style={{
-                        flex: 1,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        height: 200, // Adjust the height as needed
-                      }}>
+                    <View style={{}}>
                       <ActivityIndicator size="small" color="#0000ff" />
                     </View>
                   ) : (
-                    <ScrollView keyboardShouldPersistTaps="handled">
-                      {/* Header Row */}
-                      <View
-                        style={{
-                          backgroundColor: '#ddd',
-                          padding: 10,
-                          borderRadius: 5,
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          marginBottom: 10,
-                          borderBottomWidth: 1,
-                          borderBottomColor: '#d1d5db',
-                          paddingBottom: 5,
-                        }}>
-                        <Text
+                    <View style={{height: 400}}>
+                      <ScrollView keyboardShouldPersistTaps="handled">
+                        <View
                           style={{
-                            fontFamily: 'Inter-Bold',
-                            fontSize: 14,
-                            color: 'black',
-                            width: '30%',
-                            textAlign: 'center',
+                            backgroundColor: '#ddd',
+                            padding: 10,
+                            borderRadius: 5,
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            marginBottom: 10,
+                            borderBottomWidth: 1,
+                            borderBottomColor: '#d1d5db',
+                            paddingBottom: 5,
                           }}>
-                          Punch In
-                        </Text>
-                        <Text
-                          style={{
-                            fontFamily: 'Inter-Bold',
-                            fontSize: 14,
-                            color: 'black',
-                            width: '30%',
-                            textAlign: 'center',
-                          }}>
-                          Punch Out
-                        </Text>
-                        <Text
-                          style={{
-                            fontFamily: 'Inter-Bold',
-                            fontSize: 14,
-                            color: 'black',
-                            width: '30%',
-                            textAlign: 'center',
-                          }}>
-                          Status
-                        </Text>
-                      </View>
-
-                      {/* Loop through TimingList */}
-                      {TimingList.length > 0 ? (
-                        TimingList.map((item, index) => (
-                          <View
-                            key={index}
+                          <Text
                             style={{
-                              flexDirection: 'row',
-                              padding: 10,
-                              justifyContent: 'space-between',
-                              marginBottom: 3,
-                              borderBottomWidth: 1,
-                              borderColor: '#ccc',
+                              fontFamily: 'Inter-Bold',
+                              fontSize: 14,
+                              color: 'black',
+                              width: '30%',
+                              textAlign: 'center',
                             }}>
-                            <Text
+                            Punch In
+                          </Text>
+                          <Text
+                            style={{
+                              fontFamily: 'Inter-Bold',
+                              fontSize: 14,
+                              color: 'black',
+                              width: '30%',
+                              textAlign: 'center',
+                            }}>
+                            Punch Out
+                          </Text>
+                          <Text
+                            style={{
+                              fontFamily: 'Inter-Bold',
+                              fontSize: 14,
+                              color: 'black',
+                              width: '30%',
+                              textAlign: 'center',
+                            }}>
+                            Status
+                          </Text>
+                        </View>
+
+                        {TimingList.length > 0 ? (
+                          TimingList.map((item, index) => (
+                            <View
+                              key={index}
                               style={{
-                                fontFamily: 'Inter-Regular',
-                                fontSize: 14,
-                                color: 'black',
-                                width: '30%',
-                                textAlign: 'center',
+                                flexDirection: 'row',
+                                padding: 10,
+                                justifyContent: 'space-between',
+                                marginBottom: 3,
+                                borderBottomWidth: 1,
+                                borderColor: '#ccc',
                               }}>
-                              {item.punch_in_time || '------'}
-                            </Text>
-                            <Text
-                              style={{
-                                fontFamily: 'Inter-Regular',
-                                fontSize: 14,
-                                color: 'black',
-                                width: '30%',
-                                textAlign: 'center',
-                              }}>
-                              {item.punch_out_time || '------'}
-                            </Text>
-                            <Text
-                              style={{
-                                fontFamily: 'Inter-Regular',
-                                fontSize: 14,
-                                color:
-                                  item.attendance_status === 'Present'
-                                    ? 'green'
-                                    : item.attendance_status === 'Absent'
-                                    ? 'red'
-                                    : 'black',
-                                width: '30%',
-                                textAlign: 'center',
-                              }}>
-                              {item.attendance_status || '------'}
-                            </Text>
-                          </View>
-                        ))
-                      ) : (
-                        <Text
-                          style={{
-                            textAlign: 'center',
-                            marginTop: 20,
-                            fontFamily: 'Inter-Regular',
-                            color: colors.black,
-                          }}>
-                          No Timing Found
-                        </Text>
-                      )}
-                    </ScrollView>
+                              <Text
+                                style={{
+                                  fontFamily: 'Inter-Regular',
+                                  fontSize: 14,
+                                  color: 'black',
+                                  width: '30%',
+                                  textAlign: 'center',
+                                }}>
+                                {item.punch_in_time || '------'}
+                              </Text>
+                              <Text
+                                style={{
+                                  fontFamily: 'Inter-Regular',
+                                  fontSize: 14,
+                                  color: 'black',
+                                  width: '30%',
+                                  textAlign: 'center',
+                                }}>
+                                {item.punch_out_time || '------'}
+                              </Text>
+                              <Text
+                                style={{
+                                  fontFamily: 'Inter-Regular',
+                                  fontSize: 14,
+                                  color:
+                                    item.attendance_status === 'Present'
+                                      ? 'green'
+                                      : item.attendance_status === 'Absent'
+                                      ? 'red'
+                                      : 'black',
+                                  width: '30%',
+                                  textAlign: 'center',
+                                }}>
+                                {item.attendance_status || '------'}
+                              </Text>
+                            </View>
+                          ))
+                        ) : (
+                          <Text
+                            style={{
+                              textAlign: 'center',
+                              marginTop: 20,
+                              fontFamily: 'Inter-Regular',
+                              color: colors.Red,
+                            }}>
+                            No Timing Found
+                          </Text>
+                        )}
+                      </ScrollView>
+                    </View>
                   )}
                 </View>
 
@@ -754,7 +930,6 @@ const ManagerDashboard = () => {
                   }}
                 /> */}
 
-                {/* Total Time */}
                 <View
                   style={{
                     flexDirection: 'row',
@@ -770,9 +945,9 @@ const ManagerDashboard = () => {
                     }}>
                     <Text
                       style={{
-                        fontFamily: 'Inter-Bold',
+                        fontFamily: 'Inter-Medium',
                         fontSize: 16,
-                        color: 'black',
+                        color: 'grey',
                       }}>
                       Total Time
                     </Text>
@@ -793,7 +968,7 @@ const ManagerDashboard = () => {
                     }}>
                     <Text
                       style={{
-                        fontFamily: 'Inter-Medium',
+                        fontFamily: 'Inter-Bold',
                         fontSize: 14,
                         color: 'black',
                         marginLeft: 10,
@@ -806,6 +981,297 @@ const ManagerDashboard = () => {
             </TouchableOpacity>
           </Modal>
         )}
+
+        {/* filter modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={ModalVisible}
+          onRequestClose={closeModal}>
+          <TouchableWithoutFeedback onPress={closeModal}>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+              }}>
+              {/* Close Icon */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'flex-end',
+                  width: '100%',
+                  paddingVertical: 5,
+                }}>
+                <TouchableOpacity
+                  onPress={closeModal}
+                  style={{
+                    marginRight: 10,
+                    backgroundColor: 'white',
+                    borderRadius: 50,
+                  }}>
+                  <Entypo name="cross" size={25} color="black" />
+                </TouchableOpacity>
+              </View>
+              <View
+                onStartShouldSetResponder={e => e.stopPropagation()}
+                style={{
+                  backgroundColor: 'white',
+                  borderTopLeftRadius: 20,
+                  borderTopRightRadius: 20,
+                  padding: 20,
+                  width: '100%',
+                  paddingBottom: 40,
+                }}>
+                <Text
+                  style={{
+                    color: 'black',
+                    fontFamily: 'Inter-Medium',
+                    fontSize: 18,
+                    marginBottom: 10,
+                    textAlign: 'left',
+                  }}>
+                  Filters
+                </Text>
+                {filters.map((filter, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={{
+                      backgroundColor:
+                        selectedFilter === filter ? colors.LightGrey : 'white', // Change background for selected
+                      padding: 10,
+                      width: '100%',
+                      borderBottomWidth: 1, // Apply border to all items
+                      borderBottomColor: '#ccc',
+                      borderRadius: 5,
+                    }}
+                    onPress={() => handleFilterPress(filter)}>
+                    <Text
+                      style={{
+                        color: selectedFilter === filter ? 'black' : 'black',
+                        fontFamily: 'Inter-Regular',
+                        fontSize: 16,
+                      }}>
+                      {filter}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+
+        {/* custom modal */}
+
+        <Modal visible={Customodal} animationType="slide" transparent={true}>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            }}
+            onPress={() => {
+              setCustomodal(false);
+            }}
+            activeOpacity={1}>
+            <View
+              style={{
+                width: '80%',
+                padding: 20,
+                backgroundColor: 'white',
+                borderRadius: 10,
+                alignItems: 'center',
+              }}
+              onStartShouldSetResponder={() => true} // Prevent modal from closing on content click
+              onTouchEnd={e => e.stopPropagation()}>
+              <View
+                style={{
+                  justifyContent: 'flex-end',
+                  flexDirection: 'row',
+                  width: '100%',
+                }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setCustomodal(false);
+                  }}>
+                  <Entypo name="cross" size={24} color="Black" />
+                </TouchableOpacity>
+              </View>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: 'bold',
+                  marginBottom: 20,
+                }}>
+                Custom Report
+              </Text>
+
+              {/* From and Till Date in a row */}
+              <View
+                style={{
+                  marginTop: 15,
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 15,
+                }}>
+                {/* From Date */}
+                <View style={{flex: 1, marginRight: 10}}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '500',
+                      marginBottom: 5,
+                      color: 'black',
+                    }}>
+                    From Date
+                  </Text>
+                  <TouchableOpacity
+                    style={{
+                      padding: 10,
+                      backgroundColor: '#ffffff',
+                      borderRadius: 5,
+                      borderWidth: 1,
+                      borderColor: !isValidFromDate ? 'red' : '#cccccc',
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                    }}
+                    onPress={() => setShowFromDatePicker(true)}>
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        color: '#333',
+                      }}>
+                      {fromDate ? formattedDate(fromDate) : 'Select From Date'}
+                    </Text>
+
+                    <FontAwesome name="calendar" size={20} />
+                  </TouchableOpacity>
+                  {!isValidFromDate && (
+                    <Text
+                      style={{
+                        color: 'red',
+                        fontSize: 12,
+                        fontFamily: 'Inter-Regular',
+                      }}>
+                      From Date is required
+                    </Text>
+                  )}
+                </View>
+
+                {/* Till Date */}
+                <View style={{flex: 1}}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '500',
+                      marginBottom: 5,
+                      color: 'black',
+                    }}>
+                    Till Date
+                  </Text>
+                  <TouchableOpacity
+                    style={{
+                      padding: 10,
+                      backgroundColor: '#ffffff',
+                      borderRadius: 5,
+                      borderWidth: 1,
+                      borderColor: !isValidTillDate ? 'red' : '#cccccc',
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                    }}
+                    onPress={() => setShowTillDatePicker(true)}>
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        color: '#333',
+                      }}>
+                      {tillDate ? formattedDate(tillDate) : 'Select Till Date'}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setShowTillDatePicker(true)}>
+                      <FontAwesome name="calendar" size={20} />
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                  {!isValidTillDate && (
+                    <Text
+                      style={{
+                        color: 'red',
+                        fontSize: 12,
+                        fontFamily: 'Inter-Regular',
+                      }}>
+                      Till Date is required
+                    </Text>
+                  )}
+                </View>
+              </View>
+
+              {/* Show Date Pickers */}
+              {showFromDatePicker && (
+                <DateTimePicker
+                  value={
+                    fromDate
+                      ? new Date(fromDate.split('/').reverse().join('-'))
+                      : new Date()
+                  }
+                  mode="date"
+                  display="default"
+                  onChange={(event, selectedDate) =>
+                    handleDateChange(event, selectedDate, 'from')
+                  }
+                  minimumDate={new Date('1900-01-01')} // Allow dates from 1900 or earlier, adjust as per requirement
+                  maximumDate={new Date()} // Restrict future dates
+                />
+              )}
+
+              {showTillDatePicker && (
+                <DateTimePicker
+                  value={
+                    tillDate
+                      ? new Date(tillDate.split('/').reverse().join('-'))
+                      : new Date()
+                  }
+                  mode="date"
+                  display="default"
+                  onChange={(event, selectedDate) =>
+                    handleDateChange(event, selectedDate, 'till')
+                  }
+                  minimumDate={
+                    fromDate
+                      ? new Date(fromDate.split('/').reverse().join('-'))
+                      : new Date()
+                  } // Set minimumDate to From Date
+                  maximumDate={new Date()}
+                />
+              )}
+
+              {/* Action Buttons */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  marginTop: 20,
+                }}>
+                <TouchableOpacity
+                  style={{
+                    paddingVertical: 10,
+                    paddingHorizontal: 20,
+                    backgroundColor: '#007BFF',
+                    borderRadius: 5,
+                  }}
+                  onPress={handleSubmit}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: 'white',
+                    }}>
+                    View
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
 
       {userType === 'Manager' && (

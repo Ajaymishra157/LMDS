@@ -24,9 +24,96 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [Loading, setLoading] = useState(false);
 
+  const [isStaffLogin, setIsStaffLogin] = useState(true);
+
   const [MobilenoError, setMobileno] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [loginError, setLoginError] = useState('');
+
+  // Toggle login type (Staff or Student)
+  const toggleLoginType = () => {
+    setIsStaffLogin(!isStaffLogin);
+    // Reset fields if switching login type
+    setMobile('');
+    setPassword('');
+    setMobileno('');
+    setPasswordError('');
+    setLoginError('');
+  };
+
+  const handleStudentLogin = async () => {
+    console.log('Mobile:', Mobile);
+    console.log('Password:', password);
+    let isValid = true;
+
+    // Reset errors
+    setMobileno('');
+    setPasswordError('');
+    setLoginError('');
+
+    // Validation for Mobile
+    if (!Mobile) {
+      setMobileno('Please Enter Mobile No');
+      isValid = false;
+    } else if (Mobile.length !== 10) {
+      setMobileno('Mobile Number Must be Exactly 10 Digits');
+      isValid = false;
+    }
+
+    // Password validation (minimum 5 characters)
+    if (password.length < 5) {
+      setPasswordError('Password Must be 5 Character');
+      isValid = false;
+    }
+
+    if (isValid) {
+      setLoading(true);
+      try {
+        const response = await fetch(ENDPOINTS.Student_LOGIN, {
+          // Assume a different endpoint for student login
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            mobile_no: Mobile,
+            password: password,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to connect to the server');
+        }
+
+        const data = await response.json();
+        console.log('Response:', data);
+
+        if (data.code == 200) {
+          console.log('Student Login successful');
+          const userType = data.payload.user_type;
+          const applicationId = data.payload.application_id;
+          const studentname = data.payload.student_name;
+          const applicationNo = data.payload.application_number;
+          await AsyncStorage.setItem('user_type', userType);
+          await AsyncStorage.setItem('application_id', applicationId);
+          await AsyncStorage.setItem('student_name', studentname);
+          await AsyncStorage.setItem('application_number', applicationNo);
+
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'StudentDashboard'}],
+          });
+        } else {
+          setLoginError(data.message || 'Invalid Credentials');
+        }
+      } catch (error) {
+        console.error('Error:', error.message);
+        setLoginError('Something went wrong. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   const handleLogin = async () => {
     console.log('Mobile:', Mobile);
@@ -97,6 +184,11 @@ const LoginScreen = () => {
               index: 0,
               routes: [{name: 'ManagerDashboard'}],
             });
+          } else if (userType === 'Student') {
+            navigation.reset({
+              index: 0,
+              routes: [{name: 'StudentDashboard'}],
+            });
           } else {
             // For any other user type, go to DashboardScreen
             navigation.reset({
@@ -124,7 +216,7 @@ const LoginScreen = () => {
         flex: 1,
         backgroundColor: '#f3f4f6',
         justifyContent: 'flex-start',
-        paddingTop: 40,
+        paddingTop: 30,
         alignItems: 'center',
         padding: 16,
       }}>
@@ -132,17 +224,18 @@ const LoginScreen = () => {
         <Image
           source={logo}
           style={{
-            height: 170,
-            width: 170,
+            height: 160,
+            width: 160,
             resizeMode: 'contain',
             borderRadius: 100,
           }}
         />
       </View>
+
       <View
         style={{
           backgroundColor: 'white',
-          padding: 24,
+          padding: 15,
           borderRadius: 12,
           shadowColor: '#000',
           shadowOffset: {width: 0, height: 2},
@@ -151,6 +244,68 @@ const LoginScreen = () => {
           width: '100%',
           maxWidth: 400,
         }}>
+        {/* Toggle Button for Staff / Student Login */}
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginBottom: 20,
+            borderRadius: 20,
+            overflow: 'hidden',
+
+            width: '100%',
+            gap: 20,
+          }}>
+          {/* Staff Login Tab */}
+          <TouchableOpacity
+            onPress={toggleLoginType}
+            style={{
+              flex: 1,
+              paddingVertical: 12,
+              backgroundColor: isStaffLogin ? colors.Green : 'white',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 20,
+              borderWidth: 1,
+              borderColor: '#dcdcdc',
+            }}>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: 'bold',
+                fontFamily: 'Inter-Medium',
+                color: isStaffLogin ? 'white' : 'grey',
+              }}>
+              Staff Login
+            </Text>
+          </TouchableOpacity>
+
+          {/* Student Login Tab */}
+          <TouchableOpacity
+            onPress={toggleLoginType}
+            style={{
+              flex: 1,
+              paddingVertical: 12,
+              backgroundColor: !isStaffLogin ? colors.Green : 'white',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 20,
+              borderWidth: 1,
+              borderColor: '#dcdcdc',
+            }}>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: 'bold',
+                fontFamily: 'Inter-Medium',
+
+                color: !isStaffLogin ? 'white' : 'grey',
+              }}>
+              Student Login
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <Text
           style={{
             fontSize: 24,
@@ -159,7 +314,7 @@ const LoginScreen = () => {
             color: '#333',
             fontFamily: 'Inter-Bold',
           }}>
-          Login
+          {isStaffLogin ? 'Staff Login' : 'Student Login'}
         </Text>
 
         {/* Mobile Input */}
@@ -232,7 +387,7 @@ const LoginScreen = () => {
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
             <Ionicons
-              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+              name={showPassword ? 'eye-outline' : 'eye-off-outline'}
               size={20}
               color="gray"
             />
@@ -254,11 +409,11 @@ const LoginScreen = () => {
         {/* Login Button */}
         {Loading ? (
           <View>
-            <ActivityIndicator size="small" color={'#3b82f6'} />
+            <ActivityIndicator size="small" color={colors.Black} />
           </View>
         ) : (
           <TouchableOpacity
-            onPress={handleLogin}
+            onPress={isStaffLogin ? handleLogin : handleStudentLogin}
             style={{
               backgroundColor: colors.Black,
               paddingVertical: 12,

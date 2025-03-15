@@ -8,7 +8,7 @@ import {
   ScrollView,
   Animated,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {
   useFocusEffect,
@@ -42,7 +42,9 @@ const DrawerNavigation = props => {
   const [isRewardPointsModal, setIsRewardPointsModal] = useState(false);
   console.log('isrewardpointsmodal yyyyyy', isRewardPointsModal);
   const [userType, setUserType] = useState(''); // State to hold the user type
-  console.log('usertypeyyy', userType);
+  console.log('usertype ye hai ab', userType);
+  const [StudentName, setStudentName] = useState('');
+  console.log('StudentName ye hai ab', StudentName);
   const [selectedMenu, setSelectedMenu] = useState('Home'); // State to track selected menu
 
   const Report = require('../assets/images/report.png');
@@ -50,6 +52,7 @@ const DrawerNavigation = props => {
   const Payment = require('../assets/images/payment.png');
   const History = require('../assets/images/history.png');
   const badge = require('../assets/images/badge.png');
+  const Complain = require('../assets/images/complain.png');
   const [ProfileData, setProfileData] = useState([]);
   const isDrawerOpen = useDrawerStatus();
 
@@ -170,16 +173,23 @@ const DrawerNavigation = props => {
   };
 
   const MyProfileApi = async () => {
-    const trainerId = await AsyncStorage.getItem('trainer_id');
+    const userId = await AsyncStorage.getItem(
+      userType === 'Student' ? 'application_id' : 'trainer_id',
+      console.log('user id', userId),
+    );
+    let apiEndpoint =
+      userType === 'Student'
+        ? ENDPOINTS.Student_Profile
+        : ENDPOINTS.Trainer_Profile;
 
     try {
-      const response = await fetch(ENDPOINTS.Trainer_Profile, {
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          trainer_id: trainerId,
+          [userType === 'Student' ? 'application_id' : 'trainer_id']: userId,
         }),
       });
 
@@ -198,8 +208,10 @@ const DrawerNavigation = props => {
   };
 
   useEffect(() => {
-    MyProfileApi();
-  }, [isDrawerOpen]);
+    if (userType) {
+      MyProfileApi();
+    }
+  }, [isDrawerOpen, userType]);
 
   useEffect(() => {
     if (isDrawerOpen === 'open') {
@@ -229,6 +241,9 @@ const DrawerNavigation = props => {
     } else if (userType === 'Manager' && screenName === 'HomeScreen') {
       // If user is a Manager and clicks Home, navigate to ManagerDashboard
       navigation.navigate('ManagerDashboard');
+    } else if (userType === 'Student' && screenName === 'HomeScreen') {
+      // If user is a Manager and clicks Home, navigate to ManagerDashboard
+      navigation.navigate('StudentDashboard');
     } else if (userType !== 'Trainer' && screenName === 'HomeScreen') {
       // If user is not a Trainer and clicks Home, navigate to DashboardScreen
       navigation.navigate('DashboardScreen');
@@ -255,11 +270,17 @@ const DrawerNavigation = props => {
   //     : {backgroundColor: '#ffffff', color: '#333'}; // Default style
   // };
   const getSelectedStyle = item => {
+    console.log('selected tab1', selectedItem);
+    console.log('selected tab1', item);
     // Check if the current item is selected
     const isSelected = item === selectedItem;
 
     // Check the userType (assuming userType is already set in state)
-    if (userType === 'Trainer') {
+    if (
+      userType === 'Trainer' ||
+      userType === 'Student' ||
+      userType === 'Manager'
+    ) {
       return isSelected
         ? {backgroundColor: '#ededed', color: 'black'} // Highlight style for Trainer
         : {backgroundColor: '#ffffff', color: '#333'}; // Default style for Trainer
@@ -271,6 +292,7 @@ const DrawerNavigation = props => {
   };
 
   const getSelectedStyle2 = item => {
+    console.log('selected tab', selectedItem);
     return item === selectedItem
       ? {backgroundColor: '#f0f0f0', color: '#007BFF'} // Highlight the selected item
       : {backgroundColor: '#ffffff', color: '#333'}; // Default style
@@ -281,44 +303,36 @@ const DrawerNavigation = props => {
   const [LeaveVisible, setLeaveVisible] = useState(false);
 
   const [heightAnim] = useState(new Animated.Value(0)); // Height animation
+  const [heightAnim2] = useState(new Animated.Value(0)); // Height animation
   const [rotateAnim] = useState(new Animated.Value(0)); // Rotation animation for arrow
 
-  const [opacityValues2, setOpacityValues2] = useState([
-    new Animated.Value(0), // For Today Point
-    new Animated.Value(0), // For Yesterday Point
-    new Animated.Value(0), // For Month Point
-    new Animated.Value(0), // For Custom Point
-  ]);
+  const scaleAnim = new Animated.Value(0);
+
+  // Start from above
+  const [arrowRotation] = useState(new Animated.Value(0));
+  const animationController = useRef(new Animated.Value(0)).current; // For arrow rotation and slide animation
+  const translateYAnim = useRef(new Animated.Value(0)).current;
+
+  const dropdownHeightAnim = new Animated.Value(-100); // This will control only the dropdown height
 
   const toggleDropdown = () => {
-    setDropdownVisible(!isDropdownVisible); // Toggle the state when the button is clicked
-    setSelectedItem2(null);
+    setDropdownVisible(prev => !prev); // Toggle the state when the button is clicked
 
-    // Sequential animation for each option with delay
-    Animated.timing(translateYAnim, {
-      toValue: isDropdownVisible ? 0 : 10,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-
-    if (isDropdownVisible) {
-      // If closing, reset opacity to 0
-      opacityValues2.forEach(opacity => opacity.setValue(0));
-    } else {
-      // If opening, animate opacity of each item with a delay
-      opacityValues2.forEach((opacity, index) => {
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 100,
-          delay: index * 100, // 2-second delay between each item
-          useNativeDriver: true,
-        }).start();
-      });
-    }
+    setSelectedItem(null);
   };
 
-  const [translateYAnim] = useState(new Animated.Value(-100)); // Start from above
-  const [arrowRotation] = useState(new Animated.Value(0));
+  const toggleDropdown2 = () => {
+    setRewardVisible(prev => !prev); // Toggle the state when the button is clicked
+
+    setSelectedItem(null);
+    setSelectedItem2(null);
+  };
+
+  // Interpolation for the arrow rotation
+  const arrowTransform = animationController.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '180deg'], // Rotate 180 degrees when dropdown is opened
+  });
 
   useEffect(() => {
     // Trigger the animation when LeaveVisible changes
@@ -338,6 +352,43 @@ const DrawerNavigation = props => {
       }),
     ]).start();
   }, [LeaveVisible]); // Dependency array, runs when LeaveVisible changes
+  useEffect(() => {
+    // Trigger the animation when LeaveVisible changes
+    Animated.sequence([
+      Animated.delay(200), // Optional delay before the animation starts
+      Animated.timing(heightAnim, {
+        toValue: isDropdownVisible ? 170 : 0, // Collapse to 0 or expand to 100
+        duration: 500, // Duration of the sliding animation
+        useNativeDriver: false, // We are animating height, not a transform
+      }),
+
+      // Animate the rotation of the arrow
+      Animated.timing(arrowRotation, {
+        toValue: isDropdownVisible ? 1 : 0, // 0 means up, 1 means down
+        duration: 300, // Speed of the rotation
+        useNativeDriver: true, // Use native driver for performance
+      }),
+    ]).start();
+  }, [isDropdownVisible]);
+
+  useEffect(() => {
+    // Trigger the animation when LeaveVisible changes
+    Animated.sequence([
+      Animated.delay(200), // Optional delay before the animation starts
+      Animated.timing(heightAnim2, {
+        toValue: RewardVisible ? 170 : 0, // Collapse to 0 or expand to 100
+        duration: 500, // Duration of the sliding animation
+        useNativeDriver: false, // We are animating height, not a transform
+      }),
+
+      // Animate the rotation of the arrow
+      Animated.timing(arrowRotation, {
+        toValue: RewardVisible ? 1 : 0, // 0 means up, 1 means down
+        duration: 300, // Speed of the rotation
+        useNativeDriver: true, // Use native driver for performance
+      }),
+    ]).start();
+  }, [RewardVisible]);
 
   const Leavetoogle = () => {
     // Toggle visibility on click
@@ -348,39 +399,17 @@ const DrawerNavigation = props => {
     inputRange: [0, 70],
     outputRange: ['0deg', '180deg'], // Rotate from 0 to 180 degrees
   });
+  // const arrowRotationInterpolated2 = arrowRotation.interpolate({
+  //   inputRange: [0, 70],
+  //   outputRange: ['0deg', '180deg'], // Rotate from 0 to 180 degrees
+  // });
 
-  const [opacityValues, setOpacityValues] = useState([
-    new Animated.Value(0), // For Today Point
-    new Animated.Value(0), // For Yesterday Point
-    new Animated.Value(0), // For Month Point
-    new Animated.Value(0), // For Custom Point
-  ]);
-  const toggleDropdown2 = () => {
-    setRewardVisible(!RewardVisible); // Toggle the state when the button is clicked
-    setSelectedItem(null);
-
-    // Sequential animation for each option with delay
-    Animated.timing(translateYAnim, {
-      toValue: RewardVisible ? 0 : 10,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-
-    if (RewardVisible) {
-      // If closing, reset opacity to 0
-      opacityValues.forEach(opacity => opacity.setValue(0));
-    } else {
-      // If opening, animate opacity of each item with a delay
-      opacityValues.forEach((opacity, index) => {
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 100,
-          delay: index * 100, // 2-second delay between each item
-          useNativeDriver: true,
-        }).start();
-      });
-    }
-  };
+  // const [opacityValues, setOpacityValues] = useState([
+  //   new Animated.Value(0), // For Today Point
+  //   new Animated.Value(0), // For Yesterday Point
+  //   new Animated.Value(0), // For Month Point
+  //   new Animated.Value(0), // For Custom Point
+  // ]);
 
   // date counting
 
@@ -461,12 +490,16 @@ const DrawerNavigation = props => {
 
   useEffect(() => {
     const checkLoginStatus = async () => {
+      const StoreuserName = await AsyncStorage.getItem('student_name');
       const storedUserType = await AsyncStorage.getItem('user_type');
-      const id = await AsyncStorage.getItem('trainer_id');
+      const id =
+        (await AsyncStorage.getItem('trainer_id')) ||
+        (await AsyncStorage.getItem('application_id'));
       console.log('training_id', id, storedUserType);
 
       if (storedUserType && id) {
         setUserType(storedUserType); // Set userType in the state
+        setStudentName(StoreuserName);
       } else {
         setUserType(''); // Set to empty if no user type found
       }
@@ -528,14 +561,17 @@ const DrawerNavigation = props => {
       <View
         style={{padding: 10, alignItems: 'center', justifyContent: 'center'}}>
         <Image
-          source={{uri: ProfileData?.trainer_image}}
+          source={{
+            uri: ProfileData?.trainer_image || ProfileData?.application_image,
+          }}
           style={{
-            width: 80,
-            height: 90,
+            width: 100,
+            height: 100,
             borderRadius: 100,
             backgroundColor: 'white',
             marginTop: 9,
             marginLeft: 10,
+            resizeMode: 'stretch',
           }}
         />
         <View
@@ -562,7 +598,9 @@ const DrawerNavigation = props => {
               color: 'black',
               marginLeft: 10,
             }}>
-            {ProfileData?.trainer_name || 'Trainer Name'}
+            {userType === 'Student'
+              ? ProfileData?.application_student_name
+              : ProfileData?.trainer_name || '--------'}
           </Text>
         </View>
       </View>
@@ -586,6 +624,7 @@ const DrawerNavigation = props => {
             paddingLeft: 30,
             marginBottom: 10,
             borderRadius: 10,
+
             flexDirection: 'row',
             alignItems: 'center',
             backgroundColor: getSelectedStyle('Home').backgroundColor, // Apply background style dynamically
@@ -723,7 +762,11 @@ const DrawerNavigation = props => {
               paddingLeft: 30,
             }}>
             <TouchableOpacity
-              style={{paddingVertical: 10, paddingLeft: 30}}
+              style={{
+                paddingVertical: 10,
+                paddingLeft: 30,
+                backgroundColor: getRewardItemStyle('MyLeave').backgroundColor,
+              }}
               onPress={() => {
                 navigation.navigate('LeaveApplication');
               }}>
@@ -737,7 +780,12 @@ const DrawerNavigation = props => {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={{paddingVertical: 10, paddingLeft: 30}}
+              style={{
+                paddingVertical: 10,
+                paddingLeft: 30,
+                backgroundColor:
+                  getRewardItemStyle('OthersLeave').backgroundColor,
+              }}
               onPress={() => {
                 navigation.navigate('OthersLeave');
               }}>
@@ -754,7 +802,7 @@ const DrawerNavigation = props => {
         )}
 
         {/* Advance Payment Menu Item */}
-        {userType !== 'Manager' && (
+        {userType !== 'Manager' && userType !== 'Student' && (
           <TouchableOpacity
             style={{
               paddingVertical: 7,
@@ -842,15 +890,17 @@ const DrawerNavigation = props => {
                 justifyContent: 'flex-end',
                 flexDirection: 'row',
               }}>
-              {/* <Animated.View
-                style={{transform: [{translateY: translateYAnim}]}}> */}
-              <MaterialIcons
-                name={isDropdownVisible ? 'expand-less' : 'expand-more'}
-                size={28}
-                color="#333"
-                style={{marginRight: 15}}
-              />
-              {/* </Animated.View> */}
+              <Animated.View
+                style={{
+                  transform: [{rotate: arrowRotationInterpolated}],
+                }}>
+                <MaterialIcons
+                  name={isDropdownVisible ? 'expand-less' : 'expand-more'}
+                  size={28}
+                  color="#333"
+                  style={{marginRight: 15}}
+                />
+              </Animated.View>
             </View>
           </TouchableOpacity>
         )}
@@ -859,108 +909,103 @@ const DrawerNavigation = props => {
         {isDropdownVisible && userType === 'Trainer' && (
           <Animated.View
             style={{
-              transform: [{translateY: translateYAnim}],
+              height: heightAnim, // Animate the height
+              overflow: 'hidden', // Hide the content when collapsed
               paddingLeft: 30,
             }}>
-            <Animated.View style={{opacity: opacityValues2[0]}}>
-              <TouchableOpacity
+            <TouchableOpacity
+              style={{
+                borderRadius: 10,
+                paddingVertical: 10,
+                paddingLeft: 30,
+                marginRight: 5,
+                backgroundColor:
+                  getReportItemStyle('TodayReport').backgroundColor,
+              }}
+              onPress={() => {
+                handleMenuPress('TodayReport', 'TodayReport');
+                navigateToReportHistory('today');
+              }}>
+              <Text
                 style={{
-                  borderRadius: 10,
-                  paddingVertical: 10,
-                  paddingLeft: 30,
-                  marginRight: 5,
-                  backgroundColor:
-                    getReportItemStyle('TodayReport').backgroundColor,
-                }}
-                onPress={() => {
-                  handleMenuPress('TodayReport', 'TodayReport');
-                  navigateToReportHistory('today');
+                  fontSize: 16,
+                  color: getReportItemStyle('TodayReport').color,
+                  fontFamily: 'Inter-Regular',
                 }}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    color: getReportItemStyle('TodayReport').color,
-                    fontFamily: 'Inter-Regular',
-                  }}>
-                  - Today Report
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
-            <Animated.View style={{opacity: opacityValues2[1]}}>
-              <TouchableOpacity
-                style={{
-                  borderRadius: 10,
-                  paddingVertical: 10,
-                  paddingLeft: 30,
-                  marginRight: 5,
+                - Today Report
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                borderRadius: 10,
+                paddingVertical: 10,
+                paddingLeft: 30,
+                marginRight: 5,
 
-                  backgroundColor:
-                    getReportItemStyle('YesterdayReport').backgroundColor,
-                }}
-                onPress={() => {
-                  handleMenuPress('YesterdayReport', 'YesterdayReport');
-                  navigateToReportHistory('yesterday');
-                }}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    color: getReportItemStyle('YesterdayReport').color,
-                    fontFamily: 'Inter-Regular',
-                  }}>
-                  - Yesterday Report
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
-            <Animated.View style={{opacity: opacityValues2[2]}}>
-              <TouchableOpacity
+                backgroundColor:
+                  getReportItemStyle('YesterdayReport').backgroundColor,
+              }}
+              onPress={() => {
+                handleMenuPress('YesterdayReport', 'YesterdayReport');
+                navigateToReportHistory('yesterday');
+              }}>
+              <Text
                 style={{
-                  borderRadius: 10,
-                  paddingVertical: 10,
-                  paddingLeft: 30,
-                  marginRight: 5,
-
-                  backgroundColor:
-                    getReportItemStyle('MonthReport').backgroundColor,
-                }}
-                onPress={() => {
-                  handleMenuPress('MonthReport', 'MonthReport');
-                  navigateToReportHistory('month');
+                  fontSize: 16,
+                  color: getReportItemStyle('YesterdayReport').color,
+                  fontFamily: 'Inter-Regular',
                 }}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    color: getReportItemStyle('MonthReport').color,
-                    fontFamily: 'Inter-Regular',
-                  }}>
-                  - Month Report
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
-            <Animated.View style={{opacity: opacityValues2[3]}}>
-              <TouchableOpacity
+                - Yesterday Report
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                borderRadius: 10,
+                paddingVertical: 10,
+                paddingLeft: 30,
+                marginRight: 5,
+
+                backgroundColor:
+                  getReportItemStyle('MonthReport').backgroundColor,
+              }}
+              onPress={() => {
+                handleMenuPress('MonthReport', 'MonthReport');
+                navigateToReportHistory('month');
+              }}>
+              <Text
                 style={{
-                  borderRadius: 10,
-                  paddingVertical: 10,
-                  paddingLeft: 30,
-                  marginRight: 5,
-
-                  backgroundColor:
-                    getReportItemStyle('CustomReport').backgroundColor,
-                }}
-                onPress={() => {
-                  handleMenuPress('CustomReport', 'CustomReport');
-                  setModalvisible(true);
+                  fontSize: 16,
+                  color: getReportItemStyle('MonthReport').color,
+                  fontFamily: 'Inter-Regular',
                 }}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    color: getReportItemStyle('CustomReport').color,
-                    fontFamily: 'Inter-Regular',
-                  }}>
-                  - Custom Report
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
+                - Month Report
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                borderRadius: 10,
+                paddingVertical: 10,
+                paddingLeft: 30,
+                marginRight: 5,
+
+                backgroundColor:
+                  getReportItemStyle('CustomReport').backgroundColor,
+              }}
+              onPress={() => {
+                handleMenuPress('CustomReport', 'CustomReport');
+                setModalvisible(true);
+              }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  color: getReportItemStyle('CustomReport').color,
+                  fontFamily: 'Inter-Regular',
+                }}>
+                - Custom Report
+              </Text>
+            </TouchableOpacity>
           </Animated.View>
         )}
 
@@ -995,15 +1040,17 @@ const DrawerNavigation = props => {
                 justifyContent: 'flex-end',
                 flexDirection: 'row',
               }}>
-              {/* <Animated.View
-                style={{transform: [{translateY: translateYAnim}]}}> */}
-              <MaterialIcons
-                name={RewardVisible ? 'expand-less' : 'expand-more'}
-                size={28}
-                color="#333"
-                style={{marginRight: 15}}
-              />
-              {/* </Animated.View> */}
+              <Animated.View
+                style={{
+                  transform: [{rotate: arrowRotationInterpolated}],
+                }}>
+                <MaterialIcons
+                  name={RewardVisible ? 'expand-less' : 'expand-more'}
+                  size={28}
+                  color="#333"
+                  style={{marginRight: 15}}
+                />
+              </Animated.View>
             </View>
           </TouchableOpacity>
         )}
@@ -1012,120 +1059,138 @@ const DrawerNavigation = props => {
         {RewardVisible && userType === 'Trainer' && (
           <Animated.View
             style={{
-              transform: [{translateY: translateYAnim}],
+              height: heightAnim2, // Animate the height
+              overflow: 'hidden',
               paddingLeft: 30,
-              marginBottom: 15,
             }}>
             {/* Today Point */}
-            <Animated.View style={{opacity: opacityValues[0]}}>
-              <TouchableOpacity
+            <TouchableOpacity
+              style={{
+                borderRadius: 10,
+                paddingVertical: 10,
+                paddingLeft: 30,
+                marginRight: 5,
+
+                backgroundColor:
+                  getRewardItemStyle('TodayRewardPoints').backgroundColor,
+              }}
+              onPress={() => {
+                handleMenuPress2('TodayRewardPoints', 'TodayRewardPoints');
+                navigateToRewardPoints('today'); // Passing 'today' to navigate with correct dates
+              }}>
+              <Text
                 style={{
-                  borderRadius: 10,
-                  paddingVertical: 10,
-                  paddingLeft: 30,
-                  marginRight: 5,
-
-                  backgroundColor:
-                    getRewardItemStyle('TodayRewardPoints').backgroundColor,
-                }}
-                onPress={() => {
-                  handleMenuPress2('TodayRewardPoints', 'TodayRewardPoints');
-                  navigateToRewardPoints('today'); // Passing 'today' to navigate with correct dates
+                  fontSize: 16,
+                  color: getRewardItemStyle('TodayRewardPoints').color,
+                  fontFamily: 'Inter-Regular',
                 }}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    color: getRewardItemStyle('TodayRewardPoints').color,
-                    fontFamily: 'Inter-Regular',
-                  }}>
-                  - Today Point
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
+                - Today Point
+              </Text>
+            </TouchableOpacity>
 
-            <Animated.View style={{opacity: opacityValues[1]}}>
-              <TouchableOpacity
+            <TouchableOpacity
+              style={{
+                borderRadius: 10,
+                marginRight: 5,
+
+                paddingVertical: 10,
+                paddingLeft: 30,
+                backgroundColor: getRewardItemStyle('YesterdayRewardPoints')
+                  .backgroundColor,
+              }}
+              onPress={() => {
+                handleMenuPress2(
+                  'YesterdayRewardPoints',
+                  'YesterdayRewardPoints',
+                );
+                navigateToRewardPoints('yesterday'); // Passing 'yesterday' to navigate with correct dates
+              }}>
+              <Text
                 style={{
-                  borderRadius: 10,
-                  marginRight: 5,
-
-                  paddingVertical: 10,
-                  paddingLeft: 30,
-                  backgroundColor: getRewardItemStyle('YesterdayRewardPoints')
-                    .backgroundColor,
-                }}
-                onPress={() => {
-                  handleMenuPress2(
-                    'YesterdayRewardPoints',
-                    'YesterdayRewardPoints',
-                  );
-                  navigateToRewardPoints('yesterday'); // Passing 'yesterday' to navigate with correct dates
+                  fontSize: 16,
+                  color: getRewardItemStyle('YesterdayRewardPoints').color,
+                  fontFamily: 'Inter-Regular',
                 }}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    color: getRewardItemStyle('YesterdayRewardPoints').color,
-                    fontFamily: 'Inter-Regular',
-                  }}>
-                  - Yesterday Point
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
-            {/* Month Point */}
-            <Animated.View style={{opacity: opacityValues[2]}}>
-              <TouchableOpacity
+                - Yesterday Point
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                borderRadius: 10,
+                marginRight: 5,
+
+                paddingVertical: 10,
+                paddingLeft: 30,
+                backgroundColor:
+                  getRewardItemStyle('MonthRewardPoints').backgroundColor,
+              }}
+              onPress={() => {
+                handleMenuPress2('MonthRewardPoints', 'MonthRewardPoints');
+                navigateToRewardPoints('month'); // Passing 'month' to navigate with correct dates
+              }}>
+              <Text
                 style={{
-                  borderRadius: 10,
-                  marginRight: 5,
-
-                  paddingVertical: 10,
-                  paddingLeft: 30,
-                  backgroundColor:
-                    getRewardItemStyle('MonthRewardPoints').backgroundColor,
-                }}
-                onPress={() => {
-                  handleMenuPress2('MonthRewardPoints', 'MonthRewardPoints');
-                  navigateToRewardPoints('month'); // Passing 'month' to navigate with correct dates
+                  fontSize: 16,
+                  color: getRewardItemStyle('MonthRewardPoints').color,
+                  fontFamily: 'Inter-Regular',
                 }}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    color: getRewardItemStyle('MonthRewardPoints').color,
-                    fontFamily: 'Inter-Regular',
-                  }}>
-                  - Month Point
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
+                - Month Point
+              </Text>
+            </TouchableOpacity>
 
-            {/* Custom Point */}
-            <Animated.View style={{opacity: opacityValues[3]}}>
-              <TouchableOpacity
+            <TouchableOpacity
+              style={{
+                borderRadius: 10,
+                marginRight: 5,
+
+                paddingVertical: 10,
+                paddingLeft: 30,
+                backgroundColor:
+                  getRewardItemStyle('CustomRewardPoint').backgroundColor,
+              }}
+              onPress={() => {
+                handleMenuPress2('CustomRewardPoints', 'CustomRewardPoints');
+
+                setModalvisible(true); // This should open your custom report modal
+              }}>
+              <Text
                 style={{
-                  borderRadius: 10,
-                  marginRight: 5,
-
-                  paddingVertical: 10,
-                  paddingLeft: 30,
-                  backgroundColor:
-                    getRewardItemStyle('CustomRewardPoint').backgroundColor,
-                }}
-                onPress={() => {
-                  handleMenuPress2('CustomRewardPoints', 'CustomRewardPoints');
-
-                  setModalvisible(true); // This should open your custom report modal
+                  fontSize: 16,
+                  color: getRewardItemStyle('CustomRewardPoint').color,
+                  fontFamily: 'Inter-Regular',
                 }}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    color: getRewardItemStyle('CustomRewardPoint').color,
-                    fontFamily: 'Inter-Regular',
-                  }}>
-                  - Custom Point
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
+                - Custom Point
+              </Text>
+            </TouchableOpacity>
           </Animated.View>
+        )}
+
+        {/* Complain Menu Item */}
+        {userType === 'Student' && (
+          <TouchableOpacity
+            style={{
+              paddingVertical: 7,
+              paddingLeft: 30,
+              marginBottom: 10,
+              borderRadius: 10,
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: getSelectedStyle('Complain').backgroundColor, // Apply selected background
+            }}
+            onPress={() => handleMenuPress('Complain', 'ComplainScreen')}>
+            <Image source={Complain} style={{height: 24, width: 24}} />
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: '600',
+                color: getSelectedStyle('Complain').color,
+                fontFamily: 'Inter-Regular',
+                marginLeft: 10,
+              }}>
+              Complaint
+            </Text>
+          </TouchableOpacity>
         )}
       </ScrollView>
 
@@ -1169,8 +1234,10 @@ const DrawerNavigation = props => {
                 fontSize: 18,
                 fontWeight: 'bold',
                 marginBottom: 20,
+                color: 'black',
+                fontFamily: 'Inter-Regular',
               }}>
-              Custom Report
+              {isRewardPointsModal == true ? 'Custom Reward' : 'Custom Report'}
             </Text>
 
             {/* From and Till Date in a row */}
@@ -1189,6 +1256,7 @@ const DrawerNavigation = props => {
                     fontWeight: '500',
                     marginBottom: 5,
                     color: 'black',
+                    fontFamily: 'Inter-Regular',
                   }}>
                   From Date
                 </Text>
@@ -1207,6 +1275,7 @@ const DrawerNavigation = props => {
                     style={{
                       fontSize: 10,
                       color: '#333',
+                      fontFamily: 'Inter-Regular',
                     }}>
                     {fromDate ? formattedDate(fromDate) : 'Select From Date'}
                   </Text>
@@ -1233,6 +1302,7 @@ const DrawerNavigation = props => {
                     fontWeight: '500',
                     marginBottom: 5,
                     color: 'black',
+                    fontFamily: 'Inter-Regular',
                   }}>
                   Till Date
                 </Text>
@@ -1251,6 +1321,7 @@ const DrawerNavigation = props => {
                     style={{
                       fontSize: 10,
                       color: '#333',
+                      fontFamily: 'Inter-Regular',
                     }}>
                     {tillDate ? formattedDate(tillDate) : 'Select Till Date'}
                   </Text>
@@ -1327,6 +1398,7 @@ const DrawerNavigation = props => {
                   style={{
                     fontSize: 16,
                     color: 'white',
+                    fontFamily: 'Inter-Bold',
                   }}>
                   View
                 </Text>

@@ -28,7 +28,9 @@ const Bottomtabnavigation = () => {
   const route = useRoute();
   const isFocused = useIsFocused();
   const [activeTab, setActiveTab] = useState('Home');
+  console.log('active tab is', activeTab);
   const [userType, setUsertype] = useState(null);
+  console.log('Bottom tab par userType', userType);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -47,11 +49,19 @@ const Bottomtabnavigation = () => {
     if (isFocused) {
       const routeName = route.name;
 
-      if (routeName === 'HomeScreen') {
+      if (
+        routeName === 'HomeScreen' ||
+        routeName === 'ManagerDashboard' ||
+        routeName === 'DashboardScreen' ||
+        routeName === 'StudentDashboard'
+      ) {
         setActiveTab('Home');
       } else if (routeName === 'ProfileScreen') {
         setActiveTab('Profile');
-      } else if (routeName === 'AttendenceScreen') {
+      } else if (
+        routeName === 'AttendenceScreen' ||
+        routeName === 'StudentAttendence'
+      ) {
         setActiveTab('Order');
       }
     }
@@ -69,13 +79,18 @@ const Bottomtabnavigation = () => {
           ? 'HomeScreen'
           : userType === 'Manager'
           ? 'ManagerDashboard'
+          : userType === 'Student'
+          ? 'StudentDashboard'
           : 'DashboardScreen',
       );
     } else if (tabName === 'Profile') {
       navigation.navigate('ProfileScreen');
-    } else if (tabName === 'Order') {
-      navigation.navigate('AttendenceScreen');
-    }
+    } else if (tabName === 'Order')
+      if (userType === 'Student') {
+        navigation.navigate('StudentAttendence');
+      } else {
+        navigation.navigate('AttendenceScreen');
+      }
   };
 
   const isTabActive = tabName => activeTab === tabName;

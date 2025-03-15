@@ -228,7 +228,7 @@ const RewardPoints = () => {
             paddingVertical: 20,
           }}>
           <Text style={{color: 'red', fontFamily: 'Inter-Regular'}}>
-            No data found
+            No Data Found
           </Text>
         </View>
       ) : (
@@ -455,7 +455,8 @@ const RewardPoints = () => {
                 <TouchableOpacity
                   onPress={() => {
                     setModalVisible(false);
-                  }}>
+                  }}
+                  style={{height: 30, width: 30}}>
                   <Entypo name="cross" size={24} color="Black" />
                 </TouchableOpacity>
               </View>

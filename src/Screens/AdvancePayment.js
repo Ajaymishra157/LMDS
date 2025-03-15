@@ -47,7 +47,6 @@ const AdvancePayment = () => {
   const navigation = useNavigation();
 
   const [currentDate, setCurrentDate] = useState('');
-  console.log('current date abhi ka', currentDate);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -80,7 +79,6 @@ const AdvancePayment = () => {
   };
 
   const handleOpenModal = Payment => {
-    console.log('called modal with Payment:', Payment);
     setselectedPayment(Payment); // Set the selected payment data
     setIsModalVisible(true); // Open the modal
   };
@@ -95,8 +93,6 @@ const AdvancePayment = () => {
     setselectedConfirmPayment(null); // Clear selected Payment data
   };
   const handleOpenModal2 = Payment => {
-    console.log('called modal with Payment 222:', Payment);
-
     setConfirmationModal(true); // Open the modal
     setselectedConfirmPayment(Payment);
   };
@@ -161,8 +157,6 @@ const AdvancePayment = () => {
     setAddLoading(true);
     const trainerId = await AsyncStorage.getItem('trainer_id');
     const formattedDate = currentDate.split('-').reverse().join('-');
-
-    console.log('formattedDatexxxxxx advance payment api', formattedDate);
 
     try {
       const response = await fetch(ENDPOINTS.Add_Advance_Payment, {
@@ -267,13 +261,7 @@ const AdvancePayment = () => {
   const UpdatePaymentApi = async PaymentId => {
     const today = new Date();
 
-    console.log('paymentid', PaymentId);
-    console.log('amount', paymentAmount);
-    console.log('reason', reason);
-
     const formattedDate = currentDate.split('-').reverse().join('-');
-
-    console.log('formattedDatexxxxxx update payment api', formattedDate);
 
     try {
       const response = await fetch(ENDPOINTS.Update_Advance_Payment, {
@@ -378,6 +366,7 @@ const AdvancePayment = () => {
       </View>
 
       <ScrollView
+        keyboardShouldPersistTaps="handled"
         style={{flex: 1}} // Key change: ScrollView covers the entire screen
         refreshControl={
           <RefreshControl
@@ -580,7 +569,9 @@ const AdvancePayment = () => {
           )}
         </View>
 
-        <ScrollView style={{marginTop: 10, padding: 5}}>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          style={{marginTop: 10, padding: 5}}>
           {/* Table Header */}
           <View
             style={{
@@ -753,7 +744,7 @@ const AdvancePayment = () => {
             />
           )}
           {/* Advance Payment Reason Modal */}
-          {selectedPayment && (
+          {/* {selectedPayment && (
             <Modal
               visible={isModalVisible}
               animationType="slide"
@@ -779,7 +770,6 @@ const AdvancePayment = () => {
                     alignItems: 'center',
                     elevation: 10, // Add shadow effect
                   }}>
-                  {/* Close Button */}
                   <View
                     style={{
                       justifyContent: 'flex-end',
@@ -792,7 +782,6 @@ const AdvancePayment = () => {
                   </View>
 
                   <View style={{width: '100%'}}>
-                    {/* Status */}
                     <View
                       style={{
                         flexDirection: 'row',
@@ -842,7 +831,6 @@ const AdvancePayment = () => {
                       </View>
                     </View>
 
-                    {/* Date */}
                     <View
                       style={{
                         flexDirection: 'row',
@@ -890,7 +878,6 @@ const AdvancePayment = () => {
                       </View>
                     </View>
 
-                    {/* Entry Date */}
                     <View
                       style={{
                         flexDirection: 'row',
@@ -938,7 +925,6 @@ const AdvancePayment = () => {
                       </View>
                     </View>
 
-                    {/* Amount */}
                     <View
                       style={{
                         flexDirection: 'row',
@@ -986,7 +972,6 @@ const AdvancePayment = () => {
                       </View>
                     </View>
 
-                    {/* Approved By */}
                     <View
                       style={{
                         flexDirection: 'row',
@@ -1034,7 +1019,6 @@ const AdvancePayment = () => {
                       </View>
                     </View>
 
-                    {/* Payment Reason */}
                     <View
                       style={{
                         flexDirection: 'row',
@@ -1081,6 +1065,262 @@ const AdvancePayment = () => {
                         </Text>
                       </View>
                     </View>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          )} */}
+
+          {selectedPayment && (
+            <Modal
+              visible={isModalVisible}
+              animationType="slide"
+              transparent={true}
+              onRequestClose={handleCloseModal}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)', // semi-transparent background
+                }}
+                activeOpacity={1}
+                onPress={() => {
+                  setIsModalVisible(false);
+                }}>
+                <View
+                  style={{
+                    backgroundColor: 'white',
+                    padding: 20,
+                    borderRadius: 10,
+                    width: '85%',
+                    maxHeight: '90%',
+                  }}
+                  onStartShouldSetResponder={() => true}
+                  onTouchEnd={e => e.stopPropagation()}>
+                  {/* Status Section */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'flex-end',
+                      marginBottom: 15,
+                      borderRadius: 10,
+                      overflow: 'hidden',
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Medium',
+                        fontSize: 14,
+                        paddingVertical: 5,
+                        paddingHorizontal: 14,
+                        backgroundColor: getLeaveStatusColor(
+                          selectedPayment.advance_status,
+                        ),
+                        color: 'white',
+                        textAlign: 'center',
+                        borderRadius: 50, // To make the text background round (circle)
+                      }}>
+                      {selectedPayment.advance_status || 'Pending'}
+                    </Text>
+                  </View>
+
+                  {/* Date Section */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      marginBottom: 15,
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Medium',
+                        fontSize: 14,
+                        color: 'grey',
+                      }}>
+                      Date
+                    </Text>
+                    <View style={{marginRight: 30}}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Bold',
+                          fontSize: 14,
+                          color: '#555',
+                          textAlign: 'center',
+                        }}>
+                        {formatDate(selectedPayment.c_date) || '-----'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Entry Date Section
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      marginBottom: 15,
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Medium',
+                        fontSize: 14,
+                        color: 'grey',
+                      }}>
+                      Entry Date
+                    </Text>
+                    <View style={{marginRight: 30}}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Bold',
+                          fontSize: 14,
+                          color: '#555',
+                          textAlign: 'center',
+                        }}>
+                        {selectedPayment.entry_date || '-----'}
+                      </Text>
+                    </View>
+                  </View> */}
+
+                  {/* Amount Section */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      marginBottom: 15,
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Medium',
+                        fontSize: 14,
+                        color: 'grey',
+                      }}>
+                      Amount
+                    </Text>
+                    <View style={{marginRight: 30}}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Bold',
+                          fontSize: 14,
+                          color: '#555',
+                          textAlign: 'center',
+                        }}>
+                        ₹{selectedPayment.advance_amount || '-----'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Approve By Section */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      marginBottom: 20,
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Medium',
+                        fontSize: 14,
+                        color: 'grey',
+                      }}>
+                      Approve By
+                    </Text>
+                    <View style={{marginRight: 30}}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Bold',
+                          fontSize: 14,
+                          color: '#555',
+                          textAlign: 'center',
+                        }}>
+                        {selectedPayment.approve_by || '-----'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Reason Section */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      marginBottom: 5,
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Medium',
+                        fontSize: 14,
+                        color: 'grey',
+                      }}>
+                      Reason
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'flex-start',
+                      marginBottom: 20,
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Bold',
+                        fontSize: 14,
+                        color: '#555',
+                        textAlign: 'center',
+                      }}>
+                      {selectedPayment.reason || '-----'}
+                    </Text>
+                  </View>
+
+                  {/* Applied on (Entry Date) Section */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'flex-start',
+                      marginBottom: 20,
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Medium',
+                        fontSize: 15,
+                        color: 'grey',
+                      }}>
+                      Applied on
+                    </Text>
+                    <View style={{marginLeft: 10, justifyContent: 'center'}}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Regular',
+                          fontSize: 14,
+                          color: '#555',
+                          textAlign: 'center',
+                        }}>
+                        {selectedPayment.entry_date || '-----'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Cancel Button */}
+                  <View
+                    style={{alignItems: 'center', justifyContent: 'center'}}>
+                    <TouchableOpacity
+                      onPress={handleCloseModal}
+                      style={{
+                        backgroundColor: 'white',
+                        borderWidth: 1,
+                        borderColor: '#CCC',
+                        padding: 10,
+                        borderRadius: 5,
+                        alignItems: 'center',
+                        marginTop: 15,
+                        width: '50%',
+                      }}>
+                      <Text
+                        style={{
+                          color: 'Black',
+                          fontFamily: 'Inter-Bold',
+                          fontSize: 14,
+                        }}>
+                        Close
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
               </TouchableOpacity>

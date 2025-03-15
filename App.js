@@ -1,9 +1,23 @@
 import {StyleSheet, Text, View} from 'react-native';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import RouteNavigation from './src/Navigation/RouteNavigation';
+import SplashScreen from './src/Screens/SplashScreen'; // Import SplashScreen
 
 const App = () => {
-  return <RouteNavigation />;
+  const [isSplashVisible, setSplashVisible] = useState(true);
+
+  useEffect(() => {
+    // Show splash screen for 3 seconds, then navigate to the main app
+    setTimeout(() => {
+      setSplashVisible(false);
+    }, 2000); // Change the duration (in milliseconds) as required
+  }, []);
+
+  return isSplashVisible ? (
+    <SplashScreen /> // Display splash screen
+  ) : (
+    <RouteNavigation /> // Navigate to main app when splash screen hides
+  );
 };
 
 export default App;
