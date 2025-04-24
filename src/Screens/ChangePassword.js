@@ -8,15 +8,16 @@ import {
   ToastAndroid,
   ActivityIndicator,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import colors from '../CommonFiles/Colors';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ENDPOINTS} from '../CommonFiles/Constant';
+import { ENDPOINTS } from '../CommonFiles/Constant';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const {width, height} = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const ChangePassword = () => {
   const navigation = useNavigation();
@@ -144,7 +145,7 @@ const ChangePassword = () => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: 'white'}}>
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
       <View
         style={{
           backgroundColor: colors.Black,
@@ -154,12 +155,12 @@ const ChangePassword = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{position: 'absolute', top: 15, left: 15}}
+          style={{ position: 'absolute', top: 18.5, left: 15 }}
           onPress={() => {
             navigation.goBack();
           }}>
           {' '}
-          <Ionicons name="arrow-back" color="white" size={26} />
+          <MaterialIcons name="arrow-back-ios-new" color="white" size={20} />
         </TouchableOpacity>
         <Text
           style={{
@@ -395,15 +396,17 @@ const ChangePassword = () => {
         ) : (
           <TouchableOpacity
             style={{
-              backgroundColor: colors.Black,
+              backgroundColor: 'white',
+              borderWidth: 1, borderColor: 'black',
+              marginTop: 18,
               borderRadius: 10,
               height: 50,
               justifyContent: 'center',
               alignItems: 'center',
             }}
             onPress={ChangePasswordApi}>
-            <Text style={{color: 'white', fontFamily: 'Inter-Regular'}}>
-              Change password
+            <Text style={{ color: 'black', fontFamily: 'Inter-Bold', fontSize: 16 }}>
+              Update password
             </Text>
           </TouchableOpacity>
         )}

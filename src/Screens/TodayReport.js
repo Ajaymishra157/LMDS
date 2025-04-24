@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,15 +10,23 @@ import {
   RefreshControl,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ENDPOINTS} from '../CommonFiles/Constant';
+import { ENDPOINTS } from '../CommonFiles/Constant';
 import colors from '../CommonFiles/Colors';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
 
 const TodayReport = () => {
+  const History = require('../assets/images/Reports.png');
   const route = useRoute();
-  const {fromDate, tillDate} = route.params;
-  console.log('From date and till date', fromDate, tillDate);
+  const { fromDate: routeFromDate, tillDate: routeTillDate } = route.params || {};
+  const [fromDate, setFromDate] = useState(routeFromDate ? new Date(routeFromDate) : new Date());
+  const [tillDate, setTillDate] = useState(routeTillDate ? new Date(routeTillDate) : new Date());
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showTillPicker, setShowTillPicker] = useState(false);
+
   const navigation = useNavigation();
   const [TodayHistory, setTodayHistory] = useState([]);
   const [currentDate, setCurrentDate] = useState('');
@@ -49,6 +57,9 @@ const TodayReport = () => {
     setReportLoading(true);
     const trainerId = await AsyncStorage.getItem('trainer_id');
     // const formattedDate = getFormattedCurrentDate();
+    console.log("ye api mai jane wala date hai", formatDateForAPI(fromDate));
+    console.log("ye api mai jane wala date hai", formatDateForAPI(tillDate));
+    console.log("ye api mai jane wala date hai", trainerId);
 
     try {
       const response = await fetch(ENDPOINTS.Show_Trainer_Date_Wise, {
@@ -58,11 +69,13 @@ const TodayReport = () => {
         },
         body: JSON.stringify({
           trainer_id: trainerId,
-          from_date: fromDate, // Use the passed fromDate
-          till_date: tillDate, // Use the passed tillDate
+          from_date: formatDateForAPI(fromDate),
+          till_date: formatDateForAPI(tillDate),
         }),
       });
       const data = await response.json();
+
+      console.log("ye api mai jane wala date hai", data);
       if (data.code === 200) {
         setTodayHistory(data.payload); // Set the data to the state
       } else {
@@ -95,8 +108,17 @@ const TodayReport = () => {
     return `${day}-${month}-${year}`;
   };
 
+  const formatDateForAPI = (date) => {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${year}-${month}-${day}`; // 👈 changed format to yyyy-mm-dd
+  };
+
+
   return (
-    <View style={{flex: 1, backgroundColor: 'white'}}>
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
       <View
         style={{
           backgroundColor: colors.Black,
@@ -107,12 +129,17 @@ const TodayReport = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{position: 'absolute', top: 15, left: 15}}
+          style={{ position: 'absolute', top: 18.5, left: 15 }}
+          // onPress={() => {
+          //   navigation.navigate('HomeScreen', { openDrawerKey: true });
+          // }}
           onPress={() => {
-            navigation.navigate('HomeScreen', {openDrawerKey: true});
-          }}>
+            navigation.goBack();
+          }}
+
+        >
           {' '}
-          <Ionicons name="arrow-back" color="white" size={26} />
+          <MaterialIcons name="arrow-back-ios-new" color="white" size={20} />
         </TouchableOpacity>
         <Text
           style={{
@@ -124,7 +151,89 @@ const TodayReport = () => {
           History Report
         </Text>
       </View>
-      <View
+      <View style={{
+        flexDirection: 'row', width: '100%',
+        padding: 10, gap: 5
+      }}>
+        <View style={{ width: '50%' }}>
+          <Text
+            style={{
+              fontSize: 14,
+              color: 'black',
+              fontFamily: 'Inter-Medium',
+              marginBottom: 5,
+            }}
+          >
+            From
+          </Text>
+          <TouchableOpacity style={{
+            borderWidth: 1,
+            borderColor: 'black',
+            backgroundColor: '#f9f9f9',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: 10,
+            paddingVertical: 12,
+          }} onPress={() => setShowFromPicker(true)}>
+            <Text style={{ color: 'black', fontFamily: 'Inter-Regular', fontSize: 12 }}>{formatDate(fromDate)}</Text>
+          </TouchableOpacity>
+
+
+
+          {showFromPicker && (
+            <DateTimePicker
+              value={fromDate}
+              maximumDate={new Date()}
+              mode="date"
+              display="default"
+              onChange={(e, date) => {
+                setShowFromPicker(false);
+                if (date) setFromDate(date);
+              }}
+            />
+          )}
+        </View>
+        <View style={{ width: '50%' }}>
+          <Text
+            style={{
+              fontSize: 14,
+              color: 'black',
+              fontFamily: 'Inter-Medium',
+              marginBottom: 5,
+            }}
+          >
+            To
+          </Text>
+          <TouchableOpacity style={{
+            borderWidth: 1,
+            borderColor: 'black',
+            backgroundColor: '#f9f9f9',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: 10,
+            paddingVertical: 12,
+          }} onPress={() => setShowTillPicker(true)}>
+            <Text style={{ color: 'black', fontFamily: 'Inter-Regular', fontSize: 12 }}>{formatDate(tillDate)}</Text>
+          </TouchableOpacity>
+
+          {showTillPicker && (
+            <DateTimePicker
+              value={tillDate}
+              minimumDate={fromDate}
+              maximumDate={new Date()}
+              mode="date"
+              display="default"
+              onChange={(e, date) => {
+                setShowTillPicker(false);
+                if (date) setTillDate(date);
+              }}
+            />
+          )}
+        </View>
+
+
+      </View>
+      {/* <View
         style={{
           marginTop: 10,
           flexDirection: 'row',
@@ -133,44 +242,78 @@ const TodayReport = () => {
           paddingVertical: 5,
           borderBottomWidth: 1,
           borderBottomColor: '#ddd',
+
         }}>
         <Text
-          style={{color: 'black', fontFamily: 'Inter-Medium', fontSize: 16}}>
+          style={{ color: 'black', fontFamily: 'Inter-Medium', fontSize: 16 }}>
           {fromDate === tillDate
             ? formatDate(fromDate)
             : `${formatDate(fromDate)}  To  ${formatDate(tillDate)}`}
         </Text>
-      </View>
+      </View> */}
 
       {/* Slot Time Header */}
-      <View
-        style={{
-          flexDirection: 'row',
-          width: '100%',
-          paddingVertical: 5,
-          borderBottomWidth: 1,
-          borderBottomColor: '#ddd',
-        }}>
+      {TodayHistory.length !== 0 && (
         <View
           style={{
-            width: '30%',
-            justifyContent: 'center',
             flexDirection: 'row',
+            width: '100%',
+            marginTop: 10,
+
+            borderWidth: 1,
+            borderColor: 'black',
+            backgroundColor: '#c4f5c5',
           }}>
-          <Text style={{color: 'black', fontFamily: 'Inter-Bold'}}>
-            Slot Time
-          </Text>
+          <View
+            style={{
+              borderRightWidth: 1,
+              padding: 7,
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '25%'
+            }}>
+            <Text style={{ color: 'black', fontFamily: 'Inter-Bold', paddingVertical: 8 }}>
+              Slot Time
+            </Text>
+          </View>
+          <View style={{
+            borderRightWidth: 1,
+            padding: 7,
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '25%'
+          }}>
+            <Text style={{ color: 'black', fontFamily: 'Inter-Bold' }}>
+              #App No
+            </Text>
+          </View>
+          <View style={{
+            borderRightWidth: 1,
+            padding: 7,
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '40%'
+          }}>
+            <Text
+              style={{ color: 'black', fontFamily: 'Inter-Bold', marginLeft: 10 }}>
+              Student Name
+            </Text>
+          </View>
+          <View style={{
+            borderRightWidth: 1,
+            padding: 7,
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '40%'
+          }}>
+            <Text
+              style={{ color: 'black', fontFamily: 'Inter-Bold', marginLeft: 10 }}>
+
+            </Text>
+          </View>
+
         </View>
-        <View style={{flexDirection: 'row', width: '70%'}}>
-          <Text style={{color: 'black', fontFamily: 'Inter-Bold'}}>
-            #App No
-          </Text>
-          <Text
-            style={{color: 'black', fontFamily: 'Inter-Bold', marginLeft: 10}}>
-            Student Name
-          </Text>
-        </View>
-      </View>
+      )}
 
       {/* Check if TodayHistory is empty, if so show error message */}
       {ReportLoading ? (
@@ -188,30 +331,46 @@ const TodayReport = () => {
             justifyContent: 'center',
             alignItems: 'center',
             paddingVertical: 20,
+            height: 400
           }}>
-          <Text style={{color: 'red', fontFamily: 'Inter-Regular'}}>
-            No Data Found
+          <Image source={History}
+
+            style={{
+              width: 70,
+              height: 70,
+
+
+            }}
+
+          />
+          <Text style={{ color: 'red', fontFamily: 'Inter-Regular', marginTop: 10 }}>
+            No History Report Yet
           </Text>
         </View>
       ) : (
         <FlatList
           data={TodayHistory} // Use the TodayHistory array directly
           keyExtractor={(item, index) => index.toString()} // Use index for unique keys
-          renderItem={({item}) => (
+          renderItem={({ item, index }) => (
             <View
               style={{
-                marginBottom: 5,
+
                 borderBottomWidth: 1,
                 borderBottomColor: '#ddd',
-                paddingBottom: 3,
+
               }}>
-              <View style={{flexDirection: 'row'}}>
+              <View style={{
+                flexDirection: 'row', borderBottomWidth: 1,
+                borderBottomColor: 'black',
+                borderLeftWidth: 1,
+                borderRightWidth: 1,
+                width: '100%',
+                backgroundColor:
+                  index % 2 === 0 ? '#fff' : '#f2f2f2',
+              }}>
                 <View
                   style={{
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: 2,
-                    width: '30%',
+                    alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '25%'
                   }}>
                   <Text
                     style={{
@@ -223,103 +382,104 @@ const TodayReport = () => {
                   </Text>
                 </View>
 
-                <View style={{marginBottom: 2, flex: 1, width: '70%'}}>
-                  {/* Display Application No 1 and Student Name 1 */}
-                  {item.application_no1 && item.student_name1 && (
-                    <View style={{marginBottom: 5, flexDirection: 'row'}}>
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          fontFamily: 'Inter-Regular',
-                          color: 'black',
-                        }}>
-                        {item.application_no1}
-                      </Text>
-                      <View style={{marginLeft: 10}}>
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            fontFamily: 'Inter-Regular',
-                            color: 'black',
-                            marginLeft: 10,
-                          }}>
-                          {item.student_name1}
-                        </Text>
-                      </View>
-                    </View>
+                <View style={{ width: '25%', justifyContent: 'center', alignItems: 'center', borderRightWidth: 1 }}>
+                  {item.application_no1 && (
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontFamily: 'Inter-Regular',
+                        color: 'black',
+                        textAlign: 'center',
+                        marginBottom: 5,
+                      }}>
+                      {item.application_no1}
+                    </Text>
                   )}
-
-                  {/* Display Application No 2 and Student Name 2 */}
-                  {item.application_no2 && item.student_name2 && (
-                    <View style={{marginBottom: 5, flexDirection: 'row'}}>
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          fontFamily: 'Inter-Regular',
-                          color: 'black',
-                        }}>
-                        {item.application_no2}
-                      </Text>
-                      <View style={{marginLeft: 10}}>
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            fontFamily: 'Inter-Regular',
-                            color: 'black',
-                            marginLeft: 10,
-                          }}>
-                          {item.student_name2}
-                        </Text>
-                      </View>
-                    </View>
+                  {item.application_no2 && (
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontFamily: 'Inter-Regular',
+                        color: 'black',
+                        textAlign: 'center',
+                        marginBottom: 5,
+                      }}>
+                      {item.application_no2}
+                    </Text>
                   )}
-
-                  {/* Display Application No 3 and Student Name 3 */}
-                  {item.application_no3 && item.student_name3 && (
-                    <View style={{marginBottom: 5, flexDirection: 'row'}}>
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          fontFamily: 'Inter-Regular',
-                          color: 'black',
-                        }}>
-                        {item.application_no3}
-                      </Text>
-                      <View style={{marginLeft: 10}}>
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            fontFamily: 'Inter-Regular',
-                            color: 'black',
-                            marginLeft: 10,
-                          }}>
-                          {item.student_name3}
-                        </Text>
-                      </View>
-                    </View>
+                  {item.application_no3 && (
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontFamily: 'Inter-Regular',
+                        color: 'black',
+                        textAlign: 'center',
+                      }}>
+                      {item.application_no3}
+                    </Text>
                   )}
                 </View>
+
+                {/* Student Names Column */}
+                <View style={{ width: '40%', justifyContent: 'center', alignItems: 'center', borderRightWidth: 1 }}>
+                  {item.student_name1 && (
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontFamily: 'Inter-Regular',
+                        color: 'black',
+                        textAlign: 'center',
+                        marginBottom: 5,
+                      }}>
+                      {item.student_name1}
+                    </Text>
+                  )}
+                  {item.student_name2 && (
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontFamily: 'Inter-Regular',
+                        color: 'black',
+                        textAlign: 'center',
+                        marginBottom: 5,
+                      }}>
+                      {item.student_name2}
+                    </Text>
+                  )}
+                  {item.student_name3 && (
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontFamily: 'Inter-Regular',
+                        color: 'black',
+                        textAlign: 'center',
+                      }}>
+                      {item.student_name3}
+                    </Text>
+                  )}
+                </View>
+
 
                 {/* Status with Image aligned to the right */}
                 {item.status && (
                   <View
                     style={{
-                      width: '30%',
-                      marginRight: 15,
+                      width: '10%',
+
                       flexDirection: 'row',
-                      justifyContent: 'flex-end',
+                      justifyContent: 'center',
                       alignItems: 'center',
                     }}>
                     {item.status === 'Pending' && (
                       <Image
                         source={require('../assets/images/pending.png')} // Replace with actual image path
-                        style={{width: 30, height: 30}}
+                        style={{ width: 30, height: 30 }}
                       />
                     )}
                     {item.status === 'Verify' && (
                       <Image
                         source={require('../assets/images/verified.png')} // Replace with actual image path
-                        style={{width: 35, height: 35}}
+                        style={{ width: 35, height: 35 }}
                       />
                     )}
                   </View>

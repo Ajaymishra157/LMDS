@@ -7,18 +7,18 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useCallback, useEffect, useState} from 'react';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../CommonFiles/Colors';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {FlatList} from 'react-native-gesture-handler';
-import {ENDPOINTS} from '../CommonFiles/Constant';
+import { FlatList } from 'react-native-gesture-handler';
+import { ENDPOINTS } from '../CommonFiles/Constant';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CreateComplaint = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const {std_complaint_id, complaint_subject, complaint_description} =
+  const { std_complaint_id, complaint_subject, complaint_description } =
     route.params || {};
 
   // State hooks for input fields
@@ -134,7 +134,7 @@ const CreateComplaint = () => {
     }
   };
   return (
-    <View style={{flex: 1, backgroundColor: '#f7f7f7'}}>
+    <View style={{ flex: 1, backgroundColor: '#f7f7f7' }}>
       <View
         style={{
           backgroundColor: colors.Black,
@@ -145,7 +145,7 @@ const CreateComplaint = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{position: 'absolute', top: 15, left: 15}}
+          style={{ position: 'absolute', top: 15, left: 15 }}
           onPress={() => {
             navigation.goBack();
           }}>
@@ -164,7 +164,7 @@ const CreateComplaint = () => {
         </Text>
       </View>
       {/* Input Fields */}
-      <View style={{flex: 1, padding: 20}}>
+      <View style={{ flex: 1, padding: 20 }}>
         {/* Subject */}
         <Text
           style={{
@@ -312,16 +312,17 @@ const CreateComplaint = () => {
 
         {/* Submit Button */}
         {ButtonLoading ? (
-          <View style={{justifyContent: 'center', alignItems: 'center'}}>
+          <View style={{ justifyContent: 'center', alignItems: 'center' }}>
             <ActivityIndicator size="small" color="black" />
           </View>
         ) : (
           <TouchableOpacity
             style={{
-              backgroundColor: colors.Black,
-              padding: 15,
+              backgroundColor: 'white',
+              borderWidth: 1, borderColor: 'black',
+              padding: 10,
               alignItems: 'center',
-              borderRadius: 8,
+              borderRadius: 10,
             }}
             onPress={() => {
               if (complaintId) {
@@ -334,10 +335,10 @@ const CreateComplaint = () => {
             }}>
             <Text
               style={{
-                color: 'white',
+                color: 'black',
                 fontSize: 18,
-                fontWeight: 'bold',
-                fontFamily: 'Inter-Regular',
+
+                fontFamily: 'Inter-Bold',
               }}>
               Submit
             </Text>

@@ -1,5 +1,5 @@
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import React, {useCallback, useEffect, useState} from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
 import Header from '../Component/Header';
 import {
   useFocusEffect,
@@ -8,7 +8,9 @@ import {
 } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Bottomtabnavigation from '../Component/Bottomtabnavigation';
-import {ENDPOINTS} from '../CommonFiles/Constant';
+import { ENDPOINTS } from '../CommonFiles/Constant';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import colors from '../CommonFiles/Colors';
 
 const StudentDashboard = () => {
   const navigation = useNavigation();
@@ -71,27 +73,55 @@ const StudentDashboard = () => {
     }, []),
   );
 
-  useEffect(() => {
-    // Log route params to the console to check if the key is passed
-    console.log('Route params:', route.params);
+  // useEffect(() => {
+  //   // Log route params to the console to check if the key is passed
+  //   console.log('Route params:', route.params);
 
-    if (route.params?.openDrawerKey) {
-      // If the openDrawerKey exists (from HistoryReportScreen), open the drawer
-      console.log('History report key found, opening drawer...');
-      navigation.openDrawer();
-      // navigation.navigate('MainStack', {openDrawerKey: true});
-    } else {
-      console.log('No relevant key found, drawer will not open.');
-    }
-  }, [route.params, navigation]);
+  //   if (route.params?.openDrawerKey) {
+  //     // If the openDrawerKey exists (from HistoryReportScreen), open the drawer
+  //     console.log('History report key found, opening drawer...');
+  //     navigation.openDrawer();
+  //     // navigation.navigate('MainStack', {openDrawerKey: true});
+  //   } else {
+  //     console.log('No relevant key found, drawer will not open.');
+  //   }
+  // }, [route.params, navigation]);
 
   return (
-    <View style={{flex: 1, backgroundColor: '#f7f7f7'}}>
-      <Header
+    <View style={{ flex: 1, backgroundColor: '#f7f7f7' }}>
+      {/* <Header
         title="Student Dashboard"
         onMenuPress={() => navigation.openDrawer()}
-      />
-      <View style={{flex: 1, paddingTop: 20}}>
+      /> */}
+
+      <View
+        style={{
+          backgroundColor: colors.Black,
+          padding: 15,
+          justifyContent: 'center',
+
+          alignItems: 'center',
+          flexDirection: 'row',
+        }}>
+        <TouchableOpacity
+          style={{ position: 'absolute', top: 18.5, left: 15 }}
+          onPress={() => {
+            navigation.goBack();
+          }}>
+          <MaterialIcons name="arrow-back-ios-new" color="white" size={20} />
+        </TouchableOpacity>
+
+        <Text
+          style={{
+            color: 'white',
+            fontSize: 20,
+            fontWeight: 'bold',
+            fontFamily: 'Inter-Bold',
+          }}>
+          Dashboard
+        </Text>
+      </View>
+      <View style={{ flex: 1, paddingTop: 20 }}>
         {/* Main content area */}
         <View
           style={{
@@ -110,7 +140,7 @@ const StudentDashboard = () => {
               alignItems: 'center',
               justifyContent: 'center',
               shadowColor: '#000',
-              shadowOffset: {width: 0, height: 4},
+              shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.1,
               shadowRadius: 5,
               elevation: 5, // Adds shadow for Android
@@ -151,7 +181,7 @@ const StudentDashboard = () => {
               alignItems: 'center',
               justifyContent: 'center',
               shadowColor: '#000',
-              shadowOffset: {width: 0, height: 4},
+              shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.1,
               shadowRadius: 5,
               elevation: 5, // Adds shadow for Android
@@ -182,11 +212,11 @@ const StudentDashboard = () => {
           </TouchableOpacity>
         </View>
       </View>
-      {userType === 'Student' && (
-        <View style={{flex: 1, justifyContent: 'flex-end'}}>
+      {/* {userType === 'Student' && (
+        <View style={{ flex: 1, justifyContent: 'flex-end' }}>
           <Bottomtabnavigation />
         </View>
-      )}
+      )} */}
     </View>
   );
 };

@@ -9,13 +9,14 @@ import {
   RefreshControl,
   View,
 } from 'react-native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Header from '../Component/Header';
 import Bottomtabnavigation from '../Component/Bottomtabnavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ENDPOINTS} from '../CommonFiles/Constant';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import { ENDPOINTS } from '../CommonFiles/Constant';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import colors from '../CommonFiles/Colors';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const AttendenceScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
@@ -26,8 +27,22 @@ const AttendenceScreen = () => {
   const [currentTime, setCurrentTime] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const [trainerName, setTrainerName] = useState('');
+
   const [isPunchOutDisabled, setIsPunchOutDisabled] = useState(true);
   const [isPunchInDisabled, setIsPunchInDisabled] = useState(false);
+
+  useEffect(() => {
+    const fetchTrainerName = async () => {
+      const storedTrainerName = await AsyncStorage.getItem('trainer_name');
+      if (storedTrainerName) {
+        setTrainerName(storedTrainerName);
+      }
+    };
+
+    fetchTrainerName();
+  }, []);
+
 
   useEffect(() => {
     // Date set karne ka function
@@ -72,6 +87,7 @@ const AttendenceScreen = () => {
       .padStart(2, '0')}:${today.getSeconds().toString().padStart(2, '0')}`;
 
     try {
+
       const response = await fetch(ENDPOINTS.Trainer_Attendence, {
         method: 'POST',
         headers: {
@@ -144,14 +160,69 @@ const AttendenceScreen = () => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: 'white'}}>
-      <Header title="Attendence" onMenuPress={() => navigation.openDrawer()} />
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
+      {/* <Header title="Attendence" onMenuPress={() => navigation.openDrawer()} /> */}
+      <View
+        style={{
+          backgroundColor: colors.Black,
+          padding: 15,
+          justifyContent: 'center',
+
+          alignItems: 'center',
+          flexDirection: 'row',
+        }}>
+        <TouchableOpacity
+          style={{ position: 'absolute', top: 18.5, left: 15 }}
+          onPress={() => {
+            navigation.goBack();
+          }}>
+          <MaterialIcons name="arrow-back-ios-new" color="white" size={20} />
+        </TouchableOpacity>
+
+        <Text
+          style={{
+            color: 'white',
+            fontSize: 20,
+            fontWeight: 'bold',
+            fontFamily: 'Inter-Bold',
+          }}>
+          Attendence
+        </Text>
+      </View>
+
+      <View style={{ backgroundColor: '#f2f2f2', padding: 5, width: '100%' }}>
+        <View
+          style={{
+            backgroundColor: '#f2f2f2',
+            borderRadius: 10,
+            width: '100%',
+            flexDirection: 'row',
+            justifyContent: 'flex-start', // Fixed 'flex-stat' to 'flex-start'
+            alignItems: 'center',
+
+          }}>
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: 'bold',
+              color: '#333',
+              fontFamily: 'Inter-Regular',
+              marginLeft: 10,
+            }}>
+            Welcome, {trainerName ? trainerName : '---'}
+          </Text>
+        </View>
+      </View>
+      <View style={{
+        height: 1,
+        backgroundColor: '#ccc', width: '100%', marginBottom: 5
+      }} />
 
       {/* Aaj ki Date */}
       <View
         style={{
           alignItems: 'center',
-          marginVertical: 20,
+          marginVertical: 10,
           flexDirection: 'row',
           justifyContent: 'center',
         }}>
@@ -238,15 +309,97 @@ const AttendenceScreen = () => {
       {/* Separator */}
       <View
         style={{
+
           height: 1,
           backgroundColor: '#ccc',
         }}
       />
 
+      {/* Table Header */}
+      {!loading && (
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            backgroundColor: '#c4f5c5',
+            borderWidth: 1,
+            width: '100%',
+            marginTop: 10,
+          }}>
+          <View style={{
+            borderRightWidth: 1,
+            padding: 7,
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '25%',
+          }}>
+            <Text style={{
+              fontWeight: 'bold',
+              fontFamily: 'Inter-Regular',
+              textAlign: 'center',
+              color: 'black'
+            }}>
+              Date
+            </Text>
+          </View>
+
+          <View style={{
+            borderRightWidth: 1,
+            padding: 7,
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '25%',
+          }}>
+            <Text style={{
+              fontWeight: 'bold',
+              fontFamily: 'Inter-Regular',
+              textAlign: 'center',
+              color: 'black'
+            }}>
+              In Time
+            </Text>
+          </View>
+
+          <View style={{
+            borderRightWidth: 1,
+            padding: 7,
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '25%',
+          }}>
+            <Text style={{
+              fontWeight: 'bold',
+              fontFamily: 'Inter-Regular',
+              textAlign: 'center',
+              color: 'black'
+            }}>
+              Out Time
+            </Text>
+          </View>
+
+          <View style={{
+            padding: 7,
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '25%',
+          }}>
+            <Text style={{
+              fontWeight: 'bold',
+              fontFamily: 'Inter-Regular',
+              textAlign: 'center',
+              color: 'black'
+            }}>
+              Status
+            </Text>
+          </View>
+        </View>
+      )}
+
+
       {!loading && (
         <ScrollView
-          style={{flex: 1, padding: 10}}
-          contentContainerStyle={{paddingBottom: 80}}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           refreshControl={
@@ -256,55 +409,7 @@ const AttendenceScreen = () => {
               colors={['#9Bd35A', '#689F38']}
             />
           }>
-          {/* Table Header */}
-          <View
-            style={{
-              flexDirection: 'row',
-              backgroundColor: '#ddd',
-              padding: 10,
-              borderRadius: 5,
-            }}>
-            <Text
-              style={{
-                flex: 1,
-                fontWeight: 'bold',
-                marginLeft: 5,
-                fontFamily: 'Inter-Regular',
-                textAlign: 'center',
-              }}>
-              Date
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                fontWeight: 'bold',
-                marginLeft: 5,
-                fontFamily: 'Inter-Regular',
-                textAlign: 'center',
-              }}>
-              In Time
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                fontWeight: 'bold',
-                marginLeft: 5,
-                fontFamily: 'Inter-Regular',
-                textAlign: 'center',
-              }}>
-              Out Time
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                fontWeight: 'bold',
-                marginLeft: 5,
-                fontFamily: 'Inter-Regular',
-                textAlign: 'center',
-              }}>
-              Status
-            </Text>
-          </View>
+
 
           {/* Data List using .map() */}
           {attendanceData.length > 0 ? (
@@ -313,57 +418,87 @@ const AttendenceScreen = () => {
                 key={index}
                 style={{
                   flexDirection: 'row',
-                  padding: 10,
+
                   borderBottomWidth: 1,
-                  borderColor: '#ccc',
+                  borderBottomColor: 'black',
+                  borderLeftWidth: 1,
+                  borderRightWidth: 1,
+                  width: '100%',
+                  backgroundColor:
+                    index % 2 === 0 ? '#fff' : '#f2f2f2',
                 }}>
-                <Text
-                  style={{
-                    flex: 1,
-                    fontFamily: 'Inter-Regular',
-                    textAlign: 'center',
-                    fontSize: 13,
-                    color: colors.Black,
-                  }}>
-                  {item.t_date}
-                </Text>
-                <Text
-                  style={{
-                    flex: 1,
-                    marginLeft: 5,
-                    fontFamily: 'Inter-Regular',
-                    textAlign: 'center',
-                    fontSize: 13,
-                    color: colors.Black,
-                  }}>
-                  {item.punch_in_time || '----'}
-                </Text>
-                <Text
-                  style={{
-                    flex: 1,
-                    marginLeft: 5,
-                    fontFamily: 'Inter-Regular',
-                    textAlign: 'center',
-                    fontSize: 13,
-                    color: colors.Black,
-                  }}>
-                  {item.punch_out_time || '----'}
-                </Text>
-                <Text
-                  style={{
-                    flex: 1,
-                    marginLeft: 5,
-                    fontFamily: 'Inter-Regular',
-                    textAlign: 'center',
-                    color:
-                      item.attendance_status == 'Present'
-                        ? 'green'
-                        : item.attendance_status == 'Absent'
-                        ? 'red'
-                        : 'black',
-                  }}>
-                  {item.attendance_status || '----'}
-                </Text>
+                <View style={{
+                  alignItems: 'center',
+
+                  justifyContent: 'center',
+                  borderRightWidth: 1,
+                  width: '25%',
+
+                }}>
+                  <Text
+                    style={{
+                      flex: 1,
+                      fontFamily: 'Inter-Regular',
+                      textAlign: 'center',
+                      fontSize: 13,
+                      color: colors.Black,
+                      paddingVertical: 8
+                    }}>
+                    {item.t_date}
+                  </Text>
+                </View>
+                <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '25%', }}>
+                  <Text
+                    style={{
+                      flex: 1,
+                      marginLeft: 5,
+                      fontFamily: 'Inter-Regular',
+                      textAlign: 'center',
+                      fontSize: 13,
+                      color: colors.Black,
+                      paddingVertical: 8
+                    }}>
+                    {item.punch_in_time || '----'}
+                  </Text>
+                </View>
+                {/* Till Date */}
+                <View style={{
+                  width: '25%',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRightWidth: 1,
+                }}>
+                  <Text
+                    style={{
+                      flex: 1,
+                      marginLeft: 5,
+                      fontFamily: 'Inter-Regular',
+                      textAlign: 'center',
+                      fontSize: 13,
+                      color: colors.Black,
+                      paddingVertical: 8
+                    }}>
+                    {item.punch_out_time || '----'}
+                  </Text>
+                </View>
+                <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '25%' }}>
+                  <Text
+                    style={{
+                      flex: 1,
+                      marginLeft: 5,
+                      fontFamily: 'Inter-Regular',
+                      textAlign: 'center',
+                      color:
+                        item.attendance_status == 'Present'
+                          ? 'green'
+                          : item.attendance_status == 'Absent'
+                            ? 'red'
+                            : 'black',
+                      paddingVertical: 8
+                    }}>
+                    {item.attendance_status || '----'}
+                  </Text>
+                </View>
               </View>
             ))
           ) : (
@@ -374,15 +509,15 @@ const AttendenceScreen = () => {
                 fontFamily: 'Inter-Regular',
                 color: 'red',
               }}>
-              No Attendence Found
+              No Attendence Yet
             </Text>
           )}
         </ScrollView>
       )}
 
-      <View style={{justifyContent: 'flex-end'}}>
+      {/* <View style={{ justifyContent: 'flex-end' }}>
         <Bottomtabnavigation />
-      </View>
+      </View> */}
     </View>
   );
 };

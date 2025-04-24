@@ -9,11 +9,11 @@ import {
   ToastAndroid,
   ActivityIndicator,
 } from 'react-native';
-import React, {useCallback, useState} from 'react';
+import React, { useCallback, useState } from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import {ENDPOINTS} from '../CommonFiles/Constant';
+import { ENDPOINTS } from '../CommonFiles/Constant';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ImagePicker from 'react-native-image-crop-picker';
 import RNFS from 'react-native-fs';
@@ -21,7 +21,7 @@ import colors from '../CommonFiles/Colors';
 
 const EditProfileScreen = () => {
   const route = useRoute();
-  const {profileData} = route.params;
+  const { profileData } = route.params;
   const navigation = useNavigation();
 
   const [UpdateLoading, setUpdateLoading] = useState(false);
@@ -43,7 +43,7 @@ const EditProfileScreen = () => {
       },
       {
         text: 'Cancel',
-        onPress: () => {},
+        onPress: () => { },
       },
     ]);
   };
@@ -155,153 +155,195 @@ const EditProfileScreen = () => {
       style={{
         flex: 1,
         backgroundColor: 'white',
-        paddingHorizontal: 20,
-        paddingTop: 40,
+
+
       }}>
-      {/* Profile Image Section */}
+
       <View
         style={{
-          width: '100%',
-          height: 120,
-          backgroundColor: '#f9f9f9',
+          backgroundColor: colors.Black,
+          padding: 15,
           justifyContent: 'center',
+
           alignItems: 'center',
-          position: 'relative',
+          flexDirection: 'row',
         }}>
-        <TouchableOpacity disabled={true}>
-          <Image
-            source={{uri: image}}
-            style={{
-              width: 90,
-              height: 90,
-              borderRadius: 45,
-              backgroundColor: 'white',
-            }}
-          />
-          {/* Plus Icon at bottom-right */}
-          <TouchableOpacity onPress={onSelectImage}>
-            <FontAwesome
-              name="plus"
-              size={16}
-              color="blue"
+        <TouchableOpacity
+          style={{ position: 'absolute', top: 18.5, left: 15 }}
+          // onPress={() => {
+          //   // Normal back action
+
+          //   if (openDrawerKey === 'otherAdvancepayment') {
+          //     navigation.navigate('ManagerDashboard');
+          //   } else {
+          //     navigation.navigate('ManagerDashboard', {
+          //       openDrawerKey: 'advancePayment', // Pass the new key for advance payment
+          //     });
+          //   }
+          // }}
+          onPress={() => {
+            navigation.goBack();
+          }}
+
+        >
+          <MaterialIcons name="arrow-back-ios-new" color="white" size={20} />
+        </TouchableOpacity>
+
+        <Text
+          style={{
+            color: 'white',
+            fontSize: 20,
+            fontWeight: 'bold',
+            fontFamily: 'Inter-Bold',
+          }}>
+          Edit Profile
+        </Text>
+      </View>
+      {/* Profile Image Section */}
+      <View style={{ flex: 1, paddingHorizontal: 10 }}>
+        <View
+          style={{
+            width: '100%',
+            height: 120,
+            backgroundColor: '#f9f9f9',
+            justifyContent: 'center',
+            alignItems: 'center',
+            position: 'relative',
+          }}>
+          <TouchableOpacity disabled={true}>
+            <Image
+              source={{ uri: image }}
               style={{
-                position: 'absolute',
-                bottom: -1,
-                right: -1,
+                width: 90,
+                height: 90,
+                borderRadius: 45,
                 backgroundColor: 'white',
-                borderRadius: 50,
-                padding: 5,
               }}
             />
+            {/* Plus Icon at bottom-right */}
+            <TouchableOpacity onPress={onSelectImage}>
+              <FontAwesome
+                name="plus"
+                size={16}
+                color="blue"
+                style={{
+                  position: 'absolute',
+                  bottom: -1,
+                  right: -1,
+                  backgroundColor: 'white',
+                  borderRadius: 50,
+                  padding: 5,
+                }}
+              />
+            </TouchableOpacity>
           </TouchableOpacity>
-        </TouchableOpacity>
-      </View>
-      {/* Editable Fields */}
-      <View style={{marginTop: 30}}>
-        {/* Name Field */}
-        <View style={{marginBottom: 20}}>
-          <Text
-            style={{color: 'grey', fontFamily: 'Inter-Regular', fontSize: 15}}>
-            Name
-          </Text>
-          <TextInput
-            style={{
-              height: 40,
-              borderColor: '#dcdcdc',
-              borderWidth: 1,
-              borderRadius: 10,
-              marginTop: 5,
-              paddingLeft: 10,
-              fontSize: 16,
-              color: 'black',
-            }}
-            placeholder="Enter Name"
-            placeholderTextColor="#ccc"
-            value={name}
-            onChangeText={setName}
-          />
         </View>
 
-        {/* Email Field */}
-        <View style={{marginBottom: 20}}>
-          <Text
-            style={{color: 'grey', fontFamily: 'Inter-Regular', fontSize: 15}}>
-            Email Address
-          </Text>
-          <TextInput
-            style={{
-              height: 40,
-              borderColor: '#dcdcdc',
-              borderWidth: 1,
-              borderRadius: 10,
-              marginTop: 5,
-              paddingLeft: 10,
-              fontSize: 16,
-              color: 'black',
-            }}
-            placeholder="Enter Email"
-            placeholderTextColor="#ccc"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-          />
-        </View>
-
-        <View style={{marginBottom: 20}}>
-          <Text
-            style={{color: 'grey', fontFamily: 'Inter-Regular', fontSize: 15}}>
-            Address
-          </Text>
-          <TextInput
-            style={{
-              borderColor: '#dcdcdc',
-              borderWidth: 1,
-              borderRadius: 10,
-              marginTop: 5,
-              paddingLeft: 10,
-              fontSize: 16,
-              color: 'black',
-              textAlignVertical: 'top',
-              paddingBottom: 10,
-              minHeight: 80, // Ensures the input field is tall enough to display multiple lines of text
-            }}
-            placeholder="Enter Address"
-            placeholderTextColor="#ccc"
-            value={address}
-            onChangeText={setAddress}
-            multiline={true} // Allows the TextInput to be multi-line
-            numberOfLines={4} // You can adjust this based on how many lines you want to show initially
-          />
-        </View>
-      </View>
-
-      {/* Save Button */}
-      <View style={{paddingTop: 30, alignItems: 'center'}}>
-        {UpdateLoading ? (
-          <View>
-            <ActivityIndicator size="small" color={colors.Black} />
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={{
-              height: 45,
-              backgroundColor: 'black',
-              borderRadius: 10,
-              width: '100%',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-            onPress={UpdateProfileApi}>
+        <View style={{ marginTop: 30 }}>
+          {/* Name Field */}
+          <View style={{ marginBottom: 20 }}>
             <Text
-              style={{
-                color: 'white',
-                fontSize: 16,
-                fontFamily: 'Inter-Medium',
-              }}>
-              Update Profile
+              style={{ color: 'grey', fontFamily: 'Inter-Regular', fontSize: 15 }}>
+              Name
             </Text>
-          </TouchableOpacity>
-        )}
+            <TextInput
+              style={{
+                height: 40,
+                borderColor: 'black',
+                borderWidth: 1,
+                borderRadius: 10,
+                marginTop: 5,
+                paddingLeft: 10,
+                fontSize: 16,
+                color: 'black',
+              }}
+              placeholder="Enter Name"
+              placeholderTextColor="#ccc"
+              value={name}
+              onChangeText={setName}
+            />
+          </View>
+
+          {/* Email Field */}
+          <View style={{ marginBottom: 20 }}>
+            <Text
+              style={{ color: 'grey', fontFamily: 'Inter-Regular', fontSize: 15 }}>
+              Email Address
+            </Text>
+            <TextInput
+              style={{
+                height: 40,
+                borderColor: 'black',
+                borderWidth: 1,
+                borderRadius: 10,
+                marginTop: 5,
+                paddingLeft: 10,
+                fontSize: 16,
+                color: 'black',
+              }}
+              placeholder="Enter Email"
+              placeholderTextColor="#ccc"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+            />
+          </View>
+
+          <View style={{ marginBottom: 20 }}>
+            <Text
+              style={{ color: 'grey', fontFamily: 'Inter-Regular', fontSize: 15 }}>
+              Address
+            </Text>
+            <TextInput
+              style={{
+                borderColor: 'black',
+                borderWidth: 1,
+                borderRadius: 10,
+                marginTop: 5,
+                paddingLeft: 10,
+                fontSize: 16,
+                color: 'black',
+                textAlignVertical: 'top',
+                paddingBottom: 10,
+                minHeight: 80, // Ensures the input field is tall enough to display multiple lines of text
+              }}
+              placeholder="Enter Address"
+              placeholderTextColor="#ccc"
+              value={address}
+              onChangeText={setAddress}
+              multiline={true} // Allows the TextInput to be multi-line
+              numberOfLines={4} // You can adjust this based on how many lines you want to show initially
+            />
+          </View>
+        </View>
+
+        <View style={{ paddingTop: 30, alignItems: 'center' }}>
+          {UpdateLoading ? (
+            <View>
+              <ActivityIndicator size="small" color={colors.Black} />
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={{
+                height: 45,
+                backgroundColor: 'black',
+                borderRadius: 10,
+                width: '100%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+              onPress={UpdateProfileApi}>
+              <Text
+                style={{
+                  color: 'white',
+                  fontSize: 16,
+                  fontFamily: 'Inter-Medium',
+                }}>
+                Update Profile
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </View>
   );

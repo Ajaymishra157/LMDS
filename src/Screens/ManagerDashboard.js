@@ -11,7 +11,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Header from '../Component/Header';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Entypo from 'react-native-vector-icons/Entypo';
@@ -26,7 +26,7 @@ import {
 } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Bottomtabnavigation from '../Component/Bottomtabnavigation';
-import {ENDPOINTS} from '../CommonFiles/Constant';
+import { ENDPOINTS } from '../CommonFiles/Constant';
 import colors from '../CommonFiles/Colors';
 
 const ManagerDashboard = () => {
@@ -59,9 +59,8 @@ const ManagerDashboard = () => {
     const day = today.getDate();
     const month = today.getMonth() + 1; // Months are zero-indexed
     const year = today.getFullYear();
-    return `${year}-${month < 10 ? `0${month}` : month}-${
-      day < 10 ? `0${day}` : day
-    }`;
+    return `${year}-${month < 10 ? `0${month}` : month}-${day < 10 ? `0${day}` : day
+      }`;
   };
 
   // Get formatted yesterday's date
@@ -71,9 +70,8 @@ const ManagerDashboard = () => {
     const day = yesterday.getDate();
     const month = yesterday.getMonth() + 1;
     const year = yesterday.getFullYear();
-    return `${year}-${month < 10 ? `0${month}` : month}-${
-      day < 10 ? `0${day}` : day
-    }`;
+    return `${year}-${month < 10 ? `0${month}` : month}-${day < 10 ? `0${day}` : day
+      }`;
   };
 
   // Get the first date of the current month
@@ -85,9 +83,7 @@ const ManagerDashboard = () => {
   };
 
   const [fromDate, setFromDate] = useState(getFormattedCurrentDate());
-  console.log('From date xxxx', fromDate);
   const [tillDate, setTillDate] = useState(getFormattedCurrentDate());
-  console.log('From date yyyy', tillDate);
 
   const handleFilterPress = filter => {
     setSelectedFilter(filter); // Update selected filter
@@ -210,23 +206,23 @@ const ManagerDashboard = () => {
     getUserType();
   }, []);
 
-  useEffect(() => {
-    // Log route params to check if the key is passed
-    console.log('Route params:', route.params);
+  // useEffect(() => {
+  //   // Log route params to check if the key is passed
+  //   console.log('Route params:', route.params);
 
-    // Check if openDrawerKey is passed in the params
-    if (route.params?.openDrawerKey === 'otherleave') {
-      // If 'otherleave' key is present, open the drawer
-      console.log('otherleave key found, opening drawer...');
-      navigation.openDrawer();
-    } else if (route.params?.openDrawerKey === 'advancePayment') {
-      // If 'advancePayment' key is present, open the drawer
-      console.log('advancePayment key found, opening drawer...');
-      navigation.openDrawer();
-    } else {
-      console.log('No relevant key found, drawer will not open.');
-    }
-  }, [route.params, navigation]);
+  //   // Check if openDrawerKey is passed in the params
+  //   if (route.params?.openDrawerKey === 'otherleave') {
+  //     // If 'otherleave' key is present, open the drawer
+  //     console.log('otherleave key found, opening drawer...');
+  //     navigation.openDrawer();
+  //   } else if (route.params?.openDrawerKey === 'advancePayment') {
+  //     // If 'advancePayment' key is present, open the drawer
+  //     console.log('advancePayment key found, opening drawer...');
+  //     navigation.openDrawer();
+  //   } else {
+  //     console.log('No relevant key found, drawer will not open.');
+  //   }
+  // }, [route.params, navigation]);
 
   const ManagerAttendenceListApi = async (fromdate, tilldate) => {
     setManagerLoading(true);
@@ -306,23 +302,32 @@ const ManagerDashboard = () => {
     }
   };
 
-  const renderItem = ({item}) => (
+  const renderItem = ({ item, index }) => (
     <View
       style={{
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 10,
+
         borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
-        paddingBottom: 10,
+        borderLeftWidth: 1,
+        borderColor: 'black',
+        backgroundColor:
+          index % 2 === 0 ? '#fff' : '#f2f2f2',
+
+
+        width: '100%'
       }}>
       {/* Staff Name */}
       <View
         style={{
-          flex: 1,
+
           alignItems: 'center',
-          marginLeft: 5,
+
           justifyContent: 'center',
+          borderRightWidth: 1,
+
+          borderColor: 'black',
+          width: '30%',
         }}>
         <Text
           style={{
@@ -330,6 +335,7 @@ const ManagerDashboard = () => {
             color: 'black',
             fontSize: 12, // Consistent font size
             textAlign: 'center',
+            paddingVertical: 8
           }}>
           {item.staff_name || '----'}
         </Text>
@@ -338,9 +344,12 @@ const ManagerDashboard = () => {
       {/* Punch In Time */}
       <View
         style={{
-          flex: 1,
+
           alignItems: 'center',
           justifyContent: 'center',
+          borderRightWidth: 1,
+          borderColor: 'black',
+          width: '20%',
         }}>
         <Text
           style={{
@@ -353,7 +362,7 @@ const ManagerDashboard = () => {
       </View>
 
       {/* Punch Out Time */}
-      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+      <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
         <Text
           style={{
             fontFamily: 'Inter-Regular',
@@ -365,7 +374,7 @@ const ManagerDashboard = () => {
       </View>
 
       {/* Status */}
-      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+      <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
         <TouchableOpacity disabled={true}>
           <Text
             style={{
@@ -374,9 +383,9 @@ const ManagerDashboard = () => {
                 item.attendance_status === 'Present'
                   ? 'green'
                   : item.attendance_status === 'Absent'
-                  ? 'red'
-                  : 'black',
-              fontSize: 12, // Consistent font size
+                    ? 'red'
+                    : 'black',
+              fontSize: 12,
             }}>
             {item.attendance_status || '----'}
           </Text>
@@ -384,11 +393,11 @@ const ManagerDashboard = () => {
       </View>
 
       {/* Eye Icon */}
-      <TouchableOpacity
+      <View
         style={{
           justifyContent: 'center',
-          alignItems: 'flex-start',
           width: '10%', // Adjust width if necessary
+          alignItems: 'center', borderRightWidth: 1, borderColor: 'black'
         }}
         onPress={() => {
           setEyeModal(true); // Show the modal
@@ -401,10 +410,10 @@ const ManagerDashboard = () => {
             setselectedEye(item); // Set the selected item for modal
             showAttendenceListApi(item.trainer_id);
           }}
-          style={{flex: 1, justifyContent: 'center'}}>
+          style={{ flex: 1, justifyContent: 'center' }}>
           <Icon name="eye" size={18} color="black" />
         </TouchableOpacity>
-      </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -430,7 +439,7 @@ const ManagerDashboard = () => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: 'white'}}>
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
       <Header
         title="Manager Dashboard"
         onMenuPress={() => navigation.openDrawer()}
@@ -458,7 +467,7 @@ const ManagerDashboard = () => {
               alignItems: 'center',
               justifyContent: 'center',
               shadowColor: '#000',
-              shadowOffset: {width: 0, height: 4},
+              shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.1,
               shadowRadius: 5,
               elevation: 5, // Adds shadow for Android
@@ -503,7 +512,7 @@ const ManagerDashboard = () => {
               alignItems: 'center',
               justifyContent: 'center',
               shadowColor: '#000',
-              shadowOffset: {width: 0, height: 4},
+              shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.1,
               shadowRadius: 5,
               elevation: 5, // Adds shadow for Android
@@ -542,7 +551,7 @@ const ManagerDashboard = () => {
             marginTop: 20,
           }}>
           {/* Today Attendance Header */}
-          <View style={{justifyContent: 'center', flexDirection: 'row'}}>
+          <View style={{ justifyContent: 'center', flexDirection: 'row' }}>
             <Text
               style={{
                 fontSize: 24,
@@ -586,42 +595,48 @@ const ManagerDashboard = () => {
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
-              backgroundColor: '#ddd',
-              padding: 10,
-              borderRadius: 5,
+              backgroundColor: '#c4f5c5',
+              width: '100%',
+              borderTopWidth: 1, borderColor: 'black',
+              borderLeftWidth: 1,
+              borderBottomWidth: 1
+
             }}>
             {/* Column Titles */}
-            <View style={{flex: 1, alignItems: 'flex-start'}}>
+            <View style={{ alignItems: 'center', borderRightWidth: 1, justifyContent: 'center', width: '30%', borderColor: 'black', }}>
               <Text
                 style={{
                   fontWeight: 'bold',
                   fontFamily: 'Inter-Regular',
                   color: 'black',
+                  paddingVertical: 7,
                 }}>
                 Staff Name
               </Text>
             </View>
-            <View style={{flex: 1, alignItems: 'flex-start'}}>
+            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
               <Text
                 style={{
                   fontWeight: 'bold',
                   fontFamily: 'Inter-Regular',
                   color: 'black',
+
                 }}>
                 Punch In
               </Text>
             </View>
-            <View style={{flex: 1, alignItems: 'flex-start'}}>
+            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
               <Text
                 style={{
                   fontWeight: 'bold',
                   fontFamily: 'Inter-Regular',
                   color: 'black',
+
                 }}>
                 Punch Out
               </Text>
             </View>
-            <View style={{flex: 1, alignItems: 'flex-start'}}>
+            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
               <Text
                 style={{
                   fontWeight: 'bold',
@@ -631,10 +646,20 @@ const ManagerDashboard = () => {
                 Status
               </Text>
             </View>
+            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '10%', borderColor: 'black', }}>
+              <Text
+                style={{
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter-Regular',
+                  color: 'black',
+                }}>
+
+              </Text>
+            </View>
           </View>
         </View>
         {/* Dynamic Data Section (Static Example Data) */}
-        <View style={{flex: 1, marginTop: 5}}>
+        <View style={{ flex: 1 }}>
           {ManagerLoading ? (
             <ActivityIndicator
               size="large"
@@ -643,6 +668,7 @@ const ManagerDashboard = () => {
                 flex: 1,
                 justifyContent: 'center',
                 alignItems: 'center',
+
               }}
             />
           ) : (
@@ -666,13 +692,13 @@ const ManagerDashboard = () => {
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
               }
               contentContainerStyle={{
-                paddingBottom: 20, // Adding padding to the bottom of the content
+                paddingBottom: 100, // Adding padding to the bottom of the content
               }}
             />
           )}
         </View>
         {/* eye button modal */}
-        {selectedEye && (
+        {/* {selectedEye && (
           <Modal
             transparent={true}
             animationType="slide"
@@ -693,12 +719,29 @@ const ManagerDashboard = () => {
               }}>
               <View
                 style={{
+                  flexDirection: 'row',
+                  justifyContent: 'flex-end',
+                  width: '85%',
+                  paddingVertical: 5,
+                }}>
+                <TouchableOpacity
+                  onPress={() => setEyeModal(false)}
+                  style={{
+                    marginRight: 10,
+                    backgroundColor: 'white',
+                    borderRadius: 50,
+                  }}>
+                  <Entypo name="cross" size={25} color="black" />
+                </TouchableOpacity>
+              </View>
+              <View
+                style={{
                   width: '85%',
                   backgroundColor: 'white',
                   borderRadius: 15,
                   padding: 20,
                   shadowColor: '#000',
-                  shadowOffset: {width: 0, height: 2},
+                  shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: 0.8,
                   shadowRadius: 4,
                   elevation: 8,
@@ -709,6 +752,8 @@ const ManagerDashboard = () => {
                   style={{
                     flexDirection: 'row',
                     width: '100%',
+
+
                   }}>
                   <View
                     style={{
@@ -728,20 +773,7 @@ const ManagerDashboard = () => {
                       Attendence Details
                     </Text>
                   </View>
-                  <View
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      right: 0,
-                      height: 30,
-                      width: 30,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}>
-                    <TouchableOpacity onPress={() => setEyeModal(false)}>
-                      <Entypo name="cross" size={25} color="black" />
-                    </TouchableOpacity>
-                  </View>
+
                 </View>
 
                 <View>
@@ -757,8 +789,8 @@ const ManagerDashboard = () => {
                     {fromDate === tillDate
                       ? formattedDate(fromDate)
                       : `${formattedDate(fromDate)}  To  ${formattedDate(
-                          tillDate,
-                        )}` || '------'}
+                        tillDate,
+                      )}` || '------'}
                   </Text>
                 </View>
 
@@ -783,7 +815,7 @@ const ManagerDashboard = () => {
                       }}>
                       Staff Name
                     </Text>
-                    <Text style={{color: 'black', fontFamily: 'Inter-Medium'}}>
+                    <Text style={{ color: 'black', fontFamily: 'Inter-Medium' }}>
                       :
                     </Text>
                   </View>
@@ -812,51 +844,60 @@ const ManagerDashboard = () => {
                       <ActivityIndicator size="small" color="#0000ff" />
                     </View>
                   ) : (
-                    <View style={{height: 400}}>
-                      <ScrollView keyboardShouldPersistTaps="handled">
-                        <View
-                          style={{
-                            backgroundColor: '#ddd',
-                            padding: 10,
-                            borderRadius: 5,
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            marginBottom: 10,
-                            borderBottomWidth: 1,
-                            borderBottomColor: '#d1d5db',
-                            paddingBottom: 5,
-                          }}>
+                    <View style={{ height: 400 }}>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          backgroundColor: '#c4f5c5',
+                          width: '100%',
+                          borderTopWidth: 1, borderColor: 'black',
+                          borderLeftWidth: 1,
+                          borderRightWidth: 1,
+                          borderBottomWidth: 1
+                        }}>
+                        <View style={{ alignItems: 'center', borderRightWidth: 1, justifyContent: 'center', width: '33.33%', borderColor: 'black', }}>
                           <Text
                             style={{
                               fontFamily: 'Inter-Bold',
                               fontSize: 14,
                               color: 'black',
-                              width: '30%',
+
                               textAlign: 'center',
+                              paddingVertical: 7,
                             }}>
                             Punch In
                           </Text>
+                        </View>
+                        <View style={{ alignItems: 'center', justifyContent: 'center', width: '33.33%', borderColor: 'black' }}>
                           <Text
                             style={{
                               fontFamily: 'Inter-Bold',
                               fontSize: 14,
                               color: 'black',
-                              width: '30%',
+
                               textAlign: 'center',
+                              paddingVertical: 7,
                             }}>
                             Punch Out
                           </Text>
+                        </View>
+                        <View style={{ alignItems: 'center', borderLeftWidth: 1, justifyContent: 'center', width: '33.33%', borderColor: 'black', }}>
                           <Text
                             style={{
                               fontFamily: 'Inter-Bold',
                               fontSize: 14,
                               color: 'black',
-                              width: '30%',
+
                               textAlign: 'center',
+                              paddingVertical: 7,
                             }}>
                             Status
                           </Text>
                         </View>
+                      </View>
+                      <ScrollView keyboardShouldPersistTaps="handled">
+
 
                         {TimingList.length > 0 ? (
                           TimingList.map((item, index) => (
@@ -864,47 +905,87 @@ const ManagerDashboard = () => {
                               key={index}
                               style={{
                                 flexDirection: 'row',
-                                padding: 10,
                                 justifyContent: 'space-between',
-                                marginBottom: 3,
+
                                 borderBottomWidth: 1,
-                                borderColor: '#ccc',
+                                borderLeftWidth: 1,
+                                borderColor: 'black',
+
+
+                                width: '100%'
                               }}>
-                              <Text
+                              <View
                                 style={{
-                                  fontFamily: 'Inter-Regular',
-                                  fontSize: 14,
-                                  color: 'black',
-                                  width: '30%',
-                                  textAlign: 'center',
+
+                                  alignItems: 'center',
+
+                                  justifyContent: 'center',
+                                  borderRightWidth: 1,
+
+                                  borderColor: 'black',
+                                  width: '33.33%',
                                 }}>
-                                {item.punch_in_time || '------'}
-                              </Text>
-                              <Text
+                                <Text
+                                  style={{
+                                    fontFamily: 'Inter-Regular',
+                                    fontSize: 14,
+                                    color: 'black',
+
+                                    textAlign: 'center',
+                                    paddingVertical: 7
+                                  }}>
+                                  {item.punch_in_time || '------'}
+                                </Text>
+                              </View>
+                              <View
                                 style={{
-                                  fontFamily: 'Inter-Regular',
-                                  fontSize: 14,
-                                  color: 'black',
-                                  width: '30%',
-                                  textAlign: 'center',
+
+                                  alignItems: 'center',
+
+                                  justifyContent: 'center',
+                                  borderRightWidth: 1,
+
+                                  borderColor: 'black',
+                                  width: '33.33%',
                                 }}>
-                                {item.punch_out_time || '------'}
-                              </Text>
-                              <Text
+                                <Text
+                                  style={{
+                                    fontFamily: 'Inter-Regular',
+                                    fontSize: 14,
+                                    color: 'black',
+                                    paddingVertical: 7,
+                                    textAlign: 'center',
+                                  }}>
+                                  {item.punch_out_time || '------'}
+                                </Text>
+                              </View>
+                              <View
                                 style={{
-                                  fontFamily: 'Inter-Regular',
-                                  fontSize: 14,
-                                  color:
-                                    item.attendance_status === 'Present'
-                                      ? 'green'
-                                      : item.attendance_status === 'Absent'
-                                      ? 'red'
-                                      : 'black',
-                                  width: '30%',
-                                  textAlign: 'center',
+
+                                  alignItems: 'center',
+
+                                  justifyContent: 'center',
+                                  borderRightWidth: 1,
+
+                                  borderColor: 'black',
+                                  width: '33.33%',
                                 }}>
-                                {item.attendance_status || '------'}
-                              </Text>
+                                <Text
+                                  style={{
+                                    fontFamily: 'Inter-Regular',
+                                    fontSize: 14,
+                                    color:
+                                      item.attendance_status === 'Present'
+                                        ? 'green'
+                                        : item.attendance_status === 'Absent'
+                                          ? 'red'
+                                          : 'black',
+                                    paddingVertical: 7,
+                                    textAlign: 'center',
+                                  }}>
+                                  {item.attendance_status || '------'}
+                                </Text>
+                              </View>
                             </View>
                           ))
                         ) : (
@@ -923,12 +1004,7 @@ const ManagerDashboard = () => {
                   )}
                 </View>
 
-                {/* <View
-                  style={{
-                    height: 1,
-                    backgroundColor: '#ccc',
-                  }}
-                /> */}
+                
 
                 <View
                   style={{
@@ -977,6 +1053,264 @@ const ManagerDashboard = () => {
                     </Text>
                   </View>
                 </View>
+              </View>
+            </TouchableOpacity>
+          </Modal>
+        )} */}
+
+
+
+
+
+
+
+
+        {selectedEye && (
+          <Modal
+            transparent={true}
+            animationType="slide"
+            visible={EyeModal}
+            onRequestClose={() => {
+              setEyeModal(false);
+            }}>
+            <TouchableOpacity onPress={closeModal} style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)', }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'flex-end',
+                  width: '85%',
+                  paddingVertical: 5,
+                }}>
+                <TouchableOpacity
+                  onPress={() => setEyeModal(false)}
+                  style={{
+                    marginRight: 10,
+                    backgroundColor: 'white',
+                    borderRadius: 50,
+                  }}>
+                  <Entypo name="cross" size={25} color="black" />
+                </TouchableOpacity>
+              </View>
+
+              <View onStartShouldSetResponder={(e) => e.stopPropagation()} style={{
+                width: '85%',
+                backgroundColor: 'white',
+                borderRadius: 15,
+                padding: 20,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.8,
+                shadowRadius: 4,
+                elevation: 8,
+              }}>
+                <View
+                  style={{
+                    width: '100%',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                  }}>
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 'bold',
+                      textAlign: 'center',
+                      fontFamily: 'Inter-Medium',
+                      color: 'black',
+                    }}>
+                    Attendence Details
+                  </Text>
+                </View>
+
+                <View>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 'bold',
+                      textAlign: 'center',
+                      marginBottom: 10,
+                      marginTop: 10,
+                      fontFamily: 'Inter-Medium',
+                    }}>
+                    {fromDate === tillDate
+                      ? formattedDate(fromDate)
+                      : `${formattedDate(fromDate)}  To  ${formattedDate(
+                        tillDate,
+                      )}` || '------'}
+                  </Text>
+                </View>
+
+
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 15,
+                  }}>
+                  <View
+                    style={{
+                      width: '30%',
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Medium',
+                        fontSize: 14,
+                        color: 'grey',
+                      }}>
+                      Staff Name
+                    </Text>
+                    <Text style={{ color: 'black', fontFamily: 'Inter-Medium' }}>
+                      :
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      width: '70%',
+                      justifyContent: 'flex-start',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Bold',
+                        fontSize: 14,
+                        color: 'black',
+                        marginLeft: 10,
+                      }}>
+                      {selectedEye.staff_name || '------'}
+                    </Text>
+                  </View>
+                </View>
+
+                {TimingLoading ? (
+                  <View style={{ paddingVertical: 20, justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color={colors.Black} />
+
+                  </View>
+                ) : (
+                  <>
+                    {/* Table Header */}
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        backgroundColor: '#c4f5c5',
+                        width: '100%',
+                        borderTopWidth: 1,
+                        borderLeftWidth: 1,
+                        borderRightWidth: 1,
+                        borderBottomWidth: 1,
+                        borderColor: 'black',
+                      }}>
+                      <View style={{ alignItems: 'center', borderRightWidth: 1, justifyContent: 'center', width: '33.33%', borderColor: 'black' }}>
+                        <Text style={{ fontFamily: 'Inter-Bold', fontSize: 14, color: 'black', textAlign: 'center', paddingVertical: 7 }}>Punch In</Text>
+                      </View>
+                      <View style={{ alignItems: 'center', justifyContent: 'center', width: '33.33%' }}>
+                        <Text style={{ fontFamily: 'Inter-Bold', fontSize: 14, color: 'black', textAlign: 'center', paddingVertical: 7 }}>Punch Out</Text>
+                      </View>
+                      <View style={{ alignItems: 'center', borderLeftWidth: 1, justifyContent: 'center', width: '33.33%', borderColor: 'black' }}>
+                        <Text style={{ fontFamily: 'Inter-Bold', fontSize: 14, color: 'black', textAlign: 'center', paddingVertical: 7 }}>Status</Text>
+                      </View>
+                    </View>
+
+                    {/* Timing List */}
+                    <ScrollView keyboardShouldPersistTaps="handled" style={{ backgroundColor: 'white', maxHeight: 300 }} contentContainerStyle={{ paddingBottom: 10 }}>
+                      {TimingList.length > 0 ? (
+                        TimingList.map((item, index) => (
+                          <View
+                            key={index}
+                            style={{
+                              flexDirection: 'row',
+                              justifyContent: 'space-between',
+                              borderBottomWidth: 1,
+                              borderLeftWidth: 1,
+                              borderColor: 'black',
+                              width: '100%',
+                            }}>
+                            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, borderColor: 'black', width: '33.33%' }}>
+                              <Text style={{ fontFamily: 'Inter-Regular', fontSize: 14, color: 'black', textAlign: 'center', paddingVertical: 7 }}>
+                                {item.punch_in_time || '------'}
+                              </Text>
+                            </View>
+                            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, borderColor: 'black', width: '33.33%' }}>
+                              <Text style={{ fontFamily: 'Inter-Regular', fontSize: 14, color: 'black', textAlign: 'center', paddingVertical: 7 }}>
+                                {item.punch_out_time || '------'}
+                              </Text>
+                            </View>
+                            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, borderColor: 'black', width: '33.33%' }}>
+                              <Text style={{
+                                fontFamily: 'Inter-Regular',
+                                fontSize: 14,
+                                color: item.attendance_status === 'Present' ? 'green' : item.attendance_status === 'Absent' ? 'red' : 'black',
+                                textAlign: 'center',
+                                paddingVertical: 7,
+                              }}>
+                                {item.attendance_status || '------'}
+                              </Text>
+                            </View>
+                          </View>
+                        ))
+                      ) : (
+                        <Text style={{ textAlign: 'center', marginTop: 20, fontFamily: 'Inter-Regular', color: colors.Red }}>
+                          No Timing Found
+                        </Text>
+                      )}
+                    </ScrollView>
+                  </>
+                )}
+
+
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 15,
+                  }}>
+                  <View
+                    style={{
+                      width: '30%',
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Medium',
+                        fontSize: 16,
+                        color: 'grey',
+                      }}>
+                      Total Time
+                    </Text>
+                    <Text
+                      style={{
+                        color: 'black',
+                        fontFamily: 'Inter-Bold',
+                        fontSize: 14,
+                      }}>
+                      :
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      width: '70%',
+                      justifyContent: 'flex-start',
+                      flexDirection: 'row',
+                    }}>
+                    <Text
+                      style={{
+                        fontFamily: 'Inter-Bold',
+                        fontSize: 14,
+                        color: 'black',
+                        marginLeft: 10,
+                      }}>
+                      {selectedEye.total_working_time || '------'}
+                    </Text>
+                  </View>
+                </View>
+
               </View>
             </TouchableOpacity>
           </Modal>
@@ -1117,7 +1451,7 @@ const ManagerDashboard = () => {
                   marginBottom: 15,
                 }}>
                 {/* From Date */}
-                <View style={{flex: 1, marginRight: 10}}>
+                <View style={{ flex: 1, marginRight: 10 }}>
                   <Text
                     style={{
                       fontSize: 16,
@@ -1161,7 +1495,7 @@ const ManagerDashboard = () => {
                 </View>
 
                 {/* Till Date */}
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <Text
                     style={{
                       fontSize: 16,
@@ -1275,7 +1609,7 @@ const ManagerDashboard = () => {
       </View>
 
       {userType === 'Manager' && (
-        <View style={{justifyContent: 'flex-end'}}>
+        <View style={{ justifyContent: 'flex-end' }}>
           <Bottomtabnavigation />
         </View>
       )}

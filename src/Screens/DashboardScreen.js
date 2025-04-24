@@ -6,12 +6,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import colors from '../CommonFiles/Colors';
 import Bottomtabnavigation from '../Component/Bottomtabnavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from '../Component/Header';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const DashboardScreen = () => {
   const [userType, setUserType] = useState('');
@@ -20,41 +21,41 @@ const DashboardScreen = () => {
   const [backButtonPressCount, setBackButtonPressCount] = useState(0); // State to count back button presses
   const [modalVisible, setModalVisible] = useState(false);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      const backAction = () => {
-        setBackButtonPressCount(prevCount => prevCount + 1); // Increment count each time the back button is pressed
-        console.log('Back button pressed count: ', backButtonPressCount + 1); // Log back button presses
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     const backAction = () => {
+  //       setBackButtonPressCount(prevCount => prevCount + 1); // Increment count each time the back button is pressed
+  //       console.log('Back button pressed count: ', backButtonPressCount + 1); // Log back button presses
 
-        if (!exitPressedOnce) {
-          // Show modal when back is pressed for the first time
-          setModalVisible(true);
-          setExitPressedOnce(true);
+  //       if (!exitPressedOnce) {
+  //         // Show modal when back is pressed for the first time
+  //         setModalVisible(true);
+  //         setExitPressedOnce(true);
 
-          // Automatically hide the modal after 3 seconds if no further action is taken
-          setTimeout(() => {
-            setExitPressedOnce(false); // Reset exitPressedOnce after 3 seconds
-            setModalVisible(false); // Hide the modal after 3 seconds
-          }, 3000);
+  //         // Automatically hide the modal after 3 seconds if no further action is taken
+  //         setTimeout(() => {
+  //           setExitPressedOnce(false); // Reset exitPressedOnce after 3 seconds
+  //           setModalVisible(false); // Hide the modal after 3 seconds
+  //         }, 3000);
 
-          return true; // Prevent the default exit behavior
-        } else {
-          // Exit the app if user presses back again within the timeout
-          BackHandler.exitApp(); // This line closes the app
-          return false; // Exit the app
-        }
-      };
+  //         return true; // Prevent the default exit behavior
+  //       } else {
+  //         // Exit the app if user presses back again within the timeout
+  //         BackHandler.exitApp(); // This line closes the app
+  //         return false; // Exit the app
+  //       }
+  //     };
 
-      // Add back event listener
-      const backHandler = BackHandler.addEventListener(
-        'hardwareBackPress',
-        backAction,
-      );
+  //     // Add back event listener
+  //     const backHandler = BackHandler.addEventListener(
+  //       'hardwareBackPress',
+  //       backAction,
+  //     );
 
-      // Cleanup function to remove the event listener when the screen loses focus
-      return () => backHandler.remove();
-    }, [exitPressedOnce, backButtonPressCount]), // Add backButtonPressCount in the dependency array
-  );
+  //     // Cleanup function to remove the event listener when the screen loses focus
+  //     return () => backHandler.remove();
+  //   }, [exitPressedOnce, backButtonPressCount]), // Add backButtonPressCount in the dependency array
+  // );
 
   const handleExit = () => {
     // Immediately exit the app when user clicks "Exit"
@@ -83,8 +84,35 @@ const DashboardScreen = () => {
     getUserType();
   }, []);
   return (
-    <View style={{flex: 1, backgroundColor: '#f7f7f7'}}>
-      <Header title="Dashboard" onMenuPress={() => navigation.openDrawer()} />
+    <View style={{ flex: 1, backgroundColor: '#f7f7f7' }}>
+      {/* <Header title="Dashboard" onMenuPress={() => navigation.openDrawer()} /> */}
+      <View
+        style={{
+          backgroundColor: colors.Black,
+          padding: 15,
+          justifyContent: 'center',
+
+          alignItems: 'center',
+          flexDirection: 'row',
+        }}>
+        <TouchableOpacity
+          style={{ position: 'absolute', top: 18.5, left: 15 }}
+          onPress={() => {
+            navigation.goBack();
+          }}>
+          <MaterialIcons name="arrow-back-ios-new" color="white" size={20} />
+        </TouchableOpacity>
+
+        <Text
+          style={{
+            color: 'white',
+            fontSize: 20,
+            fontWeight: 'bold',
+            fontFamily: 'Inter-Bold',
+          }}>
+          Dashboard
+        </Text>
+      </View>
 
       {/* Modal for exit confirmation */}
       <Modal
@@ -114,7 +142,14 @@ const DashboardScreen = () => {
             }}
             onStartShouldSetResponder={() => true}
             onTouchEnd={e => e.stopPropagation()}>
-            <Text style={{fontSize: 16}}>Press again to exit</Text>
+            <Text
+              style={{
+                fontSize: 15,
+                fontFamily: 'Inter-Regular',
+                color: 'black',
+              }}>
+              Press again to exit
+            </Text>
 
             <TouchableOpacity
               style={{
@@ -124,17 +159,24 @@ const DashboardScreen = () => {
                 justifyContent: 'center',
               }}
               onPress={handleExit}>
-              <Text style={{color: 'blue', fontSize: 18}}>Exit</Text>
+              <Text
+                style={{
+                  color: 'blue',
+                  fontSize: 18,
+                  fontFamily: 'Inter-Regular',
+                }}>
+                Exit
+              </Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>
 
-      {userType !== 'Trainer' && (
-        <View style={{flex: 1, justifyContent: 'flex-end'}}>
+      {/* {userType !== 'Trainer' && (
+        <View style={{ flex: 1, justifyContent: 'flex-end' }}>
           <Bottomtabnavigation />
         </View>
-      )}
+      )} */}
     </View>
   );
 };

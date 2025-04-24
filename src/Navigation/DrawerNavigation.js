@@ -8,7 +8,7 @@ import {
   ScrollView,
   Animated,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {
   useFocusEffect,
@@ -17,14 +17,15 @@ import {
 } from '@react-navigation/native';
 import colors from '../CommonFiles/Colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ENDPOINTS} from '../CommonFiles/Constant';
+import { ENDPOINTS } from '../CommonFiles/Constant';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
-import {useDrawerStatus} from '@react-navigation/drawer';
+// import { useDrawerStatus } from '@react-navigation/drawer';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const DrawerNavigation = props => {
+const DrawerNavigation = () => {
   const [fromDate, setFromDate] = useState(new Date());
   const [tillDate, setTillDate] = useState(new Date());
 
@@ -32,20 +33,15 @@ const DrawerNavigation = props => {
   const [isValidTillDate, setIsValidTillDate] = useState(true);
 
   const [Totalpoint, setTotalpoint] = useState('');
-  console.log('totalpoints', Totalpoint);
 
   const [showFromDatePicker, setShowFromDatePicker] = useState(false);
-  console.log('selected from date picker xxxxx', showFromDatePicker);
   const [showTillDatePicker, setShowTillDatePicker] = useState(false);
-  console.log('selected till date picker xxxxxx', showTillDatePicker);
   const [Modalvisible, setModalvisible] = useState(false);
   const [isRewardPointsModal, setIsRewardPointsModal] = useState(false);
-  console.log('isrewardpointsmodal yyyyyy', isRewardPointsModal);
   const [userType, setUserType] = useState(''); // State to hold the user type
-  console.log('usertype ye hai ab', userType);
   const [StudentName, setStudentName] = useState('');
-  console.log('StudentName ye hai ab', StudentName);
   const [selectedMenu, setSelectedMenu] = useState('Home'); // State to track selected menu
+
 
   const Report = require('../assets/images/report.png');
   const Leave = require('../assets/images/leave.png');
@@ -54,11 +50,105 @@ const DrawerNavigation = props => {
   const badge = require('../assets/images/badge.png');
   const Complain = require('../assets/images/complain.png');
   const [ProfileData, setProfileData] = useState([]);
-  const isDrawerOpen = useDrawerStatus();
+  // const isDrawerOpen = useDrawerStatus();
 
   const [selectedReport, setSelectedReport] = useState('');
 
-  const {route} = props;
+  const homeAnimation = useRef(new Animated.Value(-350)).current; // Start off-screen to the left
+  const profileAnimation = useRef(new Animated.Value(-350)).current; // Start off-screen to the left
+  const LeaveAnimation = useRef(new Animated.Value(-350)).current;
+  const PaymentAnimation = useRef(new Animated.Value(-350)).current;
+  const ReportAnimation = useRef(new Animated.Value(-350)).current;
+  const PointAnimation = useRef(new Animated.Value(-350)).current;
+  const ComplaintAnimation = useRef(new Animated.Value(-350)).current;
+
+
+  const animationDuration = 800; // Duration for each animation
+  const animationDuration2 = 800; // Duration for each animation
+  const animationDuration3 = 800; // Duration for each animation
+  const animationDuration4 = 800; // Duration for each animation
+  const animationDuration5 = 800; // Duration for each animation
+  const animationDuration6 = 800; // Duration for each animation
+
+  const delayForProfile = 300; // Delay for Profile item after Home animation
+  const delayForLeave = 400;
+  const delayForPayment = 500;
+  const delayForReport = 600;
+  const delayForPoint = 800;
+  const delayForComplaint = 850
+
+
+  // Trigger animations when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      // Trigger Home item animation (move from left to right)
+      Animated.timing(homeAnimation, {
+        toValue: 0, // Move to original position
+        duration: animationDuration,
+        useNativeDriver: true,
+      }).start();
+
+      // Trigger Profile item animation with delay
+      setTimeout(() => {
+        Animated.timing(profileAnimation, {
+          toValue: 0, // Move to original position
+          duration: animationDuration,
+          useNativeDriver: true,
+        }).start();
+      }, delayForProfile); // Delay for Profile item
+      setTimeout(() => {
+        Animated.timing(LeaveAnimation, {
+          toValue: 0, // Move to original position
+          duration: animationDuration2,
+          useNativeDriver: true,
+        }).start();
+      }, delayForLeave); // Delay for Profile item
+      setTimeout(() => {
+        Animated.timing(PaymentAnimation, {
+          toValue: 0, // Move to original position
+          duration: animationDuration3,
+          useNativeDriver: true,
+        }).start();
+      }, delayForPayment);
+      setTimeout(() => {
+        Animated.timing(ReportAnimation, {
+          toValue: 0, // Move to original position
+          duration: animationDuration4,
+          useNativeDriver: true,
+        }).start();
+      }, delayForReport);
+      setTimeout(() => {
+        Animated.timing(PointAnimation, {
+          toValue: 0, // Move to original position
+          duration: animationDuration5,
+          useNativeDriver: true,
+        }).start();
+      }, delayForPoint);
+      setTimeout(() => {
+        Animated.timing(ComplaintAnimation, {
+          toValue: 0, // Move to original position
+          duration: animationDuration6,
+          useNativeDriver: true,
+        }).start();
+      }, delayForComplaint);
+
+      // Cleanup function to reset animations when screen loses focus
+      return () => {
+        homeAnimation.setValue(-0); // Keep off-screen position when screen is unfocused
+        profileAnimation.setValue(-0); // Keep off-screen position when screen is unfocused
+        LeaveAnimation.setValue(-0);
+        PaymentAnimation.setValue(-0);
+
+        ReportAnimation.setValue(-0);
+
+        PointAnimation.setValue(-0);
+
+        ComplaintAnimation.setValue(-0);
+
+      };
+    }, [homeAnimation, profileAnimation, LeaveAnimation, PaymentAnimation, ReportAnimation, PointAnimation, ComplaintAnimation])
+  );
+  // const {route} = props;
 
   // useEffect(() => {
   //   // Log route params to check if passed correctly
@@ -105,6 +195,10 @@ const DrawerNavigation = props => {
   // useEffect(() => {
   //   ShowRewardPointsApi();
   // }, [fromDate, tillDate, isDrawerOpen]);
+
+  // Focus effect to trigger animation when screen is focused
+
+
 
   // Function to format date as YYYY-MM-DD
   const formatDate = date => {
@@ -168,6 +262,8 @@ const DrawerNavigation = props => {
       }
 
       setModalvisible(false); // Close modal after submitting
+      setFromDate('');
+      setTillDate('');
     } else {
     }
   };
@@ -175,7 +271,6 @@ const DrawerNavigation = props => {
   const MyProfileApi = async () => {
     const userId = await AsyncStorage.getItem(
       userType === 'Student' ? 'application_id' : 'trainer_id',
-      console.log('user id', userId),
     );
     let apiEndpoint =
       userType === 'Student'
@@ -194,7 +289,6 @@ const DrawerNavigation = props => {
       });
 
       const data = await response.json();
-      console.log('Full Delete  Data:', data);
 
       // Check response status
       if (data.code == 200) {
@@ -211,24 +305,23 @@ const DrawerNavigation = props => {
     if (userType) {
       MyProfileApi();
     }
-  }, [isDrawerOpen, userType]);
+  }, [userType]);
 
   useEffect(() => {
-    if (isDrawerOpen === 'open') {
-      // setDropdownVisible(false); // Set dropdown visibility to false when drawer is open
-      // setRewardVisible(false);
-      // setLeaveVisible(false);
-      setFromDate('');
-      setTillDate('');
-    }
-  }, [isDrawerOpen]);
+
+    // setDropdownVisible(false); // Set dropdown visibility to false when drawer is open
+    // setRewardVisible(false);
+    // setLeaveVisible(false);
+    setFromDate('');
+    setTillDate('');
+
+  }, []);
 
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedItem2, setSelectedItem2] = useState(null);
 
   // Handle menu item press
   const handleMenuPress = (item, screenName) => {
-    console.log('called custom Report');
     setIsValidFromDate(true);
     setIsValidTillDate(true);
     setIsRewardPointsModal(false);
@@ -254,7 +347,6 @@ const DrawerNavigation = props => {
   };
 
   const handleMenuPress2 = (item, screenName) => {
-    console.log('called custom Points');
 
     setIsValidFromDate(true);
     setIsValidTillDate(true);
@@ -270,8 +362,7 @@ const DrawerNavigation = props => {
   //     : {backgroundColor: '#ffffff', color: '#333'}; // Default style
   // };
   const getSelectedStyle = item => {
-    console.log('selected tab1', selectedItem);
-    console.log('selected tab1', item);
+
     // Check if the current item is selected
     const isSelected = item === selectedItem;
 
@@ -282,20 +373,19 @@ const DrawerNavigation = props => {
       userType === 'Manager'
     ) {
       return isSelected
-        ? {backgroundColor: '#ededed', color: 'black'} // Highlight style for Trainer
-        : {backgroundColor: '#ffffff', color: '#333'}; // Default style for Trainer
+        ? { backgroundColor: '#ededed', color: 'black' } // Highlight style for Trainer
+        : { backgroundColor: '#ffffff', color: '#333' }; // Default style for Trainer
     } else {
       return isSelected
-        ? {backgroundColor: 'white', color: 'black'} // Highlight style for other user types
-        : {backgroundColor: '#ffffff', color: '#333'}; // Default style for other user types
+        ? { backgroundColor: 'white', color: 'black' } // Highlight style for other user types
+        : { backgroundColor: '#ffffff', color: '#333' }; // Default style for other user types
     }
   };
 
   const getSelectedStyle2 = item => {
-    console.log('selected tab', selectedItem);
     return item === selectedItem
-      ? {backgroundColor: '#f0f0f0', color: '#007BFF'} // Highlight the selected item
-      : {backgroundColor: '#ffffff', color: '#333'}; // Default style
+      ? { backgroundColor: '#f0f0f0', color: '#007BFF' } // Highlight the selected item
+      : { backgroundColor: '#ffffff', color: '#333' }; // Default style
   };
   const navigation = useNavigation();
   const [isDropdownVisible, setDropdownVisible] = useState(false);
@@ -418,9 +508,8 @@ const DrawerNavigation = props => {
     const day = today.getDate();
     const month = today.getMonth() + 1; // Months are zero-indexed
     const year = today.getFullYear();
-    return `${year}-${month < 10 ? `0${month}` : month}-${
-      day < 10 ? `0${day}` : day
-    }`;
+    return `${year}-${month < 10 ? `0${month}` : month}-${day < 10 ? `0${day}` : day
+      }`;
   };
 
   // Get formatted yesterday's date
@@ -430,9 +519,8 @@ const DrawerNavigation = props => {
     const day = yesterday.getDate();
     const month = yesterday.getMonth() + 1;
     const year = yesterday.getFullYear();
-    return `${year}-${month < 10 ? `0${month}` : month}-${
-      day < 10 ? `0${day}` : day
-    }`;
+    return `${year}-${month < 10 ? `0${month}` : month}-${day < 10 ? `0${day}` : day
+      }`;
   };
 
   // Get the first date of the current month
@@ -466,7 +554,6 @@ const DrawerNavigation = props => {
   };
 
   const navigateToRewardPoints = rewardType => {
-    console.log('called reward points');
     let fromDate = '';
     let tillDate = '';
 
@@ -495,7 +582,6 @@ const DrawerNavigation = props => {
       const id =
         (await AsyncStorage.getItem('trainer_id')) ||
         (await AsyncStorage.getItem('application_id'));
-      console.log('training_id', id, storedUserType);
 
       if (storedUserType && id) {
         setUserType(storedUserType); // Set userType in the state
@@ -506,7 +592,7 @@ const DrawerNavigation = props => {
     };
 
     checkLoginStatus();
-  }, [isDrawerOpen]);
+  }, []);
 
   const formattedDate = dateString => {
     const date = new Date(dateString); // Convert the string to a Date object
@@ -556,10 +642,38 @@ const DrawerNavigation = props => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: 'white'}}>
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
+
+      <View
+        style={{
+          backgroundColor: colors.Black,
+          padding: 15,
+          justifyContent: 'center',
+
+          alignItems: 'center',
+          flexDirection: 'row',
+        }}>
+        <TouchableOpacity
+          style={{ position: 'absolute', top: 10, right: 15 }}
+          onPress={() => {
+            navigation.goBack();
+          }}>
+          <Entypo name="cross" color="white" size={35} />
+        </TouchableOpacity>
+
+        <Text
+          style={{
+            color: 'white',
+            fontSize: 20,
+            fontWeight: 'bold',
+            fontFamily: 'Inter-Bold',
+          }}>
+          Driving School India
+        </Text>
+      </View>
       {/* Drawer Header */}
       <View
-        style={{padding: 10, alignItems: 'center', justifyContent: 'center'}}>
+        style={{ padding: 10, alignItems: 'center', justifyContent: 'center' }}>
         <Image
           source={{
             uri: ProfileData?.trainer_image || ProfileData?.application_image,
@@ -616,293 +730,399 @@ const DrawerNavigation = props => {
       />
 
       {/* Drawer Options */}
-      <ScrollView style={{flex: 1, backgroundColor: 'white'}}>
+      <ScrollView style={{ flex: 1, backgroundColor: 'white' }}>
         {/* Home Menu Item */}
-        <TouchableOpacity
+        <Animated.View
           style={{
-            paddingVertical: 7,
-            paddingLeft: 30,
-            marginBottom: 10,
-            borderRadius: 10,
-
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: getSelectedStyle('Home').backgroundColor, // Apply background style dynamically
+            opacity: 1, // Keep opacity as 1 to make it always visible
+            transform: [
+              {
+                translateX: homeAnimation, // Move from -200 to 0 (left to right)
+              },
+            ],
           }}
-          onPress={() => {
-            setSelectedItem('Home'); // Update the selected item
-            handleMenuPress('Home', 'HomeScreen'); // Handle navigation
-          }}>
-          <Entypo
-            name="home"
-            size={24}
-            color={getSelectedStyle('Home').color} // Apply text color dynamically
-          />
-          <Text
+        >
+          <TouchableOpacity
             style={{
-              fontSize: 18,
-              fontWeight: '600',
-              color: getSelectedStyle('Home').color, // Apply text color dynamically
-              fontFamily: 'Inter-Regular',
-              marginLeft: 10,
+              paddingVertical: 7,
+              paddingLeft: 30,
+              marginBottom: 10,
+              borderRadius: 10,
+
+              flexDirection: 'row',
+              alignItems: 'center',
+              // backgroundColor: getSelectedStyle('Home').backgroundColor, // Apply background style dynamically
+              backgroundColor: '#f2f2f2',
+            }}
+            onPress={() => {
+              setSelectedItem('Home'); // Update the selected item
+              handleMenuPress('Home', 'HomeScreen'); // Handle navigation
             }}>
-            Home
-          </Text>
-        </TouchableOpacity>
+            <Entypo
+              name="home"
+              size={24}
+              color={getSelectedStyle('Home').color} // Apply text color dynamically
+            />
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: '600',
+                color: getSelectedStyle('Home').color, // Apply text color dynamically
+                fontFamily: 'Inter-Regular',
+                marginLeft: 10,
+              }}>
+              Home
+            </Text>
+            <View style={{ position: 'absolute', right: 10, top: 15 }}>
+              <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+            </View>
+          </TouchableOpacity>
+
+        </Animated.View>
 
         {/* Profile Menu Item */}
-        <TouchableOpacity
+
+        <Animated.View
           style={{
-            paddingVertical: 7,
-            paddingLeft: 30,
-            marginBottom: 10,
-            borderRadius: 10,
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: getSelectedStyle('Profile').backgroundColor, // Apply selected background
+            opacity: 1, // Keep opacity as 1 to make it always visible
+            transform: [
+              {
+                translateX: profileAnimation, // Move from -200 to 0 (left to right)
+              },
+            ],
           }}
-          onPress={() => handleMenuPress('Profile', 'ProfileScreen')}>
-          <MaterialIcons
-            name="person"
-            size={24}
-            color={getSelectedStyle('Profile').color}
-          />
-          <Text
+        >
+          <TouchableOpacity
             style={{
-              fontSize: 18,
-              fontWeight: '600',
-              color: getSelectedStyle('Profile').color,
-              fontFamily: 'Inter-Regular',
-              marginLeft: 10,
-            }}>
-            Profile
-          </Text>
-        </TouchableOpacity>
+              paddingVertical: 7,
+              paddingLeft: 30,
+              marginBottom: 10,
+              borderRadius: 10,
+              flexDirection: 'row',
+              alignItems: 'center',
+              // backgroundColor: getSelectedStyle('Profile').backgroundColor, // Apply selected background
+              backgroundColor: '#f2f2f2',
+            }}
+            onPress={() => handleMenuPress('Profile', 'ProfileScreen')}>
+            <MaterialIcons
+              name="person"
+              size={24}
+              color={getSelectedStyle('Profile').color}
+            />
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: '600',
+                color: getSelectedStyle('Profile').color,
+                fontFamily: 'Inter-Regular',
+                marginLeft: 10,
+              }}>
+              Profile
+            </Text>
+            <View style={{ position: 'absolute', right: 10, top: 15 }}>
+              <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
 
         {/* Leave Application Menu Item */}
         {userType !== 'Manager' && (
-          <TouchableOpacity
-            style={{
-              paddingVertical: 7,
-              paddingLeft: 30,
-              marginBottom: 10,
-              borderRadius: 10,
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor:
-                getSelectedStyle('LeaveApplication').backgroundColor, // Apply selected background
-            }}
-            onPress={() =>
-              handleMenuPress('LeaveApplication', 'LeaveApplication')
-            }>
-            <Image source={Leave} style={{height: 24, width: 24}} />
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: '600',
-                color: getSelectedStyle('LeaveApplication').color,
-                fontFamily: 'Inter-Regular',
-                marginLeft: 10,
-              }}>
-              Leave Application
-            </Text>
-          </TouchableOpacity>
-        )}
-        {/* Leave Application Menu for Manager Item */}
-        {userType === 'Manager' && (
-          <TouchableOpacity
-            style={{
-              paddingVertical: 7,
-              paddingLeft: 30,
-              marginBottom: 10,
-              borderRadius: 10,
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor:
-                getSelectedStyle('LeaveApplication2').backgroundColor, // Apply selected background
-            }}
-            onPress={Leavetoogle}>
-            <Image source={Leave} style={{height: 24, width: 24}} />
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: '600',
-                color: getSelectedStyle('LeaveApplication').color,
-                fontFamily: 'Inter-Regular',
-                marginLeft: 10,
-              }}>
-              Leave Application
-            </Text>
-            <View
-              style={{
-                flex: 1,
-                justifyContent: 'flex-end',
-                flexDirection: 'row',
-              }}>
-              <Animated.View // Wrap the arrow in an Animated.View
-                style={{
-                  transform: [{rotate: arrowRotationInterpolated}],
-                  marginRight: 15,
-                }}>
-                <MaterialIcons
-                  name={LeaveVisible ? 'expand-less' : 'expand-more'}
-                  size={28}
-                  color="#333"
-                  style={{marginRight: 15}}
-                />
-              </Animated.View>
-            </View>
-          </TouchableOpacity>
-        )}
-        {LeaveVisible && userType === 'Manager' && (
           <Animated.View
             style={{
-              height: heightAnim, // Animate the height
-              overflow: 'hidden', // Hide the content when collapsed
-              paddingLeft: 30,
-            }}>
+              opacity: 1, // Keep opacity as 1 to make it always visible
+              transform: [
+                {
+                  translateX: LeaveAnimation, // Move from -200 to 0 (left to right)
+                },
+              ],
+            }}
+          >
             <TouchableOpacity
               style={{
-                paddingVertical: 10,
+                paddingVertical: 7,
                 paddingLeft: 30,
-                backgroundColor: getRewardItemStyle('MyLeave').backgroundColor,
+                marginBottom: 10,
+                borderRadius: 10,
+                flexDirection: 'row',
+                alignItems: 'center',
+                // backgroundColor:
+                //   getSelectedStyle('LeaveApplication').backgroundColor, // Apply selected background
+                backgroundColor: '#f2f2f2',
               }}
-              onPress={() => {
-                navigation.navigate('LeaveApplication');
-              }}>
+              onPress={() =>
+                handleMenuPress('LeaveApplication', 'LeaveApplication')
+              }>
+              <Image source={Leave} style={{ height: 24, width: 24 }} />
               <Text
                 style={{
-                  fontSize: 16,
-                  color: '#333',
+                  fontSize: 18,
+                  fontWeight: '600',
+                  color: getSelectedStyle('LeaveApplication').color,
                   fontFamily: 'Inter-Regular',
+                  marginLeft: 10,
                 }}>
-                - My Leave
+                Leave Application
               </Text>
+              <View style={{ position: 'absolute', right: 10, top: 15 }}>
+                <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+              </View>
             </TouchableOpacity>
+          </Animated.View>
+        )}
+        {/* Leave Application Menu for Manager Item */}
+        <Animated.View
+          style={{
+            opacity: 1, // Keep opacity as 1 to make it always visible
+            transform: [
+              {
+                translateX: LeaveAnimation, // Move from -200 to 0 (left to right)
+              },
+            ],
+          }}
+        >
+          {userType === 'Manager' && (
+
             <TouchableOpacity
               style={{
-                paddingVertical: 10,
+                paddingVertical: 7,
                 paddingLeft: 30,
-                backgroundColor:
-                  getRewardItemStyle('OthersLeave').backgroundColor,
+                marginBottom: 10,
+                borderRadius: 10,
+                flexDirection: 'row',
+                alignItems: 'center',
+                // backgroundColor:
+                //   getSelectedStyle('LeaveApplication2').backgroundColor, // Apply selected background
+                backgroundColor: '#f2f2f2',
               }}
-              onPress={() => {
-                navigation.navigate('OthersLeave');
-              }}>
+              onPress={Leavetoogle}>
+              <Image source={Leave} style={{ height: 24, width: 24 }} />
               <Text
                 style={{
-                  fontSize: 16,
-                  color: '#333',
+                  fontSize: 18,
+                  fontWeight: '600',
+                  color: getSelectedStyle('LeaveApplication').color,
                   fontFamily: 'Inter-Regular',
+                  marginLeft: 10,
                 }}>
-                - Others Leave
+                Leave Application
               </Text>
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: 'flex-end',
+                  flexDirection: 'row',
+                }}>
+                <Animated.View // Wrap the arrow in an Animated.View
+                  style={{
+                    transform: [{ rotate: arrowRotationInterpolated }],
+                    marginRight: -5,
+                  }}>
+                  <MaterialIcons
+                    name={LeaveVisible ? 'expand-less' : 'expand-more'}
+                    size={28}
+                    color="#333"
+                    style={{ marginRight: 15 }}
+                  />
+                </Animated.View>
+              </View>
+            </TouchableOpacity>
+
+          )}
+          {LeaveVisible && userType === 'Manager' && (
+
+            <Animated.View
+              style={{
+                height: heightAnim, // Animate the height
+                overflow: 'hidden', // Hide the content when collapsed
+                paddingLeft: 30,
+              }}>
+              <TouchableOpacity
+                style={{
+                  paddingVertical: 10,
+                  paddingLeft: 30,
+                  backgroundColor: getRewardItemStyle('MyLeave').backgroundColor,
+                }}
+                onPress={() => {
+                  navigation.navigate('LeaveApplication');
+                }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    color: '#333',
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  - My Leave
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  paddingVertical: 10,
+                  paddingLeft: 30,
+                  backgroundColor:
+                    getRewardItemStyle('OthersLeave').backgroundColor,
+                }}
+                onPress={() => {
+                  navigation.navigate('OthersLeave');
+                }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    color: '#333',
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  - Others Leave
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
+
+          )}
+        </Animated.View>
+
+        {/* Advance Payment Menu Item */}
+        {userType !== 'Manager' && userType !== 'Student' && (
+          <Animated.View
+            style={{
+              opacity: 1, // Keep opacity as 1 to make it always visible
+              transform: [
+                {
+                  translateX: PaymentAnimation, // Move from -200 to 0 (left to right)
+                },
+              ],
+            }}
+          >
+            <TouchableOpacity
+              style={{
+                paddingVertical: 7,
+                paddingLeft: 30,
+                marginBottom: 10,
+                borderRadius: 10,
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: '#f2f2f2',
+                // backgroundColor:
+                //   getSelectedStyle('AdvancePayment').backgroundColor, // Apply selected background
+
+              }}
+              onPress={() => handleMenuPress('AdvancePayment', 'AdvancePayment')}>
+              <Image source={Payment} style={{ height: 32, width: 32 }} />
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '600',
+                  color: getSelectedStyle('LeaveApplication').color,
+                  fontFamily: 'Inter-Regular',
+                  marginLeft: 5,
+                }}>
+                Advance Payment
+              </Text>
+              <View style={{ position: 'absolute', right: 7, top: 15 }}>
+                <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+              </View>
             </TouchableOpacity>
           </Animated.View>
         )}
 
-        {/* Advance Payment Menu Item */}
-        {userType !== 'Manager' && userType !== 'Student' && (
-          <TouchableOpacity
-            style={{
-              paddingVertical: 7,
-              paddingLeft: 30,
-              marginBottom: 10,
-              borderRadius: 10,
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor:
-                getSelectedStyle('AdvancePayment').backgroundColor, // Apply selected background
-            }}
-            onPress={() => handleMenuPress('AdvancePayment', 'AdvancePayment')}>
-            <Image source={Payment} style={{height: 32, width: 32}} />
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: '600',
-                color: getSelectedStyle('LeaveApplication').color,
-                fontFamily: 'Inter-Regular',
-                marginLeft: 5,
-              }}>
-              Advance Payment
-            </Text>
-          </TouchableOpacity>
-        )}
-
         {/* Others Advance Payment Menu Item */}
         {userType === 'Manager' && (
-          <TouchableOpacity
+          <Animated.View
             style={{
-              paddingVertical: 7,
-              paddingLeft: 30,
-              marginBottom: 10,
-              borderRadius: 10,
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: getSelectedStyle('OthersAdvancePayment')
-                .backgroundColor, // Apply selected background
+              opacity: 1, // Keep opacity as 1 to make it always visible
+              transform: [
+                {
+                  translateX: PaymentAnimation, // Move from -200 to 0 (left to right)
+                },
+              ],
             }}
-            onPress={() => {
-              navigation.navigate('OthersAdvancePayment');
-            }}>
-            <Image source={Payment} style={{height: 32, width: 32}} />
-            <Text
+          >
+            <TouchableOpacity
               style={{
-                fontSize: 18,
-                fontWeight: '600',
-                color: getSelectedStyle('OthersLeaveApplication').color,
-                fontFamily: 'Inter-Regular',
-                marginLeft: 5,
+                paddingVertical: 7,
+                paddingLeft: 30,
+                marginBottom: 10,
+                borderRadius: 10,
+                flexDirection: 'row',
+                alignItems: 'center',
+                // backgroundColor: getSelectedStyle('OthersAdvancePayment')
+                //   .backgroundColor, // Apply selected background
+                backgroundColor: '#f2f2f2',
+              }}
+              onPress={() => {
+                navigation.navigate('OthersAdvancePayment');
               }}>
-              Others Advance Payment
-            </Text>
-          </TouchableOpacity>
+              <Image source={Payment} style={{ height: 32, width: 32 }} />
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '600',
+                  color: getSelectedStyle('OthersLeaveApplication').color,
+                  fontFamily: 'Inter-Regular',
+                  marginLeft: 5,
+                }}>
+                Others Advance Payment
+              </Text>
+              <View style={{ position: 'absolute', right: 7, top: 15 }}>
+                <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
         )}
 
         {/* History Report Menu Item */}
         {userType === 'Trainer' && (
-          <TouchableOpacity
+          <Animated.View
             style={{
-              paddingVertical: 7,
-              paddingLeft: 30,
-              borderRadius: 10,
-              flexDirection: 'row',
-
-              alignItems: 'center',
-              backgroundColor:
-                getSelectedStyle('HistoryReport').backgroundColor, // Apply selected background
+              opacity: 1, // Keep opacity as 1 to make it always visible
+              transform: [
+                {
+                  translateX: ReportAnimation, // Move from -200 to 0 (left to right)
+                },
+              ],
             }}
-            onPress={toggleDropdown}>
-            <Image source={History} style={{height: 24, width: 24}} />
-            <Text
+          >
+            <TouchableOpacity
               style={{
-                fontSize: 18,
-                fontWeight: '600',
-                color: getSelectedStyle('HistoryReport').color,
-                fontFamily: 'Inter-Regular',
-                marginLeft: 10,
-              }}>
-              History Report
-            </Text>
-            <View
-              style={{
-                flex: 1,
-                justifyContent: 'flex-end',
+                paddingVertical: 7,
+                paddingLeft: 30,
+                borderRadius: 10,
                 flexDirection: 'row',
-              }}>
-              <Animated.View
+
+                alignItems: 'center',
+                // backgroundColor:
+                //   getSelectedStyle('HistoryReport').backgroundColor, // Apply selected background
+                backgroundColor: '#f2f2f2',
+              }}
+              onPress={toggleDropdown}>
+              <Image source={History} style={{ height: 24, width: 24 }} />
+              <Text
                 style={{
-                  transform: [{rotate: arrowRotationInterpolated}],
+                  fontSize: 18,
+                  fontWeight: '600',
+                  color: getSelectedStyle('HistoryReport').color,
+                  fontFamily: 'Inter-Regular',
+                  marginLeft: 10,
                 }}>
-                <MaterialIcons
-                  name={isDropdownVisible ? 'expand-less' : 'expand-more'}
-                  size={28}
-                  color="#333"
-                  style={{marginRight: 15}}
-                />
-              </Animated.View>
-            </View>
-          </TouchableOpacity>
+                History Report
+              </Text>
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: 'flex-end',
+                  flexDirection: 'row',
+                }}>
+                <Animated.View
+                  style={{
+                    transform: [{ rotate: arrowRotationInterpolated }],
+                  }}>
+                  <MaterialIcons
+                    name={isDropdownVisible ? 'expand-less' : 'expand-more'}
+                    size={28}
+                    color="#333"
+                    style={{ marginRight: 5 }}
+                  />
+                </Animated.View>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
         )}
 
         {/* Dropdown Options */}
@@ -996,6 +1216,8 @@ const DrawerNavigation = props => {
               onPress={() => {
                 handleMenuPress('CustomReport', 'CustomReport');
                 setModalvisible(true);
+                setFromDate('');
+                setTillDate('');
               }}>
               <Text
                 style={{
@@ -1011,48 +1233,60 @@ const DrawerNavigation = props => {
 
         {/* Reward Points Menu Item */}
         {userType === 'Trainer' && (
-          <TouchableOpacity
+          <Animated.View
             style={{
-              marginTop: 10,
-              paddingVertical: 7,
-              paddingLeft: 30,
-              borderRadius: 10,
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor:
-                getSelectedStyle2('HistoryReport').backgroundColor,
+              opacity: 1, // Keep opacity as 1 to make it always visible
+              transform: [
+                {
+                  translateX: PointAnimation, // Move from -200 to 0 (left to right)
+                },
+              ],
             }}
-            onPress={toggleDropdown2}>
-            <Image source={badge} style={{height: 24, width: 24}} />
-            <Text
+          >
+            <TouchableOpacity
               style={{
-                fontSize: 18,
-                fontWeight: '600',
-                color: getSelectedStyle2('HistoryReport').color,
-                fontFamily: 'Inter-Regular',
-                marginLeft: 10,
-              }}>
-              Reward Points
-            </Text>
-            <View
-              style={{
-                flex: 1,
-                justifyContent: 'flex-end',
+                marginTop: 10,
+                paddingVertical: 7,
+                paddingLeft: 30,
+                borderRadius: 10,
                 flexDirection: 'row',
-              }}>
-              <Animated.View
+                alignItems: 'center',
+                // backgroundColor:
+                //   getSelectedStyle2('HistoryReport').backgroundColor,
+                backgroundColor: '#f2f2f2',
+              }}
+              onPress={toggleDropdown2}>
+              <Image source={badge} style={{ height: 24, width: 24 }} />
+              <Text
                 style={{
-                  transform: [{rotate: arrowRotationInterpolated}],
+                  fontSize: 18,
+                  fontWeight: '600',
+                  color: getSelectedStyle2('HistoryReport').color,
+                  fontFamily: 'Inter-Regular',
+                  marginLeft: 10,
                 }}>
-                <MaterialIcons
-                  name={RewardVisible ? 'expand-less' : 'expand-more'}
-                  size={28}
-                  color="#333"
-                  style={{marginRight: 15}}
-                />
-              </Animated.View>
-            </View>
-          </TouchableOpacity>
+                Reward Points
+              </Text>
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: 'flex-end',
+                  flexDirection: 'row',
+                }}>
+                <Animated.View
+                  style={{
+                    transform: [{ rotate: arrowRotationInterpolated }],
+                  }}>
+                  <MaterialIcons
+                    name={RewardVisible ? 'expand-less' : 'expand-more'}
+                    size={28}
+                    color="#333"
+                    style={{ marginRight: 5 }}
+                  />
+                </Animated.View>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
         )}
 
         {/* Dropdown Options */}
@@ -1153,6 +1387,8 @@ const DrawerNavigation = props => {
                 handleMenuPress2('CustomRewardPoints', 'CustomRewardPoints');
 
                 setModalvisible(true); // This should open your custom report modal
+                setFromDate('');
+                setTillDate('');
               }}>
               <Text
                 style={{
@@ -1168,29 +1404,44 @@ const DrawerNavigation = props => {
 
         {/* Complain Menu Item */}
         {userType === 'Student' && (
-          <TouchableOpacity
+          <Animated.View
             style={{
-              paddingVertical: 7,
-              paddingLeft: 30,
-              marginBottom: 10,
-              borderRadius: 10,
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: getSelectedStyle('Complain').backgroundColor, // Apply selected background
+              opacity: 1, // Keep opacity as 1 to make it always visible
+              transform: [
+                {
+                  translateX: ComplaintAnimation, // Move from -200 to 0 (left to right)
+                },
+              ],
             }}
-            onPress={() => handleMenuPress('Complain', 'ComplainScreen')}>
-            <Image source={Complain} style={{height: 24, width: 24}} />
-            <Text
+          >
+            <TouchableOpacity
               style={{
-                fontSize: 18,
-                fontWeight: '600',
-                color: getSelectedStyle('Complain').color,
-                fontFamily: 'Inter-Regular',
-                marginLeft: 10,
-              }}>
-              Complaint
-            </Text>
-          </TouchableOpacity>
+                paddingVertical: 7,
+                paddingLeft: 30,
+                marginBottom: 10,
+                borderRadius: 10,
+                flexDirection: 'row',
+                alignItems: 'center',
+                // backgroundColor: getSelectedStyle('Complain').backgroundColor, // Apply selected background
+                backgroundColor: '#f2f2f2',
+              }}
+              onPress={() => handleMenuPress('Complain', 'ComplainScreen')}>
+              <Image source={Complain} style={{ height: 24, width: 24 }} />
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '600',
+                  color: getSelectedStyle('Complain').color,
+                  fontFamily: 'Inter-Regular',
+                  marginLeft: 10,
+                }}>
+                Complaint
+              </Text>
+              <View style={{ position: 'absolute', right: 10, top: 15 }}>
+                <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
         )}
       </ScrollView>
 
@@ -1204,6 +1455,8 @@ const DrawerNavigation = props => {
           }}
           onPress={() => {
             setModalvisible(false);
+            setFromDate('');
+            setTillDate('');
           }}
           activeOpacity={1}>
           <View
@@ -1225,6 +1478,8 @@ const DrawerNavigation = props => {
               <TouchableOpacity
                 onPress={() => {
                   setModalvisible(false);
+                  setFromDate('');
+                  setTillDate('');
                 }}>
                 <Entypo name="cross" size={24} color="Black" />
               </TouchableOpacity>
@@ -1249,7 +1504,7 @@ const DrawerNavigation = props => {
                 marginBottom: 15,
               }}>
               {/* From Date */}
-              <View style={{flex: 1, marginRight: 10}}>
+              <View style={{ flex: 1, marginRight: 10 }}>
                 <Text
                   style={{
                     fontSize: 16,
@@ -1295,7 +1550,7 @@ const DrawerNavigation = props => {
               </View>
 
               {/* Till Date */}
-              <View style={{flex: 1}}>
+              <View style={{ flex: 1 }}>
                 <Text
                   style={{
                     fontSize: 16,

@@ -12,20 +12,23 @@ import {
   RefreshControl,
   FlatList,
 } from 'react-native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ENDPOINTS} from '../CommonFiles/Constant';
+import { ENDPOINTS } from '../CommonFiles/Constant';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import colors from '../CommonFiles/Colors';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const AdvancePayment = () => {
+  const route = useRoute();
+  const { mode, paymentDetails } = route.params || {};
   const [AddLoading, setAddLoading] = useState(false);
   const [PaymentList, setPaymentList] = useState([]);
   const [PaymentLoading, setPaymentLoading] = useState(false);
@@ -49,6 +52,8 @@ const AdvancePayment = () => {
   const [currentDate, setCurrentDate] = useState('');
 
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [confirmationModalVisible, setConfirmationModalVisible] = useState(false);
+  const [selectedPaymentId, setSelectedPaymentId] = useState(null);
 
   // Renamed function to formatSelectedDate
   const formatSelectedDate = date => {
@@ -97,35 +102,44 @@ const AdvancePayment = () => {
     setselectedConfirmPayment(Payment);
   };
 
+  // const handleSubmitPayment = async () => {
+  //   if (selectedConfirmPayment) {
+  //     // If a leave is selected for update, call the Update API
+  //     await UpdatePaymentApi(selectedConfirmPayment.advance_id); // Pass the leave ID for update
+  //   } else {
+  //     // If no leave is selected (new leave), call the Add API
+  //     await addAdvancePaymentApi();
+  //   }
+  // };
+
   const handleSubmitPayment = async () => {
-    if (selectedConfirmPayment) {
-      // If a leave is selected for update, call the Update API
-      await UpdatePaymentApi(selectedConfirmPayment.advance_id); // Pass the leave ID for update
+    if (mode === 'update') {
+      await UpdatePaymentApi(paymentDetails.advance_id);
     } else {
-      // If no leave is selected (new leave), call the Add API
       await addAdvancePaymentApi();
     }
   };
 
+
   const handleDeleteConfirmation = PaymentId => {
     setConfirmationModal(false);
     setselectedConfirmPayment(null);
-    Alert.alert(
-      'Confirm Delete',
-      'Are you sure you want to delete this Payment?',
-      [
-        {
-          text: 'No', // If the user presses "No", nothing happens
-          onPress: () => console.log('Delete cancelled'),
-          style: 'cancel',
-        },
-        {
-          text: 'Yes', // If the user presses "Yes", delete the Payment
-          onPress: () => DeletePaymentApi(PaymentId),
-        },
-      ],
-    );
+    setSelectedPaymentId(PaymentId);
+    setConfirmationModalVisible(true);
   };
+
+  const closeConfirmModal = () => {
+    setConfirmationModalVisible(false);
+    setSelectedPaymentId(null);
+  };
+
+  const confirmDelete = () => {
+    if (selectedPaymentId) {
+      DeletePaymentApi(selectedPaymentId);
+      closeConfirmModal();
+    }
+  };
+
 
   const handleUpdatePayment = () => {
     // Pre-fill the form with selected Payment data when updating
@@ -142,6 +156,24 @@ const AdvancePayment = () => {
     setReason(selectedConfirmPayment.reason);
     setPaymentAmount(selectedConfirmPayment.advance_amount);
   };
+
+  useEffect(() => {
+    if (mode === 'update' && paymentDetails) {
+      const formatDate = dateString => {
+        const [year, month, day] = dateString.split('-');
+        return `${day}-${month}-${year}`;
+      };
+
+      setCurrentDate(formatDate(paymentDetails.c_date));
+      setReason(paymentDetails.reason);
+      setPaymentAmount(paymentDetails.advance_amount);
+    } else {
+      // Default today's date
+      const today = new Date();
+      setCurrentDate(formatSelectedDate(today));
+    }
+  }, [mode, paymentDetails]);
+
 
   const addAdvancePaymentApi = async () => {
     const today = new Date();
@@ -184,6 +216,7 @@ const AdvancePayment = () => {
         setPaymentAmountError('');
         setReasonError('');
         setCurrentDate(formatSelectedDate(today));
+        navigation.goBack();
       } else {
         console.log('Error: Failed to add Payment');
       }
@@ -193,6 +226,7 @@ const AdvancePayment = () => {
       setAddLoading(false);
     }
   };
+
   const AdvancePaymentListApi = async () => {
     setPaymentLoading(true);
     setRefreshing(true);
@@ -290,6 +324,7 @@ const AdvancePayment = () => {
         AdvancePaymentListApi();
         setselectedConfirmPayment(null);
         setCurrentDate(formatSelectedDate(today));
+        navigation.goBack();
       } else {
         ToastAndroid.show('Data not Update ', ToastAndroid.SHORT);
       }
@@ -335,7 +370,7 @@ const AdvancePayment = () => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: '#f7f7f7'}}>
+    <View style={{ flex: 1, backgroundColor: '#f7f7f7' }}>
       <View
         style={{
           backgroundColor: colors.Black,
@@ -346,12 +381,12 @@ const AdvancePayment = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{position: 'absolute', top: 15, left: 15}}
+          style={{ position: 'absolute', top: 18.5, left: 15 }}
           onPress={() => {
             navigation.goBack();
           }}>
           {' '}
-          <Ionicons name="arrow-back" color="white" size={26} />
+          <MaterialIcons name="arrow-back-ios-new" color="white" size={20} />
         </TouchableOpacity>
 
         <Text
@@ -361,13 +396,13 @@ const AdvancePayment = () => {
             fontWeight: 'bold',
             fontFamily: 'Inter-Bold',
           }}>
-          Advance Payment
+          {mode === 'update' ? 'Update Advance Payment' : 'Add Advance Payment'}
         </Text>
       </View>
 
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        style={{flex: 1}} // Key change: ScrollView covers the entire screen
+        style={{ flex: 1 }} // Key change: ScrollView covers the entire screen
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -376,8 +411,8 @@ const AdvancePayment = () => {
           />
         }>
         {/* Trainer Date Input */}
-        <View style={{marginTop: 5, marginHorizontal: 20}}>
-          <View style={{justifyContent: 'center'}}>
+        <View style={{ marginTop: 5, marginHorizontal: 20 }}>
+          <View style={{ justifyContent: 'center' }}>
             <Text
               style={{
                 fontSize: 16,
@@ -421,7 +456,7 @@ const AdvancePayment = () => {
             />
 
             {/* Date Icon */}
-            <FontAwesome name="calendar" size={20} color="gray" />
+            <FontAwesome name="calendar" size={20} color='#4285F4' />
           </TouchableOpacity>
 
           {/* Date Picker */}
@@ -441,7 +476,7 @@ const AdvancePayment = () => {
         </View>
 
         {/* Payment Amount Input */}
-        <View style={{marginTop: 10, marginHorizontal: 20}}>
+        <View style={{ marginTop: 10, marginHorizontal: 20 }}>
           <Text
             style={{
               fontSize: 16,
@@ -489,7 +524,7 @@ const AdvancePayment = () => {
         ) : null}
 
         {/* Reason Input */}
-        <View style={{marginTop: 10, marginHorizontal: 20}}>
+        <View style={{ marginTop: 10, marginHorizontal: 20 }}>
           <Text
             style={{
               fontSize: 16,
@@ -533,7 +568,7 @@ const AdvancePayment = () => {
         ) : null}
 
         {/* Add Request Button */}
-        <View style={{marginTop: 10, marginHorizontal: 20}}>
+        <View style={{ marginTop: 10, marginHorizontal: 20 }}>
           {AddLoading ? (
             <View
               style={{
@@ -548,95 +583,124 @@ const AdvancePayment = () => {
             <TouchableOpacity
               style={{
                 marginTop: 7,
-                backgroundColor: colors.Black,
+                backgroundColor: 'white',
+                borderWidth: 1, borderColor: 'black',
                 paddingVertical: 12,
-                borderRadius: 5,
+                borderRadius: 10,
                 justifyContent: 'center',
                 alignItems: 'center',
               }}
               onPress={handleSubmitPayment}>
               {/* Function to handle request submission */}
-              <Text
-                style={{
-                  color: 'white',
-                  fontSize: 16,
-                  fontWeight: 'bold',
-                  fontFamily: 'Inter-Bold',
-                }}>
-                {selectedConfirmPayment ? 'Update Request' : 'Send Request'}
+              <Text style={{ color: 'black', fontSize: 16, fontFamily: 'Inter-Bold' }}>
+                {mode === 'update' ? 'Update Request' : 'Send Request'}
               </Text>
+
             </TouchableOpacity>
           )}
         </View>
 
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          style={{marginTop: 10, padding: 5}}>
-          {/* Table Header */}
-          <View
+          style={{ marginTop: 10 }}>
+
+          {/* <View
             style={{
               flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: '#ddd',
-              padding: 10,
-              borderRadius: 5,
-              marginBottom: 10,
+              justifyContent: 'space-between',
+              backgroundColor: '#c4f5c5',
+              borderWidth: 1,
+              width: '100%'
             }}>
-            <Text
-              style={{
-                flex: 1,
-                fontWeight: 'bold',
-                fontFamily: 'Inter-Regular',
-                textAlign: 'center',
-                fontSize: 14,
-                color: 'black',
-              }}>
-              Date
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                fontWeight: 'bold',
-                fontFamily: 'Inter-Regular',
-                textAlign: 'center',
-                fontSize: 14,
-                color: 'black',
-              }}>
-              Amount
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                fontWeight: 'bold',
-                fontFamily: 'Inter-Regular',
-                textAlign: 'center',
-                fontSize: 14,
-                color: 'black',
-              }}>
-              Status
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                fontWeight: 'bold',
-                fontFamily: 'Inter-Regular',
-                textAlign: 'center',
-                fontSize: 14,
-                color: 'black',
-              }}>
-              Action
-            </Text>
-          </View>
+            <View style={{
+              borderRightWidth: 1,
+              padding: 7,
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '25%'
+            }}>
+              <Text
+                style={{
+                  flex: 1,
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter-Regular',
+                  textAlign: 'center',
+                  fontSize: 14,
+                  color: 'black',
+                }}>
+                Date
+              </Text>
+            </View>
+            <View style={{
+              borderRightWidth: 1,
+              padding: 7,
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '25%'
+            }}>
+              <Text
+                style={{
+                  flex: 1,
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter-Regular',
+                  textAlign: 'center',
+                  fontSize: 14,
+                  color: 'black',
+                }}>
+                Amount
+              </Text>
+            </View>
+            <View style={{
+              borderRightWidth: 1,
+              padding: 7,
+              alignItems: 'center',
 
-          {/* Check if PaymentList is loading */}
-          {PaymentLoading ? (
+              justifyContent: 'center',
+              width: '25%'
+            }}>
+              <Text
+                style={{
+                  flex: 1,
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter-Regular',
+                  textAlign: 'center',
+                  fontSize: 14,
+                  color: 'black',
+                }}>
+                Status
+              </Text>
+            </View>
+            <View style={{
+              borderRightWidth: 1,
+              padding: 7,
+              alignItems: 'center',
+
+              justifyContent: 'center',
+              width: '25%'
+            }}>
+              <Text
+                style={{
+                  flex: 1,
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter-Regular',
+                  textAlign: 'center',
+                  fontSize: 14,
+                  color: 'black',
+                }}>
+                Action
+              </Text>
+            </View>
+          </View> */}
+
+
+          {/* {PaymentLoading ? (
             <View
-              style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+              style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
               <ActivityIndicator size="large" color="black" />
             </View>
           ) : PaymentList.length === 0 ? (
             <View
-              style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+              style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
               <Text
                 style={{
                   color: 'red',
@@ -647,11 +711,11 @@ const AdvancePayment = () => {
               </Text>
             </View>
           ) : (
-            // Data List using .map()
+
             <FlatList
               data={PaymentList} // Use the PaymentList array as the data source
               keyExtractor={Payment => Payment.advance_id.toString()} // Key extractor to uniquely identify each item
-              renderItem={({item: Payment}) => {
+              renderItem={({ item: Payment, index }) => {
                 const currentDate = getCurrentDate(); // Get today's date in DD-MM-YYYY format
                 const isTodayOrFuture =
                   new Date(Payment.c_date.split('-').reverse().join('-')) >=
@@ -663,72 +727,94 @@ const AdvancePayment = () => {
                     key={Payment.advance_id}
                     style={{
                       flexDirection: 'row',
-                      backgroundColor: '#f9f9f9',
-                      padding: 10,
-                      marginBottom: 5,
-                      borderRadius: 5,
+
+                      borderBottomWidth: 1,
+                      borderBottomColor: 'black',
+                      borderLeftWidth: 1,
+                      borderRightWidth: 1,
+                      width: '100%', backgroundColor:
+                        index % 2 === 0 ? '#fff' : '#f2f2f2',
                     }}>
-                    <Text
-                      style={{
-                        flex: 1,
-                        textAlign: 'center',
-                        fontFamily: 'Inter-Regular',
-                        fontSize: 12,
-                        color: 'black',
-                      }}>
-                      {formatDate(Payment.c_date)}{' '}
-                      {/* Format the date for display */}
-                    </Text>
-                    <Text
-                      style={{
-                        flex: 1,
-                        textAlign: 'center',
-                        fontFamily: 'Inter-Regular',
-                        fontSize: 12,
-                        color: 'black',
-                      }}>
-                      ₹{Payment.advance_amount}
-                    </Text>
-                    <Text
-                      style={{
-                        flex: 1,
-                        textAlign: 'center',
-                        fontFamily: 'Inter-Bold',
-                        fontSize: 12,
-                        color:
-                          Payment.advance_status === 'Pending'
-                            ? 'orange'
-                            : Payment.advance_status === 'Process'
-                            ? '#ffcc00'
-                            : Payment.advance_status === 'Approve'
-                            ? 'green'
-                            : Payment.advance_status === 'Reject'
-                            ? 'red'
-                            : 'black', // Default case
-                      }}>
-                      {Payment.advance_status}
-                    </Text>
+                    <View style={{
+                      alignItems: 'center',
+
+                      justifyContent: 'center',
+                      borderRightWidth: 1,
+                      width: '25%'
+                    }}>
+                      <Text
+                        style={{
+
+                          textAlign: 'center',
+                          fontFamily: 'Inter-Regular',
+                          fontSize: 12,
+                          color: 'black',
+                          paddingVertical: 8
+                        }}>
+                        {formatDate(Payment.c_date)}{' '}
+
+                      </Text>
+                    </View>
+                    <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '25%' }}>
+                      <Text
+                        style={{
+
+                          textAlign: 'center',
+                          fontFamily: 'Inter-Regular',
+                          fontSize: 12,
+                          color: 'black',
+                        }}>
+                        ₹{Payment.advance_amount}
+                      </Text>
+                    </View>
+                    <View style={{
+                      width: '25%',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRightWidth: 1,
+                    }}>
+                      <Text
+                        style={{
+
+                          textAlign: 'center',
+                          fontFamily: 'Inter-Bold',
+                          fontSize: 12,
+                          color:
+                            Payment.advance_status === 'Pending'
+                              ? 'orange'
+                              : Payment.advance_status === 'Process'
+                                ? '#ffcc00'
+                                : Payment.advance_status === 'Approve'
+                                  ? 'green'
+                                  : Payment.advance_status === 'Reject'
+                                    ? 'red'
+                                    : 'black', // Default case
+                        }}>
+                        {Payment.advance_status}
+                      </Text>
+                    </View>
                     <View
                       style={{
-                        width: '24%',
+                        width: '25%',
                         flexDirection: 'row',
                         justifyContent: 'space-between',
+                        alignItems: 'center'
                       }}>
-                      <View style={{marginLeft: 25}}>
+                      <View style={{ marginLeft: 25 }}>
                         <TouchableOpacity
                           onPress={() => handleOpenModal(Payment)}
-                          style={{alignItems: 'center'}}>
+                          style={{ alignItems: 'center' }}>
                           <Feather name="eye" size={18} color="black" />
                         </TouchableOpacity>
                       </View>
-                      <View>
+                      <View style={{ marginRight: 10 }}>
                         <TouchableOpacity
                           onPress={() => handleOpenModal2(Payment)}
-                          style={{alignItems: 'center'}}
+                          style={{ alignItems: 'center' }}
                           disabled={!isTodayOrFuture || !isPending} // Disable the button if the date is in the past or the status is not 'Pending'
                         >
                           {/* Only show the icon if the condition is met */}
-                          {isTodayOrFuture && isPending && (
+          {/* {isTodayOrFuture && isPending && (
                             <Entypo
                               name="dots-three-vertical"
                               size={18}
@@ -742,7 +828,7 @@ const AdvancePayment = () => {
                 );
               }}
             />
-          )}
+          )} */}
           {/* Advance Payment Reason Modal */}
           {/* {selectedPayment && (
             <Modal
@@ -1090,6 +1176,23 @@ const AdvancePayment = () => {
                 }}>
                 <View
                   style={{
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                    width: '85%',
+                    paddingVertical: 5,
+                  }}>
+                  <TouchableOpacity
+                    onPress={handleCloseModal}
+                    style={{
+                      marginRight: 10,
+                      backgroundColor: 'white',
+                      borderRadius: 50,
+                    }}>
+                    <Entypo name="cross" size={25} color="black" />
+                  </TouchableOpacity>
+                </View>
+                <View
+                  style={{
                     backgroundColor: 'white',
                     padding: 20,
                     borderRadius: 10,
@@ -1103,25 +1206,41 @@ const AdvancePayment = () => {
                     style={{
                       flexDirection: 'row',
                       justifyContent: 'flex-end',
-                      marginBottom: 15,
-                      borderRadius: 10,
+                      borderTopWidth: 1, width: '100%',
+                      borderLeftWidth: 1,
+                      borderRightWidth: 1,
+                      backgroundColor: '#fff',
+
                       overflow: 'hidden',
                     }}>
-                    <Text
-                      style={{
-                        fontFamily: 'Inter-Medium',
-                        fontSize: 14,
-                        paddingVertical: 5,
-                        paddingHorizontal: 14,
-                        backgroundColor: getLeaveStatusColor(
-                          selectedPayment.advance_status,
-                        ),
-                        color: 'white',
-                        textAlign: 'center',
-                        borderRadius: 50, // To make the text background round (circle)
-                      }}>
-                      {selectedPayment.advance_status || 'Pending'}
-                    </Text>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', width: '50%' }}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Medium',
+                          fontSize: 14,
+                          color: 'grey',
+                          paddingVertical: 7
+                        }}>
+                        Status
+                      </Text>
+                    </View>
+                    <View style={{ justifyContent: 'center', borderLeftWidth: 1, alignItems: 'center', width: '50%' }}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Medium',
+                          fontSize: 14,
+                          paddingVertical: 5,
+                          paddingHorizontal: 14,
+                          backgroundColor: getLeaveStatusColor(
+                            selectedPayment.advance_status,
+                          ),
+                          color: 'white',
+                          textAlign: 'center',
+                          borderRadius: 50, // To make the text background round (circle)
+                        }}>
+                        {selectedPayment.advance_status || 'Pending'}
+                      </Text>
+                    </View>
                   </View>
 
                   {/* Date Section */}
@@ -1129,23 +1248,28 @@ const AdvancePayment = () => {
                     style={{
                       flexDirection: 'row',
                       justifyContent: 'space-between',
-                      marginBottom: 15,
+                      borderWidth: 1, width: '100%',
+                      backgroundColor: '#f2f2f2',
                     }}>
-                    <Text
-                      style={{
-                        fontFamily: 'Inter-Medium',
-                        fontSize: 14,
-                        color: 'grey',
-                      }}>
-                      Date
-                    </Text>
-                    <View style={{marginRight: 30}}>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', width: '50%' }}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Medium',
+                          fontSize: 14,
+                          color: 'grey',
+                          paddingVertical: 7
+                        }}>
+                        Date
+                      </Text> </View>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, width: '50%' }}>
+
                       <Text
                         style={{
                           fontFamily: 'Inter-Bold',
                           fontSize: 14,
                           color: '#555',
                           textAlign: 'center',
+                          paddingVertical: 7
                         }}>
                         {formatDate(selectedPayment.c_date) || '-----'}
                       </Text>
@@ -1185,23 +1309,30 @@ const AdvancePayment = () => {
                     style={{
                       flexDirection: 'row',
                       justifyContent: 'space-between',
-                      marginBottom: 15,
+                      borderBottomWidth: 1, width: '100%',
+                      backgroundColor: '#fff',
                     }}>
-                    <Text
-                      style={{
-                        fontFamily: 'Inter-Medium',
-                        fontSize: 14,
-                        color: 'grey',
-                      }}>
-                      Amount
-                    </Text>
-                    <View style={{marginRight: 30}}>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, width: '50%' }}>
+
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Medium',
+                          fontSize: 14,
+                          color: 'grey',
+                          paddingVertical: 7
+                        }}>
+                        Amount
+                      </Text>
+                    </View>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, borderRightWidth: 1, width: '50%' }}>
+
                       <Text
                         style={{
                           fontFamily: 'Inter-Bold',
                           fontSize: 14,
                           color: '#555',
                           textAlign: 'center',
+                          paddingVertical: 7
                         }}>
                         ₹{selectedPayment.advance_amount || '-----'}
                       </Text>
@@ -1213,23 +1344,30 @@ const AdvancePayment = () => {
                     style={{
                       flexDirection: 'row',
                       justifyContent: 'space-between',
-                      marginBottom: 20,
+                      backgroundColor: '#f2f2f2',
+                      borderBottomWidth: 1, width: '100%'
                     }}>
-                    <Text
-                      style={{
-                        fontFamily: 'Inter-Medium',
-                        fontSize: 14,
-                        color: 'grey',
-                      }}>
-                      Approve By
-                    </Text>
-                    <View style={{marginRight: 30}}>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, width: '50%' }}>
+
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Medium',
+                          fontSize: 14,
+                          color: 'grey',
+                          paddingVertical: 7
+                        }}>
+                        Approve By
+                      </Text>
+                    </View>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, borderRightWidth: 1, width: '50%' }}>
+
                       <Text
                         style={{
                           fontFamily: 'Inter-Bold',
                           fontSize: 14,
                           color: '#555',
                           textAlign: 'center',
+                          paddingVertical: 7
                         }}>
                         {selectedPayment.approve_by || '-----'}
                       </Text>
@@ -1241,65 +1379,79 @@ const AdvancePayment = () => {
                     style={{
                       flexDirection: 'row',
                       justifyContent: 'space-between',
-                      marginBottom: 5,
+                      backgroundColor: '#fff',
+                      borderBottomWidth: 1, width: '100%'
                     }}>
-                    <Text
-                      style={{
-                        fontFamily: 'Inter-Medium',
-                        fontSize: 14,
-                        color: 'grey',
-                      }}>
-                      Reason
-                    </Text>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, width: '50%' }}>
+
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Medium',
+                          fontSize: 14,
+                          color: 'grey',
+                          paddingVertical: 7
+
+                        }}>
+                        Reason
+                      </Text>
+                    </View>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, borderRightWidth: 1, width: '50%' }}>
+
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Bold',
+                          fontSize: 14,
+                          color: '#555',
+                          textAlign: 'center',
+                          paddingVertical: 7
+
+                        }}>
+                        {selectedPayment.reason || '-----'}
+                      </Text>
+                    </View>
                   </View>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'flex-start',
-                      marginBottom: 20,
-                    }}>
-                    <Text
-                      style={{
-                        fontFamily: 'Inter-Bold',
-                        fontSize: 14,
-                        color: '#555',
-                        textAlign: 'center',
-                      }}>
-                      {selectedPayment.reason || '-----'}
-                    </Text>
-                  </View>
+
 
                   {/* Applied on (Entry Date) Section */}
                   <View
                     style={{
                       flexDirection: 'row',
                       justifyContent: 'flex-start',
-                      marginBottom: 20,
+                      backgroundColor: '#f2f2f2',
+                      borderBottomWidth: 1, width: '100%'
                     }}>
-                    <Text
-                      style={{
-                        fontFamily: 'Inter-Medium',
-                        fontSize: 15,
-                        color: 'grey',
-                      }}>
-                      Applied on
-                    </Text>
-                    <View style={{marginLeft: 10, justifyContent: 'center'}}>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, width: '50%' }}>
+
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Medium',
+                          fontSize: 15,
+                          color: 'grey',
+                          paddingVertical: 7
+                        }}>
+                        Applied on
+                      </Text>
+                    </View>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, borderRightWidth: 1, width: '50%' }}>
+
                       <Text
                         style={{
                           fontFamily: 'Inter-Regular',
                           fontSize: 14,
                           color: '#555',
                           textAlign: 'center',
+                          paddingVertical: 7
                         }}>
                         {selectedPayment.entry_date || '-----'}
                       </Text>
                     </View>
                   </View>
 
+
+
                   {/* Cancel Button */}
-                  <View
-                    style={{alignItems: 'center', justifyContent: 'center'}}>
+                  {/* <View
+                    style={{ alignItems: 'center', justifyContent: 'center' }}>
                     <TouchableOpacity
                       onPress={handleCloseModal}
                       style={{
@@ -1321,7 +1473,7 @@ const AdvancePayment = () => {
                         Close
                       </Text>
                     </TouchableOpacity>
-                  </View>
+                  </View> */}
                 </View>
               </TouchableOpacity>
             </Modal>
@@ -1343,6 +1495,23 @@ const AdvancePayment = () => {
                 }}>
                 <View
                   style={{
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                    width: '80%',
+                    paddingVertical: 5,
+                  }}>
+                  <TouchableOpacity
+                    onPress={handleCloseModal2}
+                    style={{
+                      marginRight: 10,
+                      backgroundColor: 'white',
+                      borderRadius: 50,
+                    }}>
+                    <Entypo name="cross" size={25} color="black" />
+                  </TouchableOpacity>
+                </View>
+                <View
+                  style={{
                     backgroundColor: 'white',
                     padding: 20,
                     borderRadius: 15,
@@ -1350,7 +1519,7 @@ const AdvancePayment = () => {
                     alignItems: 'center',
                     elevation: 5,
                     shadowColor: '#000',
-                    shadowOffset: {width: 0, height: 2},
+                    shadowOffset: { width: 0, height: 2 },
                     shadowOpacity: 0.1,
                     shadowRadius: 5,
                   }}>
@@ -1364,7 +1533,7 @@ const AdvancePayment = () => {
                     }}>
                     Select Action
                   </Text>
-                  <View style={{gap: 15, width: '100%'}}>
+                  <View style={{ gap: 15, width: '100%' }}>
                     <TouchableOpacity
                       style={{
                         borderColor: 'red',
@@ -1424,29 +1593,108 @@ const AdvancePayment = () => {
                       </Text>
                     </TouchableOpacity>
                   </View>
-                  <TouchableOpacity
-                    style={{
-                      position: 'absolute',
-                      top: 10,
-                      right: 10,
-                    }}
-                    onPress={handleCloseModal2}>
-                    <Text
-                      style={{
-                        fontSize: 24,
-                        fontWeight: 'bold',
-                        color: 'black',
-                        fontFamily: 'Inter-Regular',
-                      }}>
-                      ×
-                    </Text>
-                  </TouchableOpacity>
+
                 </View>
               </View>
             </Modal>
           )}
         </ScrollView>
       </ScrollView>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={confirmationModalVisible}
+        onRequestClose={closeConfirmModal}>
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          }}
+          onPress={closeConfirmModal}
+          activeOpacity={1}>
+          <View
+            style={{
+              backgroundColor: 'white',
+              padding: 20,
+              borderRadius: 8,
+              width: '80%',
+              alignItems: 'center',
+            }}
+            onStartShouldSetResponder={() => true}
+            onTouchEnd={e => e.stopPropagation()}>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: 'bold',
+                marginBottom: 10,
+                color: 'black',
+                fontFamily: 'Inter-Medium',
+              }}>
+              Confirm Delete
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                marginBottom: 20,
+                textAlign: 'center',
+                color: 'black',
+                fontFamily: 'Inter-Medium',
+              }}>
+              Are you sure you want to delete this Payment?
+            </Text>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                width: '100%',
+              }}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#ddd',
+                  padding: 10,
+                  borderRadius: 5,
+                  width: '45%',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+                onPress={closeConfirmModal}>
+                <Text
+                  style={{
+                    color: 'black',
+                    fontWeight: 'bold',
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  No
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: 'black', // Use your theme color if needed
+                  padding: 10,
+                  borderRadius: 5,
+                  width: '45%',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+                onPress={confirmDelete}>
+                <Text
+                  style={{
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  Yes
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
     </View>
   );
 };

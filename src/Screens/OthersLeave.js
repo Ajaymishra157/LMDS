@@ -1,6 +1,7 @@
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Modal,
   RefreshControl,
   StyleSheet,
@@ -10,7 +11,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   useFocusEffect,
   useNavigation,
@@ -19,18 +20,20 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import colors from '../CommonFiles/Colors';
-import {ENDPOINTS} from '../CommonFiles/Constant';
+import { ENDPOINTS } from '../CommonFiles/Constant';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Entypo from 'react-native-vector-icons/Entypo';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const OthersLeave = () => {
+  const Leave = require('../assets/images/LeaveImage.png');
   const navigation = useNavigation();
   const route = useRoute();
 
-  const {openDrawerKey} = route.params || {};
+  const { openDrawerKey } = route.params || {};
 
   const [ModalVisible, setModalVisible] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState(null); // Selected filter state
@@ -61,14 +64,16 @@ const OthersLeave = () => {
   const [selectedStatus, setselectedStatus] = useState(null);
   const [buttonPressed, setButtonPressed] = useState(false);
 
+  const currentList = openDrawerKey ? StatusList : LeaveDetails;
+
+
   const getFormattedCurrentDate = () => {
     const today = new Date();
     const day = today.getDate();
     const month = today.getMonth() + 1; // Months are zero-indexed
     const year = today.getFullYear();
-    return `${year}-${month < 10 ? `0${month}` : month}-${
-      day < 10 ? `0${day}` : day
-    }`;
+    return `${year}-${month < 10 ? `0${month}` : month}-${day < 10 ? `0${day}` : day
+      }`;
   };
 
   // Get formatted yesterday's date
@@ -78,22 +83,22 @@ const OthersLeave = () => {
     const day = yesterday.getDate();
     const month = yesterday.getMonth() + 1;
     const year = yesterday.getFullYear();
-    return `${year}-${month < 10 ? `0${month}` : month}-${
-      day < 10 ? `0${day}` : day
-    }`;
+    return `${year}-${month < 10 ? `0${month}` : month}-${day < 10 ? `0${day}` : day
+      }`;
   };
 
-  // Get the first date of the current month
+
+
   const getFirstDateOfCurrentMonth = () => {
     const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth() + 1;
-    return `${year}-${month < 10 ? `0${month}` : month}-01`;
+    return new Date(today.getFullYear(), today.getMonth(), 1); // Returns Date object
   };
 
-  const [fromDate, setFromDate] = useState(getFormattedCurrentDate());
+  const [fromDate, setFromDate] = useState(new Date(getFirstDateOfCurrentMonth()));
 
-  const [tillDate, setTillDate] = useState(getFormattedCurrentDate());
+  const [tillDate, setTillDate] = useState(new Date());
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showTillPicker, setShowTillPicker] = useState(false);
 
   const status = ['Pending', 'Approve', 'Reject'];
 
@@ -234,11 +239,18 @@ const OthersLeave = () => {
       }
     }, [openDrawerKey]), // This will run whenever `openDrawerKey` changes or screen comes into focus
   );
+  const formatDateForAPI = (date) => {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${year}-${month}-${day}`;
+  };
   useEffect(() => {
     if (fromDate && tillDate) {
-      OthersLeaveApi(fromDate, tillDate);
+      OthersLeaveApi(formatDateForAPI(fromDate), formatDateForAPI(tillDate));
     }
-  }, [fromDate, tillDate]); // This effect will run whenever fromDate or tillDate changes
+  }, [fromDate, tillDate]);
 
   // Handle pull-to-refresh
   const onRefresh = useCallback(() => {
@@ -255,31 +267,41 @@ const OthersLeave = () => {
   }, []);
 
   // Render function for each item in the list
-  const renderItem = ({item}) => (
+  const renderItem = ({ item, index }) => (
     <View
       style={{
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 10,
+
         borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
-        paddingBottom: 10,
+        borderBottomColor: 'black',
+        borderLeftWidth: 1,
+        borderRightWidth: 1,
+        width: '100%',
+        backgroundColor:
+          index % 2 === 0 ? '#fff' : '#f2f2f2'
       }}>
       {/* Staff Name */}
-      <View style={{flex: 1, alignItems: 'center', marginLeft: 5}}>
+      <View style={{
+        alignItems: 'center',
+
+        justifyContent: 'center',
+        borderRightWidth: 1,
+        width: '30%'
+      }}>
         <Text
           style={{
             fontFamily: 'Inter-Regular',
             color: 'black',
             fontSize: 12, // Reduced font size by 2 points (from 12 to 10)
             textAlign: 'center',
+            paddingVertical: 8
           }}>
           {item.staff_name}
         </Text>
       </View>
 
       {/* From Date */}
-      <View style={{flex: 1, alignItems: 'center'}}>
+      <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%' }}>
         <Text
           style={{
             fontFamily: 'Inter-Regular',
@@ -291,7 +313,12 @@ const OthersLeave = () => {
       </View>
 
       {/* Till Date */}
-      <View style={{flex: 1, alignItems: 'center'}}>
+      <View style={{
+        width: '20%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRightWidth: 1,
+      }}>
         <Text
           style={{
             fontFamily: 'Inter-Regular',
@@ -303,7 +330,7 @@ const OthersLeave = () => {
       </View>
 
       {/* Status */}
-      <View style={{flex: 1, alignItems: 'center'}}>
+      <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%' }}>
         <TouchableOpacity
           onPress={() => {
             openModal2(item);
@@ -315,8 +342,8 @@ const OthersLeave = () => {
                 item.leave_status === 'Approve'
                   ? 'green'
                   : item.leave_status === 'Reject'
-                  ? 'red'
-                  : 'orange',
+                    ? 'red'
+                    : 'orange',
               fontSize: 12, // Reduced font size by 2 points (from 12 to 10)
             }}>
             {item.leave_status}
@@ -324,11 +351,12 @@ const OthersLeave = () => {
         </TouchableOpacity>
       </View>
       {/* Eye Icon */}
-      <TouchableOpacity
+      <View
         style={{
           justifyContent: 'center',
-          alignItems: 'flex-start',
-          width: '10%', // Adjust width if necessary
+          alignItems: 'center',
+          width: '10%',
+          borderRightWidth: 1
         }}
         onPress={() => {
           setEyeModal(true); // Show the modal
@@ -339,10 +367,10 @@ const OthersLeave = () => {
             setEyeModal(true); // Show the modal
             setselectedEye(item); // Set the selected item for modal
           }}
-          style={{flex: 1, justifyContent: 'center'}}>
+          style={{ flex: 1, justifyContent: 'center' }}>
           <Icon name="eye" size={18} color="black" />
         </TouchableOpacity>
-      </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -450,8 +478,16 @@ const OthersLeave = () => {
     }
   };
 
+  const formatDate2 = (date) => {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   return (
-    <View style={{flex: 1, backgroundColor: 'white'}}>
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
       <View
         style={{
           backgroundColor: colors.Black,
@@ -462,19 +498,24 @@ const OthersLeave = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{position: 'absolute', top: 15, left: 15}}
-          onPress={() => {
-            // Normal back action
+          style={{ position: 'absolute', top: 15, left: 15 }}
+          // onPress={() => {
+          //   // Normal back action
 
-            if (openDrawerKey === 'otherleave') {
-              navigation.navigate('ManagerDashboard');
-            } else {
-              navigation.navigate('ManagerDashboard', {
-                openDrawerKey: 'otherleave', // Pass key when going back
-              });
-            }
-          }}>
-          <Ionicons name="arrow-back" color="white" size={26} />
+          //   if (openDrawerKey === 'otherleave') {
+          //     navigation.navigate('ManagerDashboard');
+          //   } else {
+          //     navigation.navigate('ManagerDashboard', {
+          //       openDrawerKey: 'otherleave', // Pass key when going back
+          //     });
+          //   }
+          // }}
+          onPress={() => {
+            navigation.goBack();
+          }}
+
+        >
+          <MaterialIcons name="arrow-back-ios-new" color="white" size={26} />
         </TouchableOpacity>
 
         <Text
@@ -484,8 +525,93 @@ const OthersLeave = () => {
             fontWeight: 'bold',
             fontFamily: 'Inter-Bold',
           }}>
-          Staffs Leave Request
+          Leave Request
         </Text>
+      </View>
+
+      <View style={{
+        flexDirection: 'row', width: '100%',
+        padding: 10, gap: 5
+      }}>
+        <View style={{ width: '50%' }}>
+          <Text
+            style={{
+              fontSize: 14,
+              color: 'black',
+              fontFamily: 'Inter-Medium',
+              marginBottom: 5,
+            }}
+          >
+            From
+          </Text>
+          <TouchableOpacity style={{
+            borderWidth: 1,
+            borderColor: 'black',
+            backgroundColor: '#f9f9f9',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: 10,
+            paddingVertical: 12,
+          }} onPress={() => setShowFromPicker(true)}>
+            <Text style={{ color: 'black', fontFamily: 'Inter-Regular', fontSize: 12 }}>{formatDate2(fromDate)}</Text>
+          </TouchableOpacity>
+
+
+
+          {showFromPicker && (
+            <DateTimePicker
+              value={new Date(fromDate)} // Convert string to Date object
+              maximumDate={new Date()}
+              mode="date"
+              display="default"
+              onChange={(e, date) => {
+                setShowFromPicker(false);
+                if (date) setFromDate(date); // Store as Date object
+              }}
+            />
+          )}
+
+        </View>
+        <View style={{ width: '50%' }}>
+          <Text
+            style={{
+              fontSize: 14,
+              color: 'black',
+              fontFamily: 'Inter-Medium',
+              marginBottom: 5,
+            }}
+          >
+            To
+          </Text>
+          <TouchableOpacity style={{
+            borderWidth: 1,
+            borderColor: 'black',
+            backgroundColor: '#f9f9f9',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: 10,
+            paddingVertical: 12,
+          }} onPress={() => setShowTillPicker(true)}>
+            <Text style={{ color: 'black', fontFamily: 'Inter-Regular', fontSize: 12 }}>{formatDate2(tillDate)}</Text>
+          </TouchableOpacity>
+
+          {showTillPicker && (
+            <DateTimePicker
+              value={tillDate}
+              minimumDate={fromDate}
+              maximumDate={new Date()}
+              mode="date"
+
+              display="default"
+              onChange={(e, date) => {
+                setShowTillPicker(false);
+                if (date) setTillDate(date);
+              }}
+            />
+          )}
+        </View>
+
+
       </View>
       <View
         style={{
@@ -493,139 +619,186 @@ const OthersLeave = () => {
           marginTop: 10,
         }}>
         {/* Today Attendance Header */}
-        <View
-          style={{
-            justifyContent: 'center',
-            flexDirection: 'row',
-            alignItems: 'center',
-          }}>
-          <Text
+        {/* {currentList.length > 0 && (
+          <View
             style={{
-              fontSize: 24,
-              fontWeight: 'bold',
-              marginBottom: 20,
-              color: '#333',
-              fontFamily: 'Inter-Regular',
+              justifyContent: 'center',
+              flexDirection: 'row',
+              alignItems: 'center',
             }}>
-            Leave Request
-          </Text>
-        </View>
-
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'center',
-            padding: 7,
-          }}>
+            <Text
+              style={{
+                fontSize: 24,
+                fontWeight: 'bold',
+                marginBottom: 20,
+                color: '#333',
+                fontFamily: 'Inter-Regular',
+              }}>
+              Leave Request
+            </Text>
+          </View>
+        )} */}
+        {/* {currentList.length > 0 && (
           <View
             style={{
               flexDirection: 'row',
               justifyContent: 'center',
-              flex: 1,
+              padding: 7,
             }}>
-            <Text
+            <View
               style={{
-                color: 'black',
-                fontFamily: 'Inter-Medium',
-                fontSize: 16,
+                flexDirection: 'row',
+                justifyContent: 'center',
+                flex: 1,
               }}>
-              {openDrawerKey
-                ? null // If openDrawerKey exists, don't render the date
-                : isNaN(new Date(fromDate)) || isNaN(new Date(tillDate))
-                ? null // Don't render anything if dates are invalid (NaN)
-                : fromDate === tillDate
-                ? leaveDate(fromDate) // Show formatted date if both dates are the same
-                : `${leaveDate(fromDate)}  To  ${leaveDate(tillDate)}`}{' '}
-            </Text>
-          </View>
-          <View
-            style={{
-              top: 5,
-              right: 5,
-              position: 'absolute',
-            }}>
-            {isFilterActive && (
-              <View
+              <Text
                 style={{
-                  position: 'absolute',
-                  right: 7,
-                  top: 0,
-                  width: 8,
-                  height: 8,
-                  borderRadius: 5,
-                  backgroundColor: colors.Green,
-                }}
-              />
-            )}
-            <TouchableOpacity
-              onPress={openModal}
+                  color: 'black',
+                  fontFamily: 'Inter-Medium',
+                  fontSize: 16,
+                }}>
+                {openDrawerKey
+                  ? null // If openDrawerKey exists, don't render the date
+                  : isNaN(new Date(fromDate)) || isNaN(new Date(tillDate))
+                    ? null // Don't render anything if dates are invalid (NaN)
+                    : fromDate === tillDate
+                      ? leaveDate(fromDate) // Show formatted date if both dates are the same
+                      : `${leaveDate(fromDate)}  To  ${leaveDate(tillDate)}`}{' '}
+              </Text>
+            </View>
+            <View
               style={{
-                marginRight: 10,
+                top: 5,
+                right: 5,
+                position: 'absolute',
               }}>
-              <AntDesign name="filter" size={25} color="black" />
-            </TouchableOpacity>
+              {isFilterActive && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    right: 7,
+                    top: 0,
+                    width: 8,
+                    height: 8,
+                    borderRadius: 5,
+                    backgroundColor: colors.Green,
+                  }}
+                />
+              )}
+              <TouchableOpacity
+                onPress={openModal}
+                style={{
+                  marginRight: 10,
+                }}>
+                <AntDesign name="filter" size={25} color="black" />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        )} */}
 
         {/* Attendance Table */}
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            backgroundColor: '#ddd',
-            padding: 10,
-            borderRadius: 5,
-          }}>
-          {/* Column Titles */}
-          <View style={{flex: 1, alignItems: 'flex-start'}}>
-            <Text
+        {currentList.length > 0 && (
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              backgroundColor: '#c4f5c5',
+              borderWidth: 1,
+              width: '100%'
+            }}>
+            {/* Column Titles */}
+            <View style={{
+              borderRightWidth: 1,
+              padding: 7,
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '30%'
+            }}>
+              <Text
+                style={{
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter-Regular',
+                  color: 'black',
+                }}>
+                Staff Name
+              </Text>
+            </View>
+            <View style={{
+              borderRightWidth: 1,
+              padding: 7,
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              width: '20%'
+            }}>
+              <Text
+                style={{
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter-Regular',
+                  color: 'black',
+                }}>
+                From Date
+              </Text>
+            </View>
+            <View style={{
+              borderRightWidth: 1,
+              padding: 7,
+              alignItems: 'flex-start',
+
+              justifyContent: 'center',
+              width: '20%'
+            }}>
+              <Text
+                style={{
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter-Regular',
+                  color: 'black',
+                }}>
+                Till Date
+              </Text>
+            </View>
+            <View style={{
+              borderRightWidth: 1,
+              padding: 7,
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              width: '20%'
+            }}>
+              <Text
+                style={{
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter-Regular',
+                  color: 'black',
+                }}>
+                Status
+              </Text>
+            </View>
+            <View
               style={{
-                fontWeight: 'bold',
-                fontFamily: 'Inter-Regular',
-                color: 'black',
+                borderRightWidth: 1,
+                padding: 7,
+                alignItems: 'flex-start',
+                justifyContent: 'center',
+                width: '10%'
               }}>
-              Staff Name
-            </Text>
+              <Text
+                style={{
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter-Regular',
+                  color: 'black',
+                }}>
+
+              </Text>
+            </View>
           </View>
-          <View style={{flex: 1, alignItems: 'flex-start'}}>
-            <Text
-              style={{
-                fontWeight: 'bold',
-                fontFamily: 'Inter-Regular',
-                color: 'black',
-              }}>
-              From Date
-            </Text>
-          </View>
-          <View style={{flex: 1, alignItems: 'flex-start'}}>
-            <Text
-              style={{
-                fontWeight: 'bold',
-                fontFamily: 'Inter-Regular',
-                color: 'black',
-              }}>
-              Till Date
-            </Text>
-          </View>
-          <View style={{flex: 1, alignItems: 'flex-start'}}>
-            <Text
-              style={{
-                fontWeight: 'bold',
-                fontFamily: 'Inter-Regular',
-                color: 'black',
-              }}>
-              Status
-            </Text>
-          </View>
-        </View>
+        )}
 
         {/* Dynamic Data Section */}
-        <View style={{flex: 1, paddingVertical: 5}}>
+        <View style={{ flex: 1 }}>
           {LeaveLoading ? (
             <ActivityIndicator
               size="large"
               color="black"
-              style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}
+              style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
             />
           ) : (
             <FlatList
@@ -634,16 +807,28 @@ const OthersLeave = () => {
               keyExtractor={item => item.leave_id.toString()}
               showsVerticalScrollIndicator={false}
               ListEmptyComponent={
-                <Text
-                  style={{
-                    fontFamily: 'Inter-Regular',
-                    textAlign: 'center',
-                    fontSize: 16,
-                    color: 'red',
-                    marginTop: 20,
-                  }}>
-                  No Leave Request Found
-                </Text>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 200 }}>
+                  <Image source={Leave}
+
+                    style={{
+                      width: 70,
+                      height: 70,
+
+
+                    }}
+
+                  />
+                  <Text
+                    style={{
+                      fontFamily: 'Inter-Regular',
+                      textAlign: 'center',
+                      fontSize: 16,
+                      color: 'black',
+                      marginTop: 15
+                    }}>
+                    No Leave Request Yet
+                  </Text>
+                </View>
               }
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -868,7 +1053,7 @@ const OthersLeave = () => {
                 marginBottom: 15,
               }}>
               {/* From Date */}
-              <View style={{flex: 1, marginRight: 10}}>
+              <View style={{ flex: 1, marginRight: 10 }}>
                 <Text
                   style={{
                     fontSize: 16,
@@ -914,7 +1099,7 @@ const OthersLeave = () => {
               </View>
 
               {/* Till Date */}
-              <View style={{flex: 1}}>
+              <View style={{ flex: 1 }}>
                 <Text
                   style={{
                     fontSize: 16,
@@ -1365,12 +1550,31 @@ const OthersLeave = () => {
             }}>
             <View
               style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                width: '85%',
+                paddingVertical: 5,
+              }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setEyeModal(false);
+                }}
+                style={{
+                  marginRight: 10,
+                  backgroundColor: 'white',
+                  borderRadius: 50,
+                }}>
+                <Entypo name="cross" size={25} color="black" />
+              </TouchableOpacity>
+            </View>
+            <View
+              style={{
                 width: '85%', // Same as attendance modal width
                 backgroundColor: 'white',
                 borderRadius: 15,
                 padding: 20,
                 shadowColor: '#000',
-                shadowOffset: {width: 0, height: 2},
+                shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.8,
                 shadowRadius: 4,
                 elevation: 8,
@@ -1378,7 +1582,7 @@ const OthersLeave = () => {
               onStartShouldSetResponder={() => true}
               onTouchEnd={e => e.stopPropagation()}>
               {/* Modal Title */}
-              <View style={{alignItems: 'center', marginBottom: 15}}>
+              <View style={{ alignItems: 'center', marginBottom: 15 }}>
                 <Text
                   style={{
                     fontSize: 20,
@@ -1394,30 +1598,46 @@ const OthersLeave = () => {
                 style={{
                   flexDirection: 'row',
                   justifyContent: 'flex-end',
-                  marginBottom: 15,
-                  borderRadius: 10,
+                  backgroundColor: '#fff',
+                  borderTopWidth: 1, width: '100%',
+                  borderLeftWidth: 1,
+                  borderRightWidth: 1,
+
                   overflow: 'hidden',
                 }}>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    paddingVertical: 5,
-                    paddingHorizontal: 14,
-                    backgroundColor:
-                      selectedEye.leave_status === 'Approve'
-                        ? 'green'
-                        : selectedEye.leave_status === 'Reject'
-                        ? 'red'
-                        : selectedEye.leave_status === 'Pending'
-                        ? 'orange'
-                        : 'black',
-                    color: 'white',
-                    textAlign: 'center',
-                    borderRadius: 50,
-                    fontFamily: 'Inter-Regular',
-                  }}>
-                  {selectedEye.leave_status || 'Pending'}
-                </Text>
+                <View style={{ justifyContent: 'center', alignItems: 'center', width: '50%' }}>
+                  <Text
+                    style={{
+                      fontFamily: 'Inter-Medium',
+                      fontSize: 14,
+                      color: 'grey',
+                      paddingVertical: 7
+                    }}>
+                    Status
+                  </Text>
+                </View>
+                <View style={{ justifyContent: 'center', borderLeftWidth: 1, alignItems: 'center', width: '50%' }}>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      paddingVertical: 7,
+                      paddingHorizontal: 14,
+                      backgroundColor:
+                        selectedEye.leave_status === 'Approve'
+                          ? 'green'
+                          : selectedEye.leave_status === 'Reject'
+                            ? 'red'
+                            : selectedEye.leave_status === 'Pending'
+                              ? 'orange'
+                              : 'black',
+                      color: 'white',
+                      textAlign: 'center',
+                      borderRadius: 50,
+                      fontFamily: 'Inter-Regular',
+                    }}>
+                    {selectedEye.leave_status || 'Pending'}
+                  </Text>
+                </View>
               </View>
 
               {/* Staff Name */}
@@ -1425,110 +1645,150 @@ const OthersLeave = () => {
                 style={{
                   flexDirection: 'row',
                   justifyContent: 'space-between',
-                  marginBottom: 10,
+                  backgroundColor: '#f2f2f2',
+                  borderWidth: 1,
                   width: '100%', // Ensures it doesn't go out of bounds
                 }}>
-                <Text
-                  style={{
-                    fontFamily: 'Inter-Medium',
-                    fontSize: 14,
-                    color: 'grey',
-                    width: '30%', // Sets a fixed width for the label
-                  }}>
-                  Staff Name
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: 'Inter-Bold',
-                    fontSize: 14,
-                    color: 'black',
-                    textAlign: 'center',
-                    width: '65%', // Ensures the value stays inside the available space
-                    flexWrap: 'wrap', // Allows wrapping if the text is long
-                  }}>
-                  {selectedEye.staff_name || '----'}
-                </Text>
+                <View style={{ justifyContent: 'center', alignItems: 'center', width: '50%' }}>
+                  <Text
+                    style={{
+                      fontFamily: 'Inter-Medium',
+                      fontSize: 14,
+                      color: 'grey',
+
+                      paddingVertical: 7
+                    }}>
+                    Staff Name
+                  </Text>
+                </View>
+                <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, width: '50%' }}>
+                  <Text
+                    style={{
+                      fontFamily: 'Inter-Bold',
+                      fontSize: 12,
+                      color: 'black',
+                      textAlign: 'center',
+
+                      paddingVertical: 7
+                    }}>
+                    {selectedEye.staff_name || '----'}
+                  </Text>
+                </View>
               </View>
 
               {/* From Date */}
+
               <View
                 style={{
                   flexDirection: 'row',
                   justifyContent: 'space-between',
-                  marginBottom: 10,
-                  width: '100%',
+                  borderBottomWidth: 1,
+                  backgroundColor: '#fff',
+                  width: '100%', // Ensures it doesn't go out of bounds
                 }}>
-                <Text
-                  style={{
-                    fontFamily: 'Inter-Medium',
-                    fontSize: 14,
-                    color: 'grey',
-                    width: '30%',
-                  }}>
-                  From Date
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: 'Inter-Bold',
-                    fontSize: 14,
-                    color: 'black',
-                    textAlign: 'center',
-                    width: '65%',
-                    flexWrap: 'wrap',
-                  }}>
-                  {formattedDate(selectedEye.start_date) || '----'}
-                </Text>
+                <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, width: '50%' }}>
+
+                  <Text
+                    style={{
+                      fontFamily: 'Inter-Medium',
+                      fontSize: 14,
+                      color: 'grey',
+                      paddingVertical: 7
+                    }}>
+                    From Date
+                  </Text>
+                </View>
+                <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, borderRightWidth: 1, width: '50%' }}>
+
+                  <Text
+                    style={{
+                      fontFamily: 'Inter-Bold',
+                      fontSize: 12,
+                      color: 'black',
+                      textAlign: 'center',
+                      paddingVertical: 7
+                    }}>
+                    {formattedDate(selectedEye.start_date) || '----'}
+                  </Text>
+                </View>
               </View>
 
-              {/* Till Date */}
               <View
                 style={{
                   flexDirection: 'row',
                   justifyContent: 'space-between',
-                  marginBottom: 10,
-                  width: '100%',
+                  backgroundColor: '#f2f2f2',
+                  borderBottomWidth: 1,
+                  width: '100%', // Ensures it doesn't go out of bounds
                 }}>
-                <Text
-                  style={{
-                    fontFamily: 'Inter-Medium',
-                    fontSize: 14,
-                    color: 'grey',
-                    width: '30%',
-                  }}>
-                  Till Date
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: 'Inter-Bold',
-                    fontSize: 14,
-                    color: 'black',
-                    textAlign: 'center',
-                    width: '65%',
-                    flexWrap: 'wrap',
-                  }}>
-                  {formattedDate(selectedEye.end_date) || '----'}
-                </Text>
+                <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, width: '50%' }}>
+
+                  <Text
+                    style={{
+                      fontFamily: 'Inter-Medium',
+                      fontSize: 14,
+                      color: 'grey',
+                      paddingVertical: 7
+                    }}>
+                    Till Date
+                  </Text>
+                </View>
+                <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, borderRightWidth: 1, width: '50%' }}>
+
+                  <Text
+                    style={{
+                      fontFamily: 'Inter-Bold',
+                      fontSize: 12,
+                      color: 'black',
+                      textAlign: 'center',
+                      paddingVertical: 7
+                    }}>
+                    {formattedDate(selectedEye.end_date) || '----'}
+                  </Text>
+                </View>
               </View>
 
-              {/* Reason */}
+
+              {/* Reason Section */}
               <View
                 style={{
                   flexDirection: 'row',
                   justifyContent: 'space-between',
-                  marginBottom: 3,
-                  width: '100%',
+                  backgroundColor: '#fff',
+
+                  borderBottomWidth: 1, width: '100%'
                 }}>
-                <Text
-                  style={{
-                    fontFamily: 'Inter-Medium',
-                    fontSize: 14,
-                    color: 'grey',
-                    width: '30%',
-                  }}>
-                  Reason
-                </Text>
+                <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, width: '50%' }}>
+
+                  <Text
+                    style={{
+                      fontFamily: 'Inter-Medium',
+                      fontSize: 14,
+                      color: 'grey',
+                      paddingVertical: 7
+
+                    }}>
+                    Reason
+                  </Text>
+                </View>
+                <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, borderRightWidth: 1, width: '50%' }}>
+
+                  <Text
+                    style={{
+                      fontFamily: 'Inter-Bold',
+                      fontSize: 12,
+                      color: 'black',
+                      textAlign: 'center',
+                      paddingVertical: 7
+
+                    }}>
+                    {selectedEye.reason || '----'}
+                  </Text>
+                </View>
               </View>
-              <View
+
+
+              {/* <View
                 style={{
                   flexDirection: 'row',
                   justifyContent: 'flex-start',
@@ -1541,12 +1801,12 @@ const OthersLeave = () => {
                     color: 'black',
                     padding: 5,
                   }}>
-                  {selectedEye.reason || '----'}
+
                 </Text>
-              </View>
+              </View> */}
 
               {/* Cancel Button */}
-              <View style={{alignItems: 'center', justifyContent: 'center'}}>
+              {/* <View style={{ alignItems: 'center', justifyContent: 'center' }}>
                 <TouchableOpacity
                   // onPressIn={() => setButtonPressed(true)}
                   // onPressOut={() => setButtonPressed(false)}
@@ -1572,7 +1832,7 @@ const OthersLeave = () => {
                     Close
                   </Text>
                 </TouchableOpacity>
-              </View>
+              </View> */}
             </View>
           </TouchableOpacity>
         </Modal>

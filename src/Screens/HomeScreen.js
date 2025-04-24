@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -13,13 +13,15 @@ import {
   ScrollView,
   TextInput,
   RefreshControl,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 import Entypo from 'react-native-vector-icons/Entypo';
-
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Bottomtabnavigation from '../Component/Bottomtabnavigation';
 import Header from '../Component/Header';
-import {ENDPOINTS} from '../CommonFiles/Constant';
+import { ENDPOINTS } from '../CommonFiles/Constant';
 import {
   DrawerActions,
   useFocusEffect,
@@ -30,14 +32,18 @@ import Feather from 'react-native-vector-icons/Feather';
 import colors from '../CommonFiles/Colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const {width, height} = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const HomeScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const Pending = require('../assets/images/pending.png');
   const verified = require('../assets/images/verified.png');
+  const Right = require('../assets/images/Right.png');
+  const Left = require('../assets/images/Left.png');
+
   const [trainerName, setTrainerName] = useState('');
 
   const [refreshing, setRefreshing] = useState(false);
@@ -52,11 +58,12 @@ const HomeScreen = () => {
 
   const [currentDate, setCurrentDate] = useState('');
   const [isDropdownVisible, setDropdownVisible] = useState(false);
+  const [selectedType, setSelectedType] = useState(null);
   const [HistoryModal, SetHistoryModal] = useState(false);
   const [selectedValue, setSelectedValue] = useState(null); // Default text
   const [data, setData] = useState([]);
   const [TrainerStudent, setTrainerStudent] = useState([]);
-  const [times, setTimes] = useState([]);
+  const [times, setTrainerStudentTimes] = useState([]);
 
   const [CheckData, setCheckData] = useState(null);
   const [checkdataLoading, setcheckdataLoading] = useState(false);
@@ -70,26 +77,116 @@ const HomeScreen = () => {
   const [studentsList, setStudentsList] = useState([]);
   const [error, setError] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [typeError, setTypeError] = useState(false);
+  const [isCheckButtonClicked, setIsCheckButtonClicked] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0); // index of selected slot
+  console.log("first index", selectedIndex);
+  // const [filteredTrainerStudent, setFilteredTrainerStudent] = useState([]);
+  // console.log("selected students", filteredTrainerStudent);
 
-  useEffect(() => {
-    // Log route params to the console to check if the key is passed
-    console.log('Route params:', route.params);
 
-    // Check if the rewardPointsKey exists in the params
-    if (route.params?.rewardPointsKey) {
-      // If the key is present, open the drawer
-      console.log('Reward points key found, opening drawer...');
-      navigation.openDrawer();
-      // navigation.navigate('MainStack', {rewardPointsKey: true});
-    } else if (route.params?.openDrawerKey) {
-      // If the openDrawerKey exists (from HistoryReportScreen), open the drawer
-      console.log('History report key found, opening drawer...');
-      navigation.openDrawer();
-      // navigation.navigate('MainStack', {openDrawerKey: true});
-    } else {
-      console.log('No relevant key found, drawer will not open.');
+
+
+  const handlePrev = () => {
+    console.log("Before handlePrev - selectedIndex:", selectedIndex);
+    if (selectedIndex > 0) {
+      const prevIndex = selectedIndex - 1;
+      console.log("Prev index:", prevIndex, "Time:", data[prevIndex].training_time);
+
+      setSelectedIndex(prevIndex);
+      setSelectedTime(data[prevIndex].training_time);
+      setSelectedValue(data[prevIndex].training_time);
+      setSelectedType(data[prevIndex].time_am_pm);
+      setAppNo('');
+      setError('');
+      setStudentName('');
+      setStudentsList([]);
+      setIsCheckButtonDisabled(false);
     }
-  }, [route.params, navigation]);
+  };
+
+
+  const handleNext = () => {
+    console.log("Before handleNext - selectedIndex:", selectedIndex);
+    if (selectedIndex < data.length - 1) {
+      const nextIndex = selectedIndex + 1;
+      console.log("Next index:", nextIndex, "Time:", data[nextIndex].training_time);
+
+      setSelectedIndex(nextIndex);
+      setSelectedTime(data[nextIndex].training_time);
+      setSelectedValue(data[nextIndex].training_time);
+      setSelectedType(data[nextIndex].time_am_pm);
+      setAppNo('');
+      setError('');
+      setStudentName('');
+      setStudentsList([]);
+      setIsCheckButtonDisabled(false);
+    }
+  };
+
+
+
+  // useEffect(() => {
+  //   const filtered = TrainerStudent.filter(
+  //     item => item.training_time === data[selectedIndex]?.training_time
+  //   );
+  //   setFilteredTrainerStudent(filtered);
+
+  //   // optional: Update CheckData as well
+  //   if (filtered.length > 0) {
+  //     setCheckData(true);
+  //   } else {
+  //     setCheckData(false);
+  //   }
+  // }, [selectedIndex, TrainerStudent]);
+
+
+
+  const toggleDropdown = () => {
+    setDropdownVisible(!isDropdownVisible);
+  };
+
+  const handleSelect2 = (value) => {
+    const selectedSlotIndex = data.findIndex(item => item.training_time === value.training_time);
+
+    console.log("Selected index from modal:", selectedSlotIndex); // 🪵 for debug
+
+    setSelectedType(value.time_am_pm); // For selecting type (Morning, Afternoon, etc.)
+    setSelectedTime(value.training_time);
+    setSelectedValue(value.training_time);
+    setSelectedIndex(selectedSlotIndex);
+    setAppNo('');
+    setError('');
+    setStudentName('');
+    setStudentsList([]);
+    setIsCheckButtonDisabled(false);
+    setDropdownVisible(!isDropdownVisible);
+  };
+
+  const handleTimeSelect = (time) => {
+    setSelectedTime(time); // For selecting time slot
+  };
+
+
+  // useEffect(() => {
+  //   // Log route params to the console to check if the key is passed
+  //   console.log('Route params:', route.params);
+
+  //   // Check if the rewardPointsKey exists in the params
+  //   if (route.params?.rewardPointsKey) {
+  //     // If the key is present, open the drawer
+  //     console.log('Reward points key found, opening drawer...');
+  //     navigation.openDrawer();
+  //     // navigation.navigate('MainStack', {rewardPointsKey: true});
+  //   } else if (route.params?.openDrawerKey) {
+  //     // If the openDrawerKey exists (from HistoryReportScreen), open the drawer
+  //     console.log('History report key found, opening drawer...');
+  //     navigation.openDrawer();
+  //     // navigation.navigate('MainStack', {openDrawerKey: true});
+  //   } else {
+  //     console.log('No relevant key found, drawer will not open.');
+  //   }
+  // }, [route.params, navigation]);
 
   // const handleDelete = appNo => {
   //   const updatedList = studentsList.filter(student => student.appNo !== appNo);
@@ -131,7 +228,7 @@ const HomeScreen = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({app_number: appNo}),
+        body: JSON.stringify({ app_number: appNo }),
       });
 
       const data = await response.json();
@@ -177,6 +274,7 @@ const HomeScreen = () => {
   // };
 
   const handleAddButtonClick = () => {
+
     if (studentName !== 'Not Found' && studentName !== '') {
       const isAppNoExist = studentsList.some(
         student => student.appNo === appNo,
@@ -187,8 +285,9 @@ const HomeScreen = () => {
         // If appNo already exists, show an alert
         alert(`${appNo} AppNo is you already added.`);
       } else {
+        setIsCheckButtonClicked(true);
         console.log('studentname', studentName);
-        const newStudent = {appNo, studentName};
+        const newStudent = { appNo, studentName };
 
         setStudentsList(prevList => {
           const updatedList = [...prevList, newStudent];
@@ -213,6 +312,7 @@ const HomeScreen = () => {
   useEffect(() => {
     if (studentsList.length == 0) {
       setIsAddButtonDisabled(true); // Disable Add button if no students are added
+      setIsCheckButtonClicked(false);
     } else {
       setIsAddButtonDisabled(false); // Enable Add button once at least one student is added
     }
@@ -478,14 +578,24 @@ const HomeScreen = () => {
     }, [fetchData]),
   );
 
-  useFocusEffect(
-    React.useCallback(() => {
-      if (times.length > 0) {
-        setSelectedValue(times[0]); // Set first time slot as default
-        setSelectedTime(times[0]); // Set for UI highlight
-      }
-    }, [times]),
-  );
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     if (times.length > 0) {
+  //       setSelectedValue(times[0]); // Set first time slot as default
+  //       setSelectedTime(times[0]); // Set for UI highlight
+  //     }
+  //   }, [times]),
+  // );
+
+  useEffect(() => {
+    if (data.length > 0 && !selectedTime) {
+      // Only set the initial selectedTime if no time has been selected yet
+      setSelectedTime(data[0].training_time); // Auto-select the first slot
+      setSelectedValue(data[0].training_time);
+    }
+  }, [data, selectedTime]);  // Add selectedTime as dependency to avoid overwriting
+
+
 
   // // Function to show the DateTimePicker
   // const showDatepicker = () => {
@@ -522,6 +632,7 @@ const HomeScreen = () => {
 
   // Use useEffect to run CheckDataApi when selectedTime changes
   useEffect(() => {
+    console.log("selected time hai re baba", selectedTime, selectedValue);
     if (selectedTime && selectedValue) {
       // Run CheckDataApi when selectedTime changes
       CheckDataApi(); // Assuming CheckDataApi() is defined elsewhere
@@ -539,14 +650,44 @@ const HomeScreen = () => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: 'white'}}>
-      <Header
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
+      {/* <Header
         title="Lucky Driving School"
         imageSource={require('../assets/images/logo.jpg')}
         onMenuPress={() => navigation.openDrawer()}
-      />
+
+
+      /> */}
+      <View
+        style={{
+          backgroundColor: colors.Black,
+          padding: 15,
+          justifyContent: 'center',
+
+          alignItems: 'center',
+          flexDirection: 'row',
+        }}>
+        <TouchableOpacity
+          style={{ position: 'absolute', top: 18.5, left: 15 }}
+          onPress={() => {
+            navigation.goBack();
+          }}>
+          <MaterialIcons name="arrow-back-ios-new" color="white" size={20} />
+        </TouchableOpacity>
+
+        <Text
+          style={{
+            color: 'white',
+            fontSize: 20,
+            fontWeight: 'bold',
+            fontFamily: 'Inter-Bold',
+          }}>
+          Training
+        </Text>
+      </View>
+
       <ScrollView
-        style={{flex: 1}} // Key change: ScrollView covers the entire screen
+        style={{ flex: 1 }} // Key change: ScrollView covers the entire screen
         keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
@@ -555,48 +696,212 @@ const HomeScreen = () => {
             colors={['#9Bd35A', '#689F38']}
           />
         }>
-        <View style={{flex: 1, alignItems: 'center', marginTop: 10}}>
+        <View style={{ flex: 1, alignItems: 'center', marginTop: 3 }}>
           {/* Aaj ki Date */}
-          {/* <View style={{padding: 5, width: '100%'}}>
-          <View
-            style={{
-              backgroundColor: '#ccffcc',
-              borderRadius: 10,
-              height: 40,
-              width: '100%',
-              flexDirection: 'row',
-              justifyContent: 'flex-start', // Fixed 'flex-stat' to 'flex-start'
-              alignItems: 'center',
-            }}>
-            <Text
+          <View style={{ backgroundColor: '#f2f2f2', padding: 5, width: '100%' }}>
+            <View
               style={{
-                fontSize: 18,
-                fontWeight: 'bold',
-                color: '#333',
-                fontFamily: 'Inter-Regular',
-                marginLeft: 10,
+                backgroundColor: '#f2f2f2',
+                borderRadius: 10,
+                width: '100%',
+                flexDirection: 'row',
+                justifyContent: 'flex-start', // Fixed 'flex-stat' to 'flex-start'
+                alignItems: 'center',
+
               }}>
-              Welcome, {trainerName ? trainerName : 'Guest'}
-            </Text>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: 'bold',
+                  color: '#333',
+                  fontFamily: 'Inter-Regular',
+                  marginLeft: 10,
+
+                }}>
+                Welcome, {trainerName ? trainerName : '---'}
+              </Text>
+            </View>
           </View>
-        </View> */}
+          <View style={{
+            height: 1,
+            backgroundColor: '#ccc', width: '100%', marginBottom: 5
+          }} />
           <View
             style={{
               backgroundColor: 'white',
               width: '100%',
               flexDirection: 'row',
               justifyContent: 'center',
+
+
               alignItems: 'center',
+              width: '100%',
+
             }}>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: 'bold',
-                color: '#333',
-                fontFamily: 'Inter-Regular',
-              }}>
-              {currentDate}
-            </Text>
+            <View style={{ width: '60%', justifyContent: 'center', alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-start', width: '90%' }}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 'bold',
+                    color: '#333',
+                    fontFamily: 'Inter-Regular',
+                    marginLeft: 8
+                  }}>
+                  DATE
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={{
+                  backgroundColor: 'white',
+                  borderRadius: 8,
+                  paddingVertical: 10,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderColor: 'black',
+                  borderWidth: 1,
+                  width: '90%',
+                }}
+                disabled={true}
+
+              >
+
+
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 'bold',
+                    color: '#333',
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  {currentDate}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Type Dropdown */}
+            <View style={{ position: 'relative', width: '40%', justifyContent: 'center', alignItems: 'flex-start' }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: 'bold',
+                  color: '#333',
+                  fontFamily: 'Inter-Regular',
+                  marginLeft: 8
+                }}>
+                SLOT
+              </Text>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: 'white',
+                  paddingVertical: 10,
+                  borderRadius: 8,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  borderColor: 'black',
+                  borderWidth: 1,
+                  width: '90%',
+                  paddingHorizontal: 10,
+                }}
+                onPress={toggleDropdown}
+              >
+
+
+                <Text
+                  style={{
+                    paddingLeft: 8,
+                    fontSize: 16,
+                    fontFamily: 'Inter-Regular',
+                    color: selectedType ? 'black' : '#777',
+                  }}
+                >
+                  {selectedType ? selectedType : 'Select Slot'}
+                </Text>
+
+                <Ionicons
+                  name={isDropdownVisible ? 'chevron-up' : 'chevron-down'}
+                  size={20}
+                  color="black"
+                />
+              </TouchableOpacity>
+
+              {/* Modal for the dropdown list */}
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={isDropdownVisible}
+              // Close modal when back button is pressed
+              >
+                <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+                  }}
+                  onPress={() => setDropdownVisible(false)}
+                  activeOpacity={1}
+                >
+                  <View
+                    style={{
+                      width: '35%',
+                      position: 'absolute',
+                      top: 162,
+                      right: 17,
+                      backgroundColor: 'white',
+                      borderRadius: 8,
+
+
+
+                      maxHeight: 400,
+                    }}
+                    onStartShouldSetResponder={() => true} // Prevent modal from closing on content click
+                    onTouchEnd={e => e.stopPropagation()}
+                  >
+                    <FlatList
+                      data={data}
+                      style={{ maxHeight: 330 }}
+                      keyboardShouldPersistTaps="handled"
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          style={{
+                            paddingHorizontal: 20,
+                            paddingVertical: 10,
+                            marginRight: 10,
+                            backgroundColor:
+                              item.training_time === selectedTime ? '#4CAF50' : '#fff', // Green when selected
+
+                            borderBottomWidth: 1,
+                            borderColor: '#ccc',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            width: '100%',
+                          }}
+                          onPress={() => handleSelect2(item)}
+                          activeOpacity={1}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 16,
+                              fontFamily: 'Inter-Regular',
+                              color: item.training_time === selectedTime ? '#fff' : '#000', // White text when selected
+                            }}
+                          >
+                            {item.time_am_pm}
+                          </Text>
+
+                        </TouchableOpacity>
+
+                      )}
+                      keyExtractor={(item) => item.value}
+                    />
+                  </View>
+                </TouchableOpacity>
+              </Modal>
+            </View>
+
 
             {/* {HistoryLoading ? (
             <View
@@ -690,12 +995,14 @@ const HomeScreen = () => {
               color="black"
             /> */}
             {/* </TouchableOpacity> */}
-            <View style={{padding: 10}}>
+
+            {/* ye pehle scroll wala tha time */}
+            {/* <View style={{ padding: 10 }}>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled">
-                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   {data.map((item, index) => {
                     return (
                       <TouchableOpacity
@@ -723,16 +1030,16 @@ const HomeScreen = () => {
                             color:
                               item.training_time === selectedTime
                                 ? '#fff'
-                                : '#000', // White text when selected
+                                : '#000',
                           }}>
-                          {item.time_am_pm} {/* Display time in AM/PM */}
+                          {item.time_am_pm}
                         </Text>
                       </TouchableOpacity>
                     );
                   })}
                 </View>
               </ScrollView>
-            </View>
+            </View> */}
           </View>
           {CheckData != null && (
             <View>
@@ -743,11 +1050,24 @@ const HomeScreen = () => {
                     padding: 30,
                     justifyContent: 'center',
                     width: '100%',
+
                   }}>
+                  {/* LEFT ARROW */}
+                  <TouchableOpacity onPress={handlePrev} disabled={selectedIndex === 0} style={{ position: 'absolute', top: 100, left: 3 }}>
+                    {/* <EvilIcons name="arrow-left" size={40} color={selectedIndex === 0 ? '#ccc' : '#000'} /> */}
+                    <Image
+                      source={Left}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        tintColor: selectedIndex === 0 ? '#ccc' : '#000', // Corrected use of tintColor
+                      }}
+                    />
+                  </TouchableOpacity>
                   <FlatList
                     data={TrainerStudent}
                     keyExtractor={(item, index) => index.toString()}
-                    renderItem={({item}) => {
+                    renderItem={({ item }) => {
                       // Available students ko filter karna with labels
                       const students = [];
 
@@ -783,15 +1103,16 @@ const HomeScreen = () => {
                           style={{
                             justifyContent: 'center',
                             alignItems: 'center',
+
                           }}>
                           <View
                             style={{
                               borderWidth: 1,
                               borderRadius: 8,
-                              padding: 10,
-                              backgroundColor: '#f9f9f9',
+
+                              backgroundColor: '#c4f5c5',
                               alignItems: 'center',
-                              width: '100%',
+                              width: '93%',
                             }}>
                             <View
                               style={{
@@ -799,7 +1120,7 @@ const HomeScreen = () => {
                                 flexDirection: 'row',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                paddingVertical: 5,
+
                               }}>
                               <View
                                 style={{
@@ -819,9 +1140,9 @@ const HomeScreen = () => {
                                     item => item.training_time === selectedTime,
                                   )?.time_am_pm
                                     ? data.find(
-                                        item =>
-                                          item.training_time === selectedTime,
-                                      ).time_am_pm
+                                      item =>
+                                        item.training_time === selectedTime,
+                                    ).time_am_pm
                                     : 'No Slot Selected'}
                                   {/* Show the corresponding time_am_pm */}
                                 </Text>
@@ -861,18 +1182,19 @@ const HomeScreen = () => {
                               style={{
                                 flexDirection: 'row',
                                 width: '100%',
-                                borderBottomWidth: 2,
+
                                 borderColor: '#ddd',
-                                paddingVertical: 8,
-                                backgroundColor: '#e6e6e6',
+
+                                backgroundColor: '#c4f5c5',
                                 borderRadius: 5,
                               }}>
                               <View
-                                style={{width: '35%', alignItems: 'center'}}>
+                                style={{ width: '35%', alignItems: 'center', borderTopWidth: 1, borderBottomWidth: 1, borderRightWidth: 1, paddingVertical: 8 }}>
                                 <Text
                                   style={{
                                     fontFamily: 'Inter-Bold',
                                     color: 'black',
+
                                   }}>
                                   #APP NO
                                 </Text>
@@ -881,12 +1203,19 @@ const HomeScreen = () => {
                                 style={{
                                   width: '65%',
                                   justifyContent: 'flex-start',
+                                  paddingLeft: 5,
+                                  alignItems: 'center',
                                   flexDirection: 'row',
+
+                                  borderTopWidth: 1,
+                                  borderBottomWidth: 1
+
                                 }}>
                                 <Text
                                   style={{
                                     fontFamily: 'Inter-Bold',
                                     color: 'black',
+
                                   }}>
                                   STUDENT NAME
                                 </Text>
@@ -899,18 +1228,22 @@ const HomeScreen = () => {
                                 style={{
                                   flexDirection: 'row',
                                   width: '100%',
-                                  paddingVertical: 8,
-                                  borderBottomWidth: 1,
-                                  borderColor: '#ddd',
+
+                                  borderBottomWidth: index === students.length - 1 ? 0 : 1,
+                                  borderBottomLeftRadius: index === students.length - 1 ? 8 : 0,
+                                  borderBottomRightRadius: index === students.length - 1 ? 8 : 0,
+
+                                  borderColor: 'black',
                                   backgroundColor:
                                     index % 2 === 0 ? '#fff' : '#f2f2f2',
                                 }}>
                                 <View
-                                  style={{width: '35%', alignItems: 'center'}}>
+                                  style={{ width: '35%', alignItems: 'center', borderRightWidth: 1, }}>
                                   <Text
                                     style={{
                                       fontFamily: 'Inter-Regular',
                                       color: 'black',
+                                      paddingVertical: 7,
                                     }}>
                                     {student.appNo}
                                   </Text>
@@ -919,12 +1252,14 @@ const HomeScreen = () => {
                                   style={{
                                     width: '65%',
                                     justifyContent: 'flex-start',
+                                    paddingLeft: 5,
                                     flexDirection: 'row',
                                   }}>
                                   <Text
                                     style={{
                                       fontFamily: 'Inter-Regular',
                                       color: 'black',
+                                      paddingVertical: 7,
                                     }}>
                                     {student.name}
                                   </Text>
@@ -975,22 +1310,52 @@ const HomeScreen = () => {
                       );
                     }}
                   />
+
+
+                  {/* RIGHT ARROW */}
+                  <TouchableOpacity onPress={handleNext} disabled={selectedIndex === data.length - 1} style={{ position: 'absolute', top: 100, right: 3 }}>
+                    {/* <EvilIcons name="arrow-right" size={40} color={selectedIndex === data.length - 1 ? '#ccc' : '#000'} /> */}
+                    <Image
+                      source={Right}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        tintColor: selectedIndex === data.length - 1 ? '#ccc' : '#000', // Corrected use of tintColor
+                      }}
+                    />
+                  </TouchableOpacity>
                 </View>
               ) : (
-                <View style={{padding: 20}}>
+                <View style={{ paddingVertical: 8, paddingHorizontal: 10, height: 280 }}>
                   {/* Application Number Input and Add Button */}
+                  {/* LEFT ARROW */}
+                  <TouchableOpacity onPress={handlePrev} disabled={selectedIndex === 0} style={{ position: 'absolute', top: 130, left: 3 }}>
+                    {/* <EvilIcons name="arrow-left" size={40} color={selectedIndex === 0 ? '#ccc' : '#000'} /> */}
+                    <Image
+                      source={Left}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        tintColor: selectedIndex === 0 ? '#ccc' : '#000', // Corrected use of tintColor
+                      }}
+                    />
+                  </TouchableOpacity>
                   <View
                     style={{
                       flexDirection: 'row',
                       width: '100%',
-                      gap: 15,
+                      gap: 7,
+
+
+
                     }}>
                     <View
                       style={{
                         flexDirection: 'row',
-                        width: '60%',
+                        width: '58%',
                         borderWidth: 1,
-                        borderRadius: 8,
+                        borderRadius: 8
+
                       }}>
                       <TextInput
                         style={{
@@ -1020,26 +1385,43 @@ const HomeScreen = () => {
                         </TouchableOpacity>
                       ) : null}
                     </View>
+                    <View style={{ width: '40%' }}>
 
-                    <TouchableOpacity
-                      style={{
-                        backgroundColor: isCheckButtonDisabled
-                          ? '#B0B0B0'
-                          : '#4CAF50',
-                        borderRadius: 8,
-                        padding: 10,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        width: '30%',
-                      }}
-                      onPress={handleAddButtonClick}
-                      disabled={isCheckButtonDisabled}>
-                      <Text
-                        style={{color: 'white', fontFamily: 'Inter-Regular'}}>
-                        Check
-                      </Text>
-                    </TouchableOpacity>
+                      <TouchableOpacity
+                        style={{
+                          backgroundColor: isCheckButtonDisabled
+                            ? '#B0B0B0'
+                            : '#4CAF50',
+                          borderRadius: 8,
+                          padding: 10,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+
+                        }}
+                        onPress={handleAddButtonClick}
+                        disabled={isCheckButtonDisabled}>
+                        <Text
+                          style={{ color: 'white', fontFamily: 'Inter-Regular' }}>
+                          Check
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
+
+
+                  {/* RIGHT ARROW */}
+                  <TouchableOpacity onPress={handleNext} disabled={selectedIndex === data.length - 1} style={{ position: 'absolute', top: 130, right: 3, }}>
+                    {/* <EvilIcons name="arrow-right" size={40} color={selectedIndex === data.length - 1 ? '#ccc' : '#000'} /> */}
+                    <Image
+                      source={Right}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        tintColor: selectedIndex === data.length - 1 ? '#ccc' : '#000', // Corrected use of tintColor
+                      }}
+                    />
+
+                  </TouchableOpacity>
                   {error ? (
                     <Text
                       style={{
@@ -1052,110 +1434,201 @@ const HomeScreen = () => {
                   ) : null}
 
                   {/* Static Headers for List */}
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      marginTop: 20,
-                      paddingVertical: 5,
-                      borderBottomWidth: 1,
-                      borderColor: '#ddd',
-                    }}>
-                    <Text
-                      style={{
-                        width: '30%',
-                        fontWeight: 'bold',
-                        color: 'black',
-                        fontFamily: 'Inter-Regular',
-                      }}>
-                      App No
-                    </Text>
-                    <Text
-                      style={{
-                        width: '30%',
-                        fontWeight: 'bold',
-                        flex: 1,
-                        color: 'black',
-                        fontFamily: 'Inter-Regular',
-                      }}>
-                      Student Name
-                    </Text>
-                  </View>
-
-                  {/* List of Added Students */}
-                  <View style={{marginTop: 10}}>
-                    {studentsList.map((student, index) => (
+                  {isCheckButtonClicked && (
+                    <View style={{ width: '100%', justifyContent: 'center', alignItems: 'center' }}>
                       <View
-                        key={index}
                         style={{
                           flexDirection: 'row',
-                          paddingVertical: 5,
+                          marginTop: 20,
+                          width: '85%',
                           borderBottomWidth: 1,
-                          borderColor: '#ddd',
+                          borderTopWidth: 1,
+                          borderLeftWidth: 1,
+                          borderColor: 'black',
                         }}>
-                        <Text
-                          style={{
-                            width: '30%',
-                            color: 'black',
-                            fontFamily: 'Inter-Regular',
-                            textTransform: 'capitalize',
-                          }}>
-                          {student.appNo}
-                        </Text>
-                        <Text
-                          style={{
-                            width: '30%',
-                            color: 'black',
-                            fontFamily: 'Inter-Regular',
-                          }}>
-                          {student.studentName}
-                        </Text>
+                        <View style={{
+                          width: '30%', borderRightWidth: 1,
+                          borderColor: 'black',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          backgroundColor: '#c4f5c5'
 
-                        {/* Delete Icon */}
-                        <TouchableOpacity
+                        }}>
+                          <Text
+                            style={{
+                              paddingVertical: 7,
+                              fontWeight: 'bold',
+                              color: 'black',
+                              fontFamily: 'Inter-Regular',
+                              textTransform: 'uppercase'
+
+                            }}>
+                            App No
+                          </Text>
+                        </View>
+                        <View style={{
+                          width: '30%', borderRightWidth: 1,
+                          borderColor: 'black',
+                          flex: 1,
+                          justifyContent: 'center',
+
+                          alignItems: 'center',
+                          backgroundColor: '#c4f5c5'
+                        }}>
+                          <Text
+                            style={{
+
+                              fontWeight: 'bold',
+
+                              color: 'black',
+                              fontFamily: 'Inter-Regular',
+                              textTransform: 'uppercase'
+                            }}>
+                            Student Name
+                          </Text>
+                        </View>
+                        <View style={{
+                          width: '20%', borderRightWidth: 1,
+                          borderColor: 'black',
+
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+
+
+                          alignItems: 'center',
+                          textTransform: 'uppercase',
+                          backgroundColor: '#c4f5c5'
+
+                        }}>
+                          <Text
+                            style={{
+
+                              fontWeight: 'bold',
+
+                              color: 'black',
+                              fontFamily: 'Inter-Regular',
+                            }}>
+                            Action
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  )}
+
+                  {/* List of Added Students */}
+                  <View style={{}}>
+                    {studentsList.map((student, index) => (
+                      <View style={{ width: '100%', justifyContent: 'center', alignItems: 'center' }}>
+
+                        <View
+                          key={index}
                           style={{
-                            width: '30%',
-                            alignItems: 'flex-end',
-                          }}
-                          onPress={() =>
-                            handleDelete(student.appNo, student.orderNo)
-                          } // Delete student when icon is pressed
-                        >
-                          <Icon name="delete" size={24} color="red" />
-                        </TouchableOpacity>
+                            flexDirection: 'row',
+                            width: '85%',
+                            borderBottomWidth: 1,
+
+                            borderLeftWidth: 1,
+                            borderColor: 'black',
+                          }}>
+                          <View style={{
+                            width: '30%', borderRightWidth: 1,
+                            borderColor: 'black',
+                            justifyContent: 'center',
+
+                            alignItems: 'center'
+
+                          }}>
+                            <Text
+                              style={{
+                                paddingVertical: 7,
+                                color: 'black',
+                                fontFamily: 'Inter-Regular',
+                                textTransform: 'capitalize',
+                                textTransform: 'uppercase'
+                              }}>
+                              {student.appNo}
+                            </Text>
+                          </View>
+                          <View style={{
+                            width: '50%', borderRightWidth: 1,
+                            borderColor: 'black',
+
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+
+                            alignItems: 'center',
+
+                          }}>
+                            <Text
+                              style={{
+
+                                color: 'black',
+                                fontFamily: 'Inter-Regular',
+                              }}>
+                              {student.studentName}
+                            </Text>
+                          </View>
+                          <View style={{
+                            width: '20%', borderRightWidth: 1,
+                            borderColor: 'black',
+
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+
+                            alignItems: 'center',
+
+                          }}>
+
+                            {/* Delete Icon */}
+                            <TouchableOpacity
+                              style={{
+                                width: '100%',
+                                alignItems: 'center',
+                              }}
+                              onPress={() =>
+                                handleDelete(student.appNo, student.orderNo)
+                              } // Delete student when icon is pressed
+                            >
+                              <Icon name="delete" size={24} color="red" />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
                       </View>
                     ))}
                   </View>
                   {/* Add Button */}
-                  <View
-                    style={{flexDirection: 'row', justifyContent: 'center'}}>
-                    <TouchableOpacity
-                      style={{
-                        borderRadius: 8,
-                        backgroundColor: isAddButtonDisabled
-                          ? '#D3D3D3' // Light gray when disabled
-                          : colors.Green, // Green when enabled
-                        width: 160,
-                        height: 50,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        shadowColor: '#000',
-                        shadowOffset: {width: 0, height: 2},
-                        shadowOpacity: 0.2,
-                        shadowRadius: 4,
-                        marginTop: 10,
-                      }}
-                      onPress={AddButtonApi}
-                      disabled={isAddButtonDisabled}>
-                      <Text
+                  {isCheckButtonClicked && (
+                    <View
+                      style={{ flexDirection: 'row', justifyContent: 'center' }}>
+                      <TouchableOpacity
                         style={{
-                          color: colors.White,
-                          fontFamily: 'Inter-Bold',
-                          fontSize: 16,
-                        }}>
-                        ADD
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
+                          borderRadius: 8,
+                          backgroundColor: isAddButtonDisabled
+                            ? '#D3D3D3' // Light gray when disabled
+                            : colors.Green, // Green when enabled
+                          width: 160,
+                          height: 50,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.2,
+                          shadowRadius: 4,
+                          marginTop: 10,
+                        }}
+                        onPress={AddButtonApi}
+                        disabled={isAddButtonDisabled}>
+                        <Text
+                          style={{
+                            color: colors.White,
+                            fontFamily: 'Inter-Bold',
+                            fontSize: 16,
+                          }}>
+                          ADD
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               )}
             </View>
@@ -1221,12 +1694,12 @@ const HomeScreen = () => {
                         justifyContent: 'center',
                         flexDirection: 'row',
                       }}>
-                      <Text style={{color: 'black', fontFamily: 'Inter-Bold'}}>
+                      <Text style={{ color: 'black', fontFamily: 'Inter-Bold' }}>
                         Slot Time
                       </Text>
                     </View>
-                    <View style={{flexDirection: 'row', width: '70%'}}>
-                      <Text style={{color: 'black', fontFamily: 'Inter-Bold'}}>
+                    <View style={{ flexDirection: 'row', width: '70%' }}>
+                      <Text style={{ color: 'black', fontFamily: 'Inter-Bold' }}>
                         #App No
                       </Text>
                       <Text
@@ -1247,15 +1720,15 @@ const HomeScreen = () => {
                         alignItems: 'center',
                         paddingVertical: 20,
                       }}>
-                      <Text style={{color: 'red', fontFamily: 'Inter-Regular'}}>
-                        No Data Found
+                      <Text style={{ color: 'red', fontFamily: 'Inter-Regular' }}>
+                        No Data Yet
                       </Text>
                     </View>
                   ) : (
                     <FlatList
                       data={TodayHistory} // Use the TodayHistory array directly
                       keyExtractor={(item, index) => index.toString()} // Use index for unique keys
-                      renderItem={({item}) => (
+                      renderItem={({ item }) => (
                         <>
                           <View
                             style={{
@@ -1265,7 +1738,7 @@ const HomeScreen = () => {
                               paddingBottom: 3,
                             }}>
                             {/* Training Time */}
-                            <View style={{flexDirection: 'row'}}>
+                            <View style={{ flexDirection: 'row' }}>
                               <View
                                 style={{
                                   alignItems: 'center',
@@ -1331,7 +1804,7 @@ const HomeScreen = () => {
                                   flexDirection: 'row',
                                   alignItems: 'center',
                                 }}>
-                                <View style={{width: '30%'}}></View>
+                                <View style={{ width: '30%' }}></View>
                                 {/* This can be adjusted based on your layout */}
                                 <View
                                   style={{
@@ -1344,13 +1817,13 @@ const HomeScreen = () => {
                                   {item.status === 'Pending' && (
                                     <Image
                                       source={Pending} // Replace with your actual source for Pending
-                                      style={{width: 30, height: 30}}
+                                      style={{ width: 30, height: 30 }}
                                     />
                                   )}
                                   {item.status === 'Verify' && (
                                     <Image
                                       source={verified} // Replace with your actual source for Verified
-                                      style={{width: 35, height: 35}}
+                                      style={{ width: 35, height: 35 }}
                                     />
                                   )}
                                 </View>
@@ -1366,12 +1839,12 @@ const HomeScreen = () => {
             </TouchableOpacity>
           </Modal>
         </View>
-      </ScrollView>
+      </ScrollView >
 
-      <View style={{justifyContent: 'flex-end'}}>
+      {/* <View style={{ justifyContent: 'flex-end' }}>
         <Bottomtabnavigation />
-      </View>
-    </View>
+      </View> */}
+    </View >
   );
 };
 

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Text,
   View,
@@ -18,8 +18,8 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import colors from '../CommonFiles/Colors';
 import Bottomtabnavigation from '../Component/Bottomtabnavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ENDPOINTS} from '../CommonFiles/Constant';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import { ENDPOINTS } from '../CommonFiles/Constant';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Feather from 'react-native-vector-icons/Feather';
@@ -27,8 +27,10 @@ import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const LeaveApplication = () => {
+  const route = useRoute();
   const navigation = useNavigation();
   const [fromDate, setFromDate] = useState('');
   const [tillDate, setTillDate] = useState('');
@@ -56,6 +58,9 @@ const LeaveApplication = () => {
   const [selectedConfirmLeave, setselectedConfirmLeave] = useState(null);
   console.log('selectedConfirmLeave ', selectedConfirmLeave);
 
+  const [confirmationModalVisible, setConfirmationModalVisible] = useState(false);
+  const [selectedLeaveId, setSelectedLeaveId] = useState(null);
+
   const [userType, setUsertype] = useState(null);
   console.log('Leave Application par userType', userType);
 
@@ -69,6 +74,14 @@ const LeaveApplication = () => {
 
     fetchUsertype();
   }, []); // Empty dependency array ensures this runs only once on mount
+
+  const isUpdateMode = route.params?.mode === 'update';
+
+  useEffect(() => {
+    if (isUpdateMode) {
+      setIsTillDateDisabled(false); // Enable Till Date by default in update mode
+    }
+  }, [isUpdateMode]);
 
   const handleOpenModal = leave => {
     setSelectedLeave(leave); // Set the selected leave data
@@ -124,17 +137,34 @@ const LeaveApplication = () => {
     setIsValidReason(isReasonValid);
 
     if (isFromDateValid && isTillDateValid && isReasonValid) {
-      if (selectedConfirmLeave) {
-        // If a leave is selected for update, call the Update API
-        await UpdateLeaveApi(selectedConfirmLeave.leave_id); // Pass the leave ID for update
+      if (route.params?.mode === 'update') {
+        await UpdateLeaveApi(route.params.leaveDetails.leave_id);
       } else {
-        // If no leave is selected (new leave), call the Add API
         await handleAddLeaveApi();
       }
-    } else {
-      // Show error or handle invalid fields
     }
   };
+
+
+  useEffect(() => {
+    if (route.params?.mode === 'update' && route.params?.leaveDetails) {
+      const leaveData = route.params.leaveDetails;
+
+      // Example: Pre-fill form
+      setFromDate(leaveData.start_date);
+      setTillDate(leaveData.end_date);
+      setReason(leaveData.reason);
+    }
+  }, [route.params]);
+
+
+  useEffect(() => {
+    if (route.params?.mode !== 'update') {
+      setFromDate('');
+      setTillDate('');
+      setReason('');
+    }
+  }, []);
 
   const handleAddLeaveApi = async () => {
     if (!userType) {
@@ -192,6 +222,7 @@ const LeaveApplication = () => {
         setFromDate('');
         setTillDate('');
         setReason('');
+        navigation.goBack();
       } else {
         console.log('Error: Failed to add leave');
       }
@@ -289,6 +320,8 @@ const LeaveApplication = () => {
   //     setShowTillDatePicker(false);
   //   }
   // };
+
+
   const handleDateChange = (event, selectedDate, type) => {
     if (selectedDate) {
       const currentDate = selectedDate;
@@ -319,21 +352,20 @@ const LeaveApplication = () => {
   const handleDeleteConfirmation = leaveId => {
     setConfirmationModal(false);
     setselectedConfirmLeave(null);
-    Alert.alert(
-      'Confirm Delete',
-      'Are you sure you want to delete this leave?',
-      [
-        {
-          text: 'No', // If the user presses "No", nothing happens
-          onPress: () => console.log('Delete cancelled'),
-          style: 'cancel',
-        },
-        {
-          text: 'Yes', // If the user presses "Yes", delete the leave
-          onPress: () => handleDeleteApi(leaveId),
-        },
-      ],
-    );
+    setSelectedLeaveId(leaveId);
+    setConfirmationModalVisible(true);
+  };
+
+  const closeConfirmModal = () => {
+    setConfirmationModalVisible(false);
+    setSelectedLeaveId(null);
+  };
+
+  const confirmDelete = () => {
+    if (selectedLeaveId) {
+      handleDeleteApi(selectedLeaveId);
+      closeConfirmModal();
+    }
   };
 
   const handleDeleteApi = async leaveId => {
@@ -401,6 +433,7 @@ const LeaveApplication = () => {
         ToastAndroid.show('Data Updated Succussfully', ToastAndroid.SHORT);
         TrainerLeaveList();
         setselectedConfirmLeave(null);
+        navigation.goBack();
       } else {
         ToastAndroid.show('Data not Update ', ToastAndroid.SHORT);
       }
@@ -442,7 +475,7 @@ const LeaveApplication = () => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: '#f7f7f7'}}>
+    <View style={{ flex: 1, backgroundColor: '#f7f7f7' }}>
       <View
         style={{
           backgroundColor: colors.Black,
@@ -453,11 +486,11 @@ const LeaveApplication = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{position: 'absolute', top: 15, left: 15}}
+          style={{ position: 'absolute', top: 18.5, left: 15 }}
           onPress={() => {
             navigation.goBack();
           }}>
-          <Ionicons name="arrow-back" color="white" size={26} />
+          <MaterialIcons name="arrow-back-ios-new" color="white" size={20} />
         </TouchableOpacity>
 
         <Text
@@ -467,7 +500,7 @@ const LeaveApplication = () => {
             fontWeight: 'bold',
             fontFamily: 'Inter-Bold',
           }}>
-          Leave Application
+          {route.params?.mode === 'update' ? 'Update Leave Application' : 'Add Leave Application'}
         </Text>
       </View>
 
@@ -494,7 +527,7 @@ const LeaveApplication = () => {
               marginBottom: 15,
             }}>
             {/* From Date */}
-            <View style={{flex: 1, marginRight: 10}}>
+            <View style={{ flex: 1, marginRight: 10 }}>
               <Text
                 style={{
                   fontSize: 16,
@@ -525,7 +558,8 @@ const LeaveApplication = () => {
                   {fromDate || 'Select From Date'}
                 </Text>
                 <TouchableOpacity onPress={() => setShowFromDatePicker(true)}>
-                  <FontAwesome name="calendar" size={25} />
+
+                  <Ionicons name="calendar-outline" size={25} color='#4285F4' />
                 </TouchableOpacity>
               </TouchableOpacity>
               {!isValidFromDate && (
@@ -541,7 +575,7 @@ const LeaveApplication = () => {
             </View>
 
             {/* Till Date */}
-            <View style={{flex: 1}}>
+            <View style={{ flex: 1 }}>
               <Text
                 style={{
                   fontSize: 16,
@@ -576,7 +610,7 @@ const LeaveApplication = () => {
                 <TouchableOpacity
                   onPress={() => setShowTillDatePicker(true)}
                   disabled={isTillDateDisabled}>
-                  <FontAwesome name="calendar" size={25} />
+                  <Ionicons name="calendar-outline" size={25} color='#4285F4' />
                 </TouchableOpacity>
               </TouchableOpacity>
               {!isValidTillDate && (
@@ -593,7 +627,7 @@ const LeaveApplication = () => {
           </View>
 
           {/* Reason */}
-          <View style={{marginBottom: 10}}>
+          <View style={{ marginBottom: 10 }}>
             <Text
               style={{
                 fontSize: 16,
@@ -642,21 +676,25 @@ const LeaveApplication = () => {
           ) : (
             <TouchableOpacity
               style={{
-                backgroundColor: '#007BFF',
+                backgroundColor: 'white',
+                borderWidth: 1, borderColor: 'black',
                 paddingVertical: 12,
-                borderRadius: 5,
+                borderRadius: 10,
                 marginTop: 5,
                 alignItems: 'center',
               }}
               onPress={handleSubmitLeave}>
               <Text
                 style={{
-                  color: '#fff',
+                  color: 'black',
                   fontSize: 16,
-                  fontWeight: 'bold',
-                  fontFamily: 'Inter-Regular',
+
+                  fontFamily: 'Inter-Bold',
                 }}>
-                {selectedConfirmLeave ? 'Update Leave' : 'Add Leave'}
+
+                {route.params?.mode === 'update' ? 'Update Leave' : 'Add Leave'}
+
+
               </Text>
             </TouchableOpacity>
           )}
@@ -700,73 +738,105 @@ const LeaveApplication = () => {
           )}
         </View>
 
-        <ScrollView keyboardShouldPersistTaps="handled" style={{marginTop: 10}}>
-          {/* Table Header */}
-          <View
+        <ScrollView keyboardShouldPersistTaps="handled" style={{ marginTop: 10 }}>
+
+          {/* <View
             style={{
               flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: '#ddd',
-              padding: 10,
-              borderRadius: 5,
-              marginBottom: 10,
+              justifyContent: 'space-between',
+              backgroundColor: '#c4f5c5',
+              borderWidth: 1,
+              width: '100%'
             }}>
-            <Text
-              style={{
-                flex: 1,
-                fontWeight: 'bold',
-                fontFamily: 'Inter-Regular',
-                textAlign: 'center',
-                fontSize: 14,
-                color: 'black',
-              }}>
-              From Date
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                fontWeight: 'bold',
-                fontFamily: 'Inter-Regular',
-                textAlign: 'center',
-                fontSize: 14,
-                color: 'black',
-              }}>
-              Till Date
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                fontWeight: 'bold',
-                fontFamily: 'Inter-Regular',
-                textAlign: 'center',
-                fontSize: 14,
-                color: 'black',
-              }}>
-              Status
-            </Text>
-            <Text
-              style={{
-                flex: 1,
-                fontWeight: 'bold',
-                fontFamily: 'Inter-Regular',
-                textAlign: 'center',
-                fontSize: 14,
-                color: 'black',
-              }}>
-              Action
-            </Text>
-          </View>
+            <View style={{
+              borderRightWidth: 1,
+              padding: 7,
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '25%'
+            }}>
+              <Text
+                style={{
+
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter-Regular',
+                  textAlign: 'center',
+                  fontSize: 14,
+                  color: 'black',
+                }}>
+                From Date
+              </Text>
+            </View>
+            <View style={{
+              borderRightWidth: 1,
+              padding: 7,
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '25%'
+            }}>
+              <Text
+                style={{
+
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter-Regular',
+                  textAlign: 'center',
+                  fontSize: 14,
+                  color: 'black',
+                }}>
+                Till Date
+              </Text>
+            </View>
+            <View style={{
+              borderRightWidth: 1,
+              padding: 7,
+              alignItems: 'center',
+
+              justifyContent: 'center',
+              width: '25%'
+            }}>
+              <Text
+                style={{
+
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter-Regular',
+                  textAlign: 'center',
+                  fontSize: 14,
+                  color: 'black',
+                }}>
+                Status
+              </Text>
+            </View>
+            <View style={{
+              borderRightWidth: 1,
+              padding: 7,
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '25%'
+            }}>
+              <Text
+                style={{
+
+                  fontWeight: 'bold',
+                  fontFamily: 'Inter-Regular',
+                  textAlign: 'center',
+                  fontSize: 14,
+                  color: 'black',
+                }}>
+                Action
+              </Text>
+            </View>
+          </View> */}
 
           {/* Loading Indicator */}
           {LeaveListLaoding ? (
             <View
-              style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+              style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
               <ActivityIndicator size="large" color="black" />
             </View>
           ) : (
             <>
               {/* If no data */}
-              {LeaveList.length === 0 ? (
+              {/* {LeaveList.length === 0 ? (
                 <View
                   style={{
                     flex: 1,
@@ -787,7 +857,7 @@ const LeaveApplication = () => {
                 <FlatList
                   data={LeaveList}
                   keyExtractor={leave => leave.leave_id.toString()}
-                  renderItem={({item}) => {
+                  renderItem={({ item, index }) => {
                     const currentDate = getCurrentDate();
                     const isPending = item.leave_status === 'Pending';
 
@@ -796,58 +866,80 @@ const LeaveApplication = () => {
                         key={item.leave_id}
                         style={{
                           flexDirection: 'row',
-                          backgroundColor: '#f9f9f9',
-                          padding: 10,
-                          marginBottom: 5,
-                          borderRadius: 5,
+
+                          borderBottomWidth: 1,
+                          borderBottomColor: 'black',
+                          borderLeftWidth: 1,
+                          borderRightWidth: 1,
+                          width: '100%', backgroundColor:
+                            index % 2 === 0 ? '#fff' : '#f2f2f2',
                         }}>
-                        <Text
-                          style={{
-                            flex: 1,
-                            textAlign: 'center',
-                            fontFamily: 'Inter-Regular',
-                            fontSize: 12,
-                            color: 'black',
-                          }}>
-                          {formattedDate(item.start_date)}
-                        </Text>
-                        <Text
-                          style={{
-                            flex: 1,
-                            textAlign: 'center',
-                            fontFamily: 'Inter-Regular',
-                            fontSize: 12,
-                            color: 'black',
-                          }}>
-                          {formattedDate(item.end_date)}
-                        </Text>
-                        <Text
-                          style={{
-                            flex: 1,
-                            textAlign: 'center',
-                            fontFamily: 'Inter-Bold',
-                            fontSize: 12,
-                            color: getLeaveStatusColor(item.leave_status), // Use the function here
-                          }}>
-                          {item.leave_status}
-                        </Text>
+                        <View style={{
+                          alignItems: 'center',
+
+                          justifyContent: 'center',
+                          borderRightWidth: 1,
+                          width: '25%'
+                        }}>
+                          <Text
+                            style={{
+                              textAlign: 'center',
+                              fontFamily: 'Inter-Regular',
+                              fontSize: 12,
+                              color: 'black',
+                              paddingVertical: 8
+                            }}>
+                            {formattedDate(item.start_date)}
+                          </Text>
+                        </View>
+                        <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '25%' }}>
+                          <Text
+                            style={{
+                              flex: 1,
+                              textAlign: 'center',
+                              fontFamily: 'Inter-Regular',
+                              fontSize: 12,
+                              color: 'black',
+                              paddingVertical: 8
+                            }}>
+                            {formattedDate(item.end_date)}
+                          </Text>
+                        </View>
+                        <View style={{
+                          width: '25%',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRightWidth: 1,
+                        }}>
+                          <Text
+                            style={{
+                              flex: 1,
+                              textAlign: 'center',
+                              fontFamily: 'Inter-Bold',
+                              fontSize: 12,
+                              color: getLeaveStatusColor(item.leave_status), // Use the function here
+                              paddingVertical: 8
+                            }}>
+                            {item.leave_status}
+                          </Text>
+                        </View>
                         <View
                           style={{
-                            width: '24%',
+                            width: '25%',
                             flexDirection: 'row',
                             justifyContent: 'space-between',
                           }}>
-                          <View style={{marginLeft: 25}}>
+                          <View style={{ marginLeft: 25 }}>
                             <TouchableOpacity
                               onPress={() => handleOpenModal(item)}
-                              style={{alignItems: 'center'}}>
+                              style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 8 }}>
                               <Feather name="eye" size={18} color="black" />
                             </TouchableOpacity>
                           </View>
-                          <View style={{}}>
+                          <View style={{ marginRight: 8 }}>
                             <TouchableOpacity
                               onPress={() => handleOpenModal2(item)}
-                              style={{alignItems: 'center'}}>
+                              style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 8 }}>
                               {isPending && (
                                 <Entypo
                                   name="dots-three-vertical"
@@ -862,7 +954,7 @@ const LeaveApplication = () => {
                     );
                   }}
                 />
-              )}
+              )} */}
             </>
           )}
           {/* Leave Reason Modal */}
@@ -1333,6 +1425,23 @@ const LeaveApplication = () => {
                 }}>
                 <View
                   style={{
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                    width: '85%',
+                    paddingVertical: 5,
+                  }}>
+                  <TouchableOpacity
+                    onPress={handleCloseModal}
+                    style={{
+                      marginRight: 10,
+                      backgroundColor: 'white',
+                      borderRadius: 50,
+                    }}>
+                    <Entypo name="cross" size={25} color="black" />
+                  </TouchableOpacity>
+                </View>
+                <View
+                  style={{
                     backgroundColor: 'white',
                     padding: 20,
                     borderRadius: 10,
@@ -1357,25 +1466,43 @@ const LeaveApplication = () => {
                     style={{
                       flexDirection: 'row',
                       justifyContent: 'flex-end',
-                      marginBottom: 15,
-                      borderRadius: 10,
+                      borderTopWidth: 1, width: '100%',
+                      borderLeftWidth: 1,
+                      borderRightWidth: 1,
+                      backgroundColor: '#fff',
+
+
                       overflow: 'hidden',
                     }}>
-                    <Text
-                      style={{
-                        fontFamily: 'Inter-Medium',
-                        fontSize: 14,
-                        paddingVertical: 5,
-                        paddingHorizontal: 14,
-                        backgroundColor: getLeaveStatusColor(
-                          selectedLeave.leave_status,
-                        ),
-                        color: 'white',
-                        textAlign: 'center',
-                        borderRadius: 50, // To make the text background round (circle)
-                      }}>
-                      {selectedLeave.leave_status || 'Pending'}
-                    </Text>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', width: '50%' }}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Medium',
+                          fontSize: 14,
+                          color: 'grey',
+                          paddingVertical: 10
+                        }}>
+                        Status
+                      </Text>
+                    </View>
+                    <View style={{ justifyContent: 'center', borderLeftWidth: 1, alignItems: 'center', width: '50%' }}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Medium',
+                          fontSize: 14,
+                          paddingVertical: 5,
+                          paddingHorizontal: 14,
+                          backgroundColor: getLeaveStatusColor(
+                            selectedLeave.leave_status,
+                          ),
+                          color: 'white',
+                          textAlign: 'center',
+                          borderRadius: 50, // To make the text background round (circle)
+
+                        }}>
+                        {selectedLeave.leave_status || 'Pending'}
+                      </Text>
+                    </View>
                   </View>
 
                   {/* From and Till Date Section */}
@@ -1383,23 +1510,30 @@ const LeaveApplication = () => {
                     style={{
                       flexDirection: 'row',
                       justifyContent: 'space-between',
-                      marginBottom: 15,
+                      backgroundColor: '#f2f2f2',
+                      borderWidth: 1, width: '100%'
                     }}>
-                    <Text
-                      style={{
-                        fontFamily: 'Inter-Medium',
-                        fontSize: 14,
-                        color: 'grey',
-                      }}>
-                      From Date
-                    </Text>
-                    <View style={{marginRight: 30}}>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', width: '50%' }}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Medium',
+                          fontSize: 14,
+                          color: 'grey',
+                          paddingVertical: 7
+                        }}>
+                        From Date
+                      </Text>
+                    </View>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, width: '50%' }}>
                       <Text
                         style={{
                           fontFamily: 'Inter-Bold',
                           fontSize: 14,
-                          color: '#555',
+                          color: 'black',
                           textAlign: 'center',
+                          paddingVertical: 7
+
+
                         }}>
                         {formattedDate(selectedLeave.start_date) || '-----'}
                       </Text>
@@ -1410,23 +1544,29 @@ const LeaveApplication = () => {
                     style={{
                       flexDirection: 'row',
                       justifyContent: 'space-between',
-                      marginBottom: 15,
+
+                      backgroundColor: '#fff',
+                      borderBottomWidth: 1, width: '100%'
                     }}>
-                    <Text
-                      style={{
-                        fontFamily: 'Inter-Medium',
-                        fontSize: 14,
-                        color: 'grey',
-                      }}>
-                      Till Date
-                    </Text>
-                    <View style={{marginRight: 30}}>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, width: '50%' }}>
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Medium',
+                          fontSize: 14,
+                          color: 'grey',
+                          paddingVertical: 7
+                        }}>
+                        Till Date
+                      </Text>
+                    </View>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, borderRightWidth: 1, width: '50%' }}>
                       <Text
                         style={{
                           fontFamily: 'Inter-Bold',
                           fontSize: 14,
-                          color: '#555',
+                          color: 'black',
                           textAlign: 'center',
+                          paddingVertical: 7
                         }}>
                         {formattedDate(selectedLeave.end_date) || '-----'}
                       </Text>
@@ -1437,23 +1577,32 @@ const LeaveApplication = () => {
                     style={{
                       flexDirection: 'row',
                       justifyContent: 'space-between',
-                      marginBottom: 20,
+                      backgroundColor: '#f2f2f2',
+                      borderBottomWidth: 1, width: '100%'
                     }}>
-                    <Text
-                      style={{
-                        fontFamily: 'Inter-Medium',
-                        fontSize: 14,
-                        color: 'grey',
-                      }}>
-                      Approved By
-                    </Text>
-                    <View style={{marginRight: 30}}>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, width: '50%' }}>
+
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Medium',
+                          fontSize: 14,
+                          color: 'grey',
+                          paddingVertical: 7
+
+                        }}>
+                        Approved By
+                      </Text>
+                    </View>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, borderRightWidth: 1, width: '50%' }}>
+
                       <Text
                         style={{
                           fontFamily: 'Inter-Bold',
                           fontSize: 14,
-                          color: '#555',
+                          color: 'black',
                           textAlign: 'center',
+                          paddingVertical: 7
+
                         }}>
                         {selectedLeave.approve_by || '-----'}
                       </Text>
@@ -1465,56 +1614,70 @@ const LeaveApplication = () => {
                     style={{
                       flexDirection: 'row',
                       justifyContent: 'space-between',
-                      marginBottom: 5,
+                      backgroundColor: '#fff',
+                      borderBottomWidth: 1, width: '100%'
                     }}>
-                    <Text
-                      style={{
-                        fontFamily: 'Inter-Medium',
-                        fontSize: 14,
-                        color: 'grey',
-                      }}>
-                      Reason
-                    </Text>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, width: '50%' }}>
+
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Medium',
+                          fontSize: 14,
+                          color: 'grey',
+                          paddingVertical: 7
+
+                        }}>
+                        Reason
+                      </Text>
+                    </View>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, borderRightWidth: 1, width: '50%' }}>
+
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Bold',
+                          fontSize: 14,
+                          color: 'black',
+                          textAlign: 'center',
+                          paddingVertical: 7
+
+                        }}>
+                        {selectedLeave.reason || '-----'}
+                      </Text>
+                    </View>
                   </View>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'flex-start',
-                      marginBottom: 20,
-                    }}>
-                    <Text
-                      style={{
-                        fontFamily: 'Inter-Bold',
-                        fontSize: 14,
-                        color: '#555',
-                        textAlign: 'center',
-                      }}>
-                      {selectedLeave.reason || '-----'}
-                    </Text>
-                  </View>
+
+
+
 
                   {/* Applied on (Entry Date) Section */}
                   <View
                     style={{
                       flexDirection: 'row',
                       justifyContent: 'flex-start',
-                      marginBottom: 20,
+                      backgroundColor: '#f2f2f2',
+                      borderBottomWidth: 1, width: '100%'
                     }}>
-                    <Text
-                      style={{
-                        fontFamily: 'Inter-Medium',
-                        fontSize: 15,
-                        color: 'grey',
-                      }}>
-                      Applied on
-                    </Text>
-                    <View style={{marginLeft: 10, justifyContent: 'center'}}>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, width: '50%' }}>
+
                       <Text
                         style={{
-                          fontFamily: 'Inter-Regular',
+                          fontFamily: 'Inter-Medium',
+                          fontSize: 15,
+                          color: 'grey',
+                          paddingVertical: 7
+                        }}>
+                        Applied on
+                      </Text>
+                    </View>
+                    <View style={{ justifyContent: 'center', alignItems: 'center', borderLeftWidth: 1, borderRightWidth: 1, width: '50%' }}>
+
+                      <Text
+                        style={{
+                          fontFamily: 'Inter-Bold',
                           fontSize: 14,
-                          color: '#555',
+                          color: 'black',
                           textAlign: 'center',
+                          paddingVertical: 7
                         }}>
                         {selectedLeave.entry_date || '-----'}
                       </Text>
@@ -1522,10 +1685,10 @@ const LeaveApplication = () => {
                   </View>
 
                   {/* Cancel Button */}
-                  <View
-                    style={{alignItems: 'center', justifyContent: 'center'}}>
+                  {/* <View
+                    style={{ alignItems: 'center', justifyContent: 'center' }}>
                     <TouchableOpacity
-                      onPress={handleCloseModal}
+                    
                       style={{
                         backgroundColor: 'white',
                         borderWidth: 1,
@@ -1545,7 +1708,7 @@ const LeaveApplication = () => {
                         Close
                       </Text>
                     </TouchableOpacity>
-                  </View>
+                  </View> */}
                 </View>
               </TouchableOpacity>
             </Modal>
@@ -1567,6 +1730,23 @@ const LeaveApplication = () => {
                 }}>
                 <View
                   style={{
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                    width: '80%',
+                    paddingVertical: 5,
+                  }}>
+                  <TouchableOpacity
+                    onPress={handleCloseModal2}
+                    style={{
+                      marginRight: 10,
+                      backgroundColor: 'white',
+                      borderRadius: 50,
+                    }}>
+                    <Entypo name="cross" size={25} color="black" />
+                  </TouchableOpacity>
+                </View>
+                <View
+                  style={{
                     backgroundColor: 'white',
                     padding: 20,
                     borderRadius: 15,
@@ -1574,7 +1754,7 @@ const LeaveApplication = () => {
                     alignItems: 'center',
                     elevation: 5, // Adds shadow for Android
                     shadowColor: '#000', // Shadow for iOS
-                    shadowOffset: {width: 0, height: 2},
+                    shadowOffset: { width: 0, height: 2 },
                     shadowOpacity: 0.1,
                     shadowRadius: 5,
                   }}>
@@ -1588,7 +1768,7 @@ const LeaveApplication = () => {
                     }}>
                     Select Action
                   </Text>
-                  <View style={{gap: 15, width: '100%'}}>
+                  <View style={{ gap: 15, width: '100%' }}>
                     {/* Delete Leave Button */}
                     <TouchableOpacity
                       style={{
@@ -1648,29 +1828,107 @@ const LeaveApplication = () => {
                       </Text>
                     </TouchableOpacity>
                   </View>
-                  <TouchableOpacity
-                    style={{
-                      position: 'absolute',
-                      top: 10,
-                      right: 10,
-                    }}
-                    onPress={handleCloseModal2}>
-                    <Text
-                      style={{
-                        fontSize: 24,
-                        fontWeight: 'bold',
-                        color: 'black',
-                        fontFamily: 'Inter-Regular',
-                      }}>
-                      ×
-                    </Text>
-                  </TouchableOpacity>
+
                 </View>
               </View>
             </Modal>
           )}
         </ScrollView>
       </ScrollView>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={confirmationModalVisible}
+        onRequestClose={closeConfirmModal}>
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          }}
+          onPress={closeConfirmModal}
+          activeOpacity={1}>
+          <View
+            style={{
+              backgroundColor: 'white',
+              padding: 20,
+              borderRadius: 8,
+              width: '80%',
+              alignItems: 'center',
+            }}
+            onStartShouldSetResponder={() => true}
+            onTouchEnd={e => e.stopPropagation()}>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: 'bold',
+                marginBottom: 10,
+                color: 'black',
+                fontFamily: 'Inter-Medium',
+              }}>
+              Confirm Delete
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                marginBottom: 20,
+                textAlign: 'center',
+                color: 'black',
+                fontFamily: 'Inter-Medium',
+              }}>
+              Are you sure you want to delete this Leave?
+            </Text>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                width: '100%',
+              }}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#ddd',
+                  padding: 10,
+                  borderRadius: 5,
+                  width: '45%',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+                onPress={closeConfirmModal}>
+                <Text
+                  style={{
+                    color: 'black',
+                    fontWeight: 'bold',
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  No
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: 'black', // Use your theme color if needed
+                  padding: 10,
+                  borderRadius: 5,
+                  width: '45%',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+                onPress={confirmDelete}>
+                <Text
+                  style={{
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  Yes
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };

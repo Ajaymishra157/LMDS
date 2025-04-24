@@ -9,23 +9,29 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import colors from '../CommonFiles/Colors';
-import {ENDPOINTS} from '../CommonFiles/Constant';
+import { ENDPOINTS } from '../CommonFiles/Constant';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Entypo from 'react-native-vector-icons/Entypo';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const RewardPoints = () => {
+  const Reward = require('../assets/images/reward.png');
   const [RewardPoints, setRewardPoints] = useState([]);
   const [ReportLoading, setRewardLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const route = useRoute();
-  const {fromDate, tillDate} = route.params;
-  console.log('From date and till date rewaard points', fromDate, tillDate);
+  const { fromDate: routeFromDate, tillDate: routeTillDate } = route.params || {};
+  const [fromDate, setFromDate] = useState(routeFromDate ? new Date(routeFromDate) : new Date());
+  const [tillDate, setTillDate] = useState(routeTillDate ? new Date(routeTillDate) : new Date());
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showTillPicker, setShowTillPicker] = useState(false);
   const navigation = useNavigation();
 
   const [isModalVisible, setModalVisible] = useState(false);
@@ -54,8 +60,8 @@ const RewardPoints = () => {
         },
         body: JSON.stringify({
           trainer_id: trainerId,
-          from_date: fromDate, // Use the passed fromDate
-          till_date: tillDate, // Use the passed tillDate
+          from_date: formatDateForAPI(fromDate),
+          till_date: formatDateForAPI(tillDate),
         }),
       });
       const data = await response.json();
@@ -86,9 +92,18 @@ const RewardPoints = () => {
     return `${day}-${month}-${year}`;
   };
 
+  const formatDateForAPI = (date) => {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${year}-${month}-${day}`; // 👈 changed format to yyyy-mm-dd
+  };
+
   useEffect(() => {
     ShowRewardPointsApi();
   }, [fromDate, tillDate]);
+
 
   const grandTotal = RewardPoints.reduce(
     (total, item) => total + parseFloat(item.reward_points || 0),
@@ -105,7 +120,7 @@ const RewardPoints = () => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: '#f7f7f7'}}>
+    <View style={{ flex: 1, backgroundColor: '#f7f7f7' }}>
       <View
         style={{
           backgroundColor: colors.Black,
@@ -116,12 +131,18 @@ const RewardPoints = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{position: 'absolute', top: 15, left: 15}}
+          style={{ position: 'absolute', top: 18.5, left: 15 }}
+          // onPress={() => {
+          //   navigation.navigate('HomeScreen', { rewardPointsKey: true });
+          // }}
+
           onPress={() => {
-            navigation.navigate('HomeScreen', {rewardPointsKey: true});
-          }}>
+            navigation.goBack();
+          }}
+
+        >
           {' '}
-          <Ionicons name="arrow-back" color="white" size={26} />
+          <MaterialIcons name="arrow-back-ios-new" color="white" size={20} />
         </TouchableOpacity>
 
         <Text
@@ -135,7 +156,88 @@ const RewardPoints = () => {
         </Text>
       </View>
 
-      <View
+      <View style={{
+        flexDirection: 'row', width: '100%',
+        padding: 10, gap: 5
+      }}>
+        <View style={{ width: '50%' }}>
+          <Text
+            style={{
+              fontSize: 14,
+              color: 'black',
+              fontFamily: 'Inter-Medium',
+              marginBottom: 5,
+            }}
+          >
+            From
+          </Text>
+          <TouchableOpacity style={{
+            borderWidth: 1,
+            borderColor: 'black',
+            backgroundColor: '#f9f9f9',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: 10,
+            paddingVertical: 12,
+          }} onPress={() => setShowFromPicker(true)}>
+            <Text style={{ color: 'black', fontFamily: 'Inter-Regular', fontSize: 12 }}>{formatDate(fromDate)}</Text>
+          </TouchableOpacity>
+
+          {showFromPicker && (
+            <DateTimePicker
+              value={fromDate}
+              maximumDate={new Date()}
+              mode="date"
+              display="default"
+              onChange={(e, date) => {
+                setShowFromPicker(false);
+                if (date) setFromDate(date);
+              }}
+            />
+          )}
+        </View>
+        <View style={{ width: '50%' }}>
+          <Text
+            style={{
+              fontSize: 14,
+              color: 'black',
+              fontFamily: 'Inter-Medium',
+              marginBottom: 5,
+            }}
+          >
+            To
+          </Text>
+          <TouchableOpacity style={{
+            borderWidth: 1,
+
+            borderColor: 'black',
+            backgroundColor: '#f9f9f9',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: 10,
+            paddingVertical: 12,
+          }} onPress={() => setShowTillPicker(true)}>
+            <Text style={{ color: 'black', fontFamily: 'Inter-Regular', fontSize: 12 }}>{formatDate(tillDate)}</Text>
+          </TouchableOpacity>
+          {showTillPicker && (
+            <DateTimePicker
+              value={tillDate}
+              minimumDate={fromDate}
+              maximumDate={new Date()}
+              mode="date"
+              display="default"
+              onChange={(e, date) => {
+                setShowTillPicker(false);
+                if (date) setTillDate(date);
+              }}
+            />
+          )}
+        </View>
+
+
+      </View>
+
+      {/* <View
         style={{
           marginTop: 10,
           flexDirection: 'row',
@@ -146,71 +248,96 @@ const RewardPoints = () => {
           borderBottomColor: '#ddd',
         }}>
         <Text
-          style={{color: 'black', fontFamily: 'Inter-Medium', fontSize: 16}}>
+          style={{ color: 'black', fontFamily: 'Inter-Medium', fontSize: 16 }}>
           {fromDate === tillDate
             ? formatDate(fromDate)
             : `${formatDate(fromDate)}  To  ${formatDate(tillDate)}`}
         </Text>
-      </View>
-
-      <View
-        style={{
-          flexDirection: 'row',
-          width: '100%',
-          paddingVertical: 5,
-          borderBottomWidth: 1,
-          borderBottomColor: '#ddd',
-        }}>
+      </View> */}
+      {RewardPoints.length !== 0 && (
         <View
           style={{
-            width: '20%',
-            justifyContent: 'center',
             flexDirection: 'row',
+            width: '100%',
+            marginTop: 10,
+            borderWidth: 1,
+            borderColor: 'black',
+            backgroundColor: '#c4f5c5',
           }}>
-          <Text
+          <View
             style={{
-              color: 'black',
-              fontFamily: 'Inter-Bold',
-              fontSize: 14,
+              borderRightWidth: 1,
+              padding: 7,
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '30%'
             }}>
-            Date
-          </Text>
-        </View>
-        <View
-          style={{
-            width: '30%',
-            justifyContent: 'center',
-            flexDirection: 'row',
-            marginLeft: 5,
-          }}>
-          <Text
-            style={{color: 'black', fontFamily: 'Inter-Bold', fontSize: 14}}>
-            Slot Time
-          </Text>
-        </View>
-        <View style={{flexDirection: 'row', width: '23%'}}>
-          <Text
-            style={{color: 'black', fontFamily: 'Inter-Bold', fontSize: 14}}>
-            #App No
-          </Text>
-        </View>
-        <View
-          style={{
-            width: '30%',
-            justifyContent: 'center',
-            flexDirection: 'row',
+            <Text
+              style={{
+                color: 'black',
+                fontFamily: 'Inter-Bold',
+                fontSize: 14,
+              }}>
+              Date
+            </Text>
+          </View>
+          <View
+            style={{
+              borderRightWidth: 1,
+              padding: 7,
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '20%'
+            }}>
+            <Text
+              style={{ color: 'black', fontFamily: 'Inter-Bold', fontSize: 14 }}>
+              Slot Time
+            </Text>
+          </View>
+          <View style={{
+            borderRightWidth: 1,
+            padding: 7,
             alignItems: 'center',
+            justifyContent: 'center',
+            width: '20%'
           }}>
-          <Text
+            <Text
+              style={{ color: 'black', fontFamily: 'Inter-Bold', fontSize: 14 }}>
+              #App No
+            </Text>
+          </View>
+
+          <View
             style={{
-              color: 'black',
-              fontFamily: 'Inter-Bold',
-              fontSize: 14,
+              borderRightWidth: 1,
+              width: '20%',
+              justifyContent: 'center',
+              flexDirection: 'row',
+              alignItems: 'center',
             }}>
-            Points
-          </Text>
+            <Text
+              style={{
+                color: 'black',
+                fontFamily: 'Inter-Bold',
+                fontSize: 14,
+              }}>
+              Points
+            </Text>
+          </View>
+          <View style={{
+            borderRightWidth: 1,
+            padding: 7,
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '10%'
+          }}>
+            <Text
+              style={{ color: 'black', fontFamily: 'Inter-Bold', fontSize: 14 }}>
+
+            </Text>
+          </View>
         </View>
-      </View>
+      )}
       {ReportLoading ? (
         <View
           style={{
@@ -226,33 +353,43 @@ const RewardPoints = () => {
             justifyContent: 'center',
             alignItems: 'center',
             paddingVertical: 20,
+            height: 400
           }}>
-          <Text style={{color: 'red', fontFamily: 'Inter-Regular'}}>
-            No Data Found
+          <Image source={Reward}
+
+            style={{
+              width: 70,
+              height: 70,
+
+
+            }}
+
+          />
+          <Text style={{ color: 'red', fontFamily: 'Inter-Regular', marginTop: 10 }}>
+            No Reward Points Yet
           </Text>
         </View>
       ) : (
         <FlatList
           data={RewardPoints} // Use the TodayHistory array directly
           keyExtractor={(item, index) => index.toString()} // Use index for unique keys
-          renderItem={({item}) => (
+          renderItem={({ item, index }) => (
             <View
               style={{
-                marginBottom: 5,
 
-                borderBottomWidth: 1,
-                borderBottomColor: '#ddd',
-                paddingBottom: 3,
               }}>
-              <View style={{flexDirection: 'row'}}>
+              <View style={{
+                flexDirection: 'row', borderBottomWidth: 1,
+                borderBottomColor: 'black',
+                borderLeftWidth: 1,
+                borderRightWidth: 1,
+                width: '100%',
+                backgroundColor:
+                  index % 2 === 0 ? '#fff' : '#f2f2f2',
+              }}>
                 <View
                   style={{
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: 2,
-                    width: '20%',
-                    flexDirection: 'row',
-                    marginLeft: 5,
+                    alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '30%'
                   }}>
                   <Text
                     style={{
@@ -266,11 +403,7 @@ const RewardPoints = () => {
                 </View>
                 <View
                   style={{
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: 2,
-                    width: '30%',
-                    flexDirection: 'row',
+                    alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%'
                   }}>
                   <Text
                     style={{
@@ -285,13 +418,11 @@ const RewardPoints = () => {
 
                 <View
                   style={{
-                    marginBottom: 2,
-                    flex: 1,
-                    width: '45%',
+                    alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%'
                   }}>
                   {/* Display Application No 1 */}
                   {item.application_no1 && (
-                    <View style={{marginBottom: 5, flexDirection: 'row'}}>
+                    <View style={{ marginBottom: 5, flexDirection: 'row' }}>
                       <Text
                         style={{
                           fontSize: 14,
@@ -305,7 +436,7 @@ const RewardPoints = () => {
 
                   {/* Display Application No 2 */}
                   {item.application_no2 && (
-                    <View style={{marginBottom: 5, flexDirection: 'row'}}>
+                    <View style={{ marginBottom: 5, flexDirection: 'row' }}>
                       <Text
                         style={{
                           fontSize: 14,
@@ -319,7 +450,7 @@ const RewardPoints = () => {
 
                   {/* Display Application No 3 */}
                   {item.application_no3 && (
-                    <View style={{marginBottom: 5, flexDirection: 'row'}}>
+                    <View style={{ marginBottom: 5, flexDirection: 'row' }}>
                       <Text
                         style={{
                           fontSize: 14,
@@ -331,21 +462,10 @@ const RewardPoints = () => {
                     </View>
                   )}
                 </View>
+
                 <View
                   style={{
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    width: '15%',
-                  }}>
-                  <TouchableOpacity onPress={() => openStudentModal(item.id)}>
-                    <Icon name="eye" size={20} color="black" />
-                  </TouchableOpacity>
-                </View>
-                <View
-                  style={{
-                    width: '20%',
-                    justifyContent: 'center',
-                    alignItems: 'center',
+                    alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%'
                   }}>
                   <Text
                     style={{
@@ -356,6 +476,14 @@ const RewardPoints = () => {
                     }}>
                     {item.reward_points}
                   </Text>
+                </View>
+                <View
+                  style={{
+                    alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '10%'
+                  }}>
+                  <TouchableOpacity onPress={() => openStudentModal(item.id)}>
+                    <Icon name="eye" size={20} color="black" />
+                  </TouchableOpacity>
                 </View>
 
                 {/* Status with Image aligned to the right */}
@@ -374,9 +502,10 @@ const RewardPoints = () => {
               <View
                 style={{
                   padding: 10,
-                  marginRight: 20,
+                  marginRight: 60,
                   borderTopColor: '#ddd',
                   alignItems: 'flex-end',
+
                 }}>
                 <Text
                   style={{
@@ -385,7 +514,7 @@ const RewardPoints = () => {
                     color: 'green',
                   }}>
                   Total Points:{' '}
-                  <Text style={{color: 'black', fontFamily: 'Inter-Bold'}}>
+                  <Text style={{ color: 'black', fontFamily: 'Inter-Bold' }}>
                     {grandTotal}
                   </Text>
                 </Text>
@@ -414,12 +543,31 @@ const RewardPoints = () => {
           }}>
           <View
             style={{
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+              width: '80%',
+              paddingVertical: 5,
+            }}>
+            <TouchableOpacity
+              onPress={() => {
+                setModalVisible(false);
+              }}
+              style={{
+                marginRight: 10,
+                backgroundColor: 'white',
+                borderRadius: 50,
+              }}>
+              <Entypo name="cross" size={25} color="black" />
+            </TouchableOpacity>
+          </View>
+          <View
+            style={{
               width: '80%',
               backgroundColor: 'white',
               borderRadius: 10,
               padding: 10,
               shadowColor: '#000',
-              shadowOffset: {width: 0, height: 2},
+              shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.8,
               shadowRadius: 2,
               elevation: 5,
@@ -451,15 +599,15 @@ const RewardPoints = () => {
                   Student Details
                 </Text>
               </View>
-              <View style={{position: 'absolute', right: 10, top: 0}}>
+              {/* <View style={{ position: 'absolute', right: 10, top: 0 }}>
                 <TouchableOpacity
                   onPress={() => {
                     setModalVisible(false);
                   }}
-                  style={{height: 30, width: 30}}>
+                  style={{ height: 30, width: 30 }}>
                   <Entypo name="cross" size={24} color="Black" />
                 </TouchableOpacity>
-              </View>
+              </View> */}
             </View>
 
             {/* Display Application No and Student names */}

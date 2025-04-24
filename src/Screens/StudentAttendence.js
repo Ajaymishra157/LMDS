@@ -10,13 +10,14 @@ import {
   View,
   Alert,
 } from 'react-native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Header from '../Component/Header';
 import Bottomtabnavigation from '../Component/Bottomtabnavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ENDPOINTS} from '../CommonFiles/Constant';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import { ENDPOINTS } from '../CommonFiles/Constant';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import colors from '../CommonFiles/Colors';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const StudentAttendence = () => {
   const [refreshing, setRefreshing] = useState(false);
@@ -32,6 +33,7 @@ const StudentAttendence = () => {
   useEffect(() => {
     // Date set karne ka function
     let today = new Date();
+
     let formattedDate = `${today.getDate().toString().padStart(2, '0')}-${(
       today.getMonth() + 1
     )
@@ -112,7 +114,7 @@ const StudentAttendence = () => {
           },
         },
       ],
-      {cancelable: false},
+      { cancelable: false },
     );
   };
 
@@ -210,11 +212,39 @@ const StudentAttendence = () => {
     setRefreshing(false); // Stop refreshing once data is fetched
   };
   return (
-    <View style={{flex: 1, backgroundColor: 'white'}}>
-      <Header
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
+      {/* <Header
         title="Student Attendence"
         onMenuPress={() => navigation.openDrawer()}
-      />
+      /> */}
+
+      <View
+        style={{
+          backgroundColor: colors.Black,
+          padding: 15,
+          justifyContent: 'center',
+
+          alignItems: 'center',
+          flexDirection: 'row',
+        }}>
+        <TouchableOpacity
+          style={{ position: 'absolute', top: 18.5, left: 15 }}
+          onPress={() => {
+            navigation.goBack();
+          }}>
+          <MaterialIcons name="arrow-back-ios-new" color="white" size={20} />
+        </TouchableOpacity>
+
+        <Text
+          style={{
+            color: 'white',
+            fontSize: 20,
+            fontWeight: 'bold',
+            fontFamily: 'Inter-Bold',
+          }}>
+          Student Attendence
+        </Text>
+      </View>
 
       {/* Aaj ki Date */}
       <View
@@ -294,7 +324,7 @@ const StudentAttendence = () => {
 
       {!loading && (
         <ScrollView
-          style={{flex: 1, padding: 10}}
+          style={{ flex: 1, padding: 10 }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -387,8 +417,8 @@ const StudentAttendence = () => {
                       item.attendance_status == 'Present'
                         ? 'green'
                         : item.attendance_status == 'Absent'
-                        ? 'red'
-                        : 'black',
+                          ? 'red'
+                          : 'black',
                   }}>
                   {item.attendance_status || '----'}
                 </Text>
@@ -402,15 +432,15 @@ const StudentAttendence = () => {
                 fontFamily: 'Inter-Regular',
                 color: 'red',
               }}>
-              No Attendence Found
+              No Attendence Yet
             </Text>
           )}
         </ScrollView>
       )}
 
-      <View style={{justifyContent: 'flex-end'}}>
+      {/* <View style={{justifyContent: 'flex-end'}}>
         <Bottomtabnavigation />
-      </View>
+      </View> */}
     </View>
   );
 };

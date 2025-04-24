@@ -10,13 +10,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import colors from '../CommonFiles/Colors';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ENDPOINTS} from '../CommonFiles/Constant';
+import { ENDPOINTS } from '../CommonFiles/Constant';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const ComplainScreen = () => {
   const Delete = require('../assets/images/delete.png');
@@ -118,7 +119,7 @@ const ComplainScreen = () => {
     return `${day}-${month}-${year}`; // Return the formatted date as "DD-MM-YYYY"
   };
   return (
-    <View style={{flex: 1, backgroundColor: '#f7f7f7'}}>
+    <View style={{ flex: 1, backgroundColor: '#f7f7f7' }}>
       <View
         style={{
           backgroundColor: colors.Black,
@@ -129,12 +130,11 @@ const ComplainScreen = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{position: 'absolute', top: 15, left: 15}}
+          style={{ position: 'absolute', top: 18.5, left: 15 }}
           onPress={() => {
-            navigation.navigate('StudentDashboard', {openDrawerKey: true});
+            navigation.goBack();
           }}>
-          {' '}
-          <Ionicons name="arrow-back" color="white" size={26} />
+          <MaterialIcons name="arrow-back-ios-new" color="white" size={20} />
         </TouchableOpacity>
 
         <Text
@@ -159,8 +159,9 @@ const ComplainScreen = () => {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: colors.Black,
-            paddingVertical: 12,
+            backgroundColor: 'white',
+            borderWidth: 1, borderColor: 'black',
+            paddingVertical: 10,
             paddingHorizontal: 20,
             borderRadius: 10,
             elevation: 5,
@@ -170,15 +171,15 @@ const ComplainScreen = () => {
           <AntDesign
             name="plus"
             size={24}
-            color="white"
-            style={{marginRight: 10}}
+            color="black"
+            style={{ marginRight: 10 }}
           />
 
           <Text
             style={{
               fontSize: 16,
-              color: 'white',
-              fontWeight: 'bold',
+              color: 'black',
+
               fontFamily: 'Inter-Bold',
             }}>
             New Complaint
@@ -217,15 +218,15 @@ const ComplainScreen = () => {
           </TouchableOpacity> */}
         </View>
       </View>
-      <View style={{flex: 1, paddingHorizontal: 10}}>
+      <View style={{ flex: 1, paddingHorizontal: 10 }}>
         {/* Loader */}
         {ComplaintLoading ? (
           <View
-            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <ActivityIndicator
               size="large"
               color={colors.Black}
-              style={{marginTop: 20}}
+              style={{ marginTop: 20 }}
             />
           </View>
         ) : (
@@ -233,7 +234,7 @@ const ComplainScreen = () => {
             data={ComplaintList}
             showsVerticalScrollIndicator={false}
             keyExtractor={item => item.std_complaint_id.toString()}
-            renderItem={({item}) => (
+            renderItem={({ item }) => (
               <View
                 style={{
                   backgroundColor: 'white',
@@ -274,7 +275,7 @@ const ComplainScreen = () => {
                           complaint_description: item.complaint_description, // Description
                         });
                       }}>
-                      <Image source={Update} style={{height: 24, width: 24}} />
+                      <Image source={Update} style={{ height: 24, width: 24 }} />
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => {
@@ -293,10 +294,10 @@ const ComplainScreen = () => {
                                 DeleteComplaintApi(item.std_complaint_id), // Proceed with deletion
                             },
                           ],
-                          {cancelable: true}, // Ensures that tapping outside the dialog dismisses it
+                          { cancelable: true }, // Ensures that tapping outside the dialog dismisses it
                         );
                       }}>
-                      <Image source={Delete} style={{height: 24, width: 24}} />
+                      <Image source={Delete} style={{ height: 24, width: 24 }} />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -351,7 +352,7 @@ const ComplainScreen = () => {
                     color: 'red',
                     fontFamily: 'Inter-Regular',
                   }}>
-                  No Data Found
+                  No Complaints Yet
                 </Text>
               </View>
             }
