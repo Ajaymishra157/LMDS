@@ -16,12 +16,15 @@ import {
 import * as Animatable from 'react-native-animatable';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Video from 'react-native-video';
 
 const { width } = Dimensions.get('window');
 // Use your own road or driving image here
 const roadBackground = require('../assets/images/road.jpg'); // Replace with your image
 
 const logo = require('../assets/images/logo.jpg');
+
+const carDrive = require('../assets/videos/driving.mp4');
 
 const PreLoginScreen = () => {
     const navigation = useNavigation();
@@ -57,17 +60,24 @@ const PreLoginScreen = () => {
         navigation.navigate('LoginScreen', { userType: type });
     };
     return (
-        <ImageBackground
-            source={roadBackground}
-            style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-            }}
-            resizeMode="cover" // Cover the whole screen with the background image
-        >
+        <View style={{ flex: 1 }}>
+            <Video
+                source={carDrive}
+                resizeMode="cover"
+                repeat
+                muted
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    right: 0,
+                    zIndex: -1,
+                }}
+            />
+
             <LinearGradient
-                colors={['rgba(255, 255, 255, 0.7)', 'rgba(0, 0, 0, 0.6)']} // Transparent gradient for smoother text
+                colors={['transparent', 'rgba(0, 0, 0, 0.6)']} // Transparent gradient for smoother text
                 style={{
                     flex: 1,
                     alignItems: 'center',
@@ -78,21 +88,21 @@ const PreLoginScreen = () => {
             >
                 <SafeAreaView style={{ flex: 1, width: '100%', alignItems: 'center' }}>
                     {/* Logo Animation */}
-                    <Animatable.Image
+                    {/* <Animatable.Image
                         animation="fadeInDown"
                         duration={1000}
                         delay={200}
                         source={logo}
                         style={{
-                            width: width * 0.9,
-                            height: width * 0.9,
+                            width: width * 0.5,
+                            height: width * 0.5,
                             resizeMode: 'contain',
                             borderRadius: 20,
                             marginTop: -40,
                             borderRadius: 200,
                             backgroundColor: ''
                         }}
-                    />
+                    /> */}
 
                     {/* Buttons Animation */}
                     <Animatable.View
@@ -162,7 +172,8 @@ const PreLoginScreen = () => {
                     </Animatable.View>
                 </SafeAreaView>
             </LinearGradient>
-        </ImageBackground>
+        </View>
+
     );
 };
 

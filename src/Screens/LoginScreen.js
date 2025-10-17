@@ -103,6 +103,7 @@ const LoginScreen = () => {
         if (data.code == 200) {
           console.log('Student Login successful');
           const userType = data.payload.user_type;
+
           const applicationId = data.payload.application_id;
           const studentname = data.payload.student_name;
           const applicationNo = data.payload.application_number;
@@ -110,6 +111,7 @@ const LoginScreen = () => {
           await AsyncStorage.setItem('application_id', applicationId);
           await AsyncStorage.setItem('student_name', studentname);
           await AsyncStorage.setItem('application_number', applicationNo);
+
 
           navigation.reset({
             index: 0,
@@ -181,9 +183,11 @@ const LoginScreen = () => {
           const trainerId = data.payload.trainer_id;
           const trainername = data.payload.trainer_name;
           const userType = data.payload.user_type;
+          const AdminId = data.payload.admin_id;
           await AsyncStorage.setItem('trainer_id', trainerId);
           await AsyncStorage.setItem('trainer_name', trainername);
           await AsyncStorage.setItem('user_type', userType);
+          await AsyncStorage.setItem('admin_id', AdminId);
 
           if (userType === 'Trainer') {
             // If user type is 'Trainer', go to HomeScreen
@@ -432,7 +436,7 @@ const LoginScreen = () => {
               <Ionicons
                 name={showPassword ? 'eye-outline' : 'eye-off-outline'}
                 size={20}
-                color="gray"
+                color={showPassword ? 'black' : 'grey'}
               />
             </TouchableOpacity>
           </View>

@@ -14,6 +14,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { FlatList } from 'react-native-gesture-handler';
 import { ENDPOINTS } from '../CommonFiles/Constant';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const CreateComplaint = () => {
   const navigation = useNavigation();
@@ -145,12 +146,12 @@ const CreateComplaint = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{ position: 'absolute', top: 15, left: 15 }}
+          style={{ position: 'absolute', top: 3, left: 5, borderColor: 'white', width: 50, height: 50, justifyContent: 'center', alignItems: 'center' }}
           onPress={() => {
             navigation.goBack();
           }}>
           {' '}
-          <Ionicons name="arrow-back" color="white" size={26} />
+          <MaterialIcons name="arrow-back-ios-new" color="white" size={20} />
         </TouchableOpacity>
 
         <Text

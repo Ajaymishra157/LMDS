@@ -498,7 +498,7 @@ const OthersLeave = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{ position: 'absolute', top: 15, left: 15 }}
+          style={{ position: 'absolute', top: 3, left: 5, borderColor: 'white', width: 50, height: 50, justifyContent: 'center', alignItems: 'center' }}
           // onPress={() => {
           //   // Normal back action
 
@@ -515,7 +515,7 @@ const OthersLeave = () => {
           }}
 
         >
-          <MaterialIcons name="arrow-back-ios-new" color="white" size={26} />
+          <MaterialIcons name="arrow-back-ios-new" color="white" size={20} />
         </TouchableOpacity>
 
         <Text

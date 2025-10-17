@@ -495,7 +495,7 @@ const ProfileScreen = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{ position: 'absolute', top: 18.5, left: 15 }}
+          style={{ position: 'absolute', top: 3, left: 5, borderColor: 'white', width: 50, height: 50, justifyContent: 'center', alignItems: 'center' }}
           onPress={() => {
             navigation.goBack();
           }}>
@@ -718,7 +718,7 @@ const ProfileScreen = () => {
                       backgroundColor: 'white',
                     }}
                     onPress={() => {
-                      navigation.navigate('OthersAdvancePayment');
+                      navigation.navigate('StaffAttendence');
                     }}>
                     <View style={{ width: '15%', justifyContent: 'center', alignItems: 'center' }}>
                       <MaterialCommunityIcons name="account-group-outline" size={20} color="#4285F4" />
@@ -732,6 +732,33 @@ const ProfileScreen = () => {
                   </TouchableOpacity>
                 </View>
               )}
+              {userType === 'Manager' && (
+                <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      navigation.navigate('HomeScreen'); // 👈 Replace with your actual screen name
+                    }}
+                    style={{
+                      paddingVertical: 7,
+                      borderRadius: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: 'white',
+                    }}
+                  >
+                    <View style={{ width: '15%', justifyContent: 'center', alignItems: 'center' }}>
+                      <MaterialIcons name="drive-eta" size={26} color="#4285F4" />
+                    </View>
+                    <Text style={{ color: 'black', fontFamily: 'Inter-Regular' }}>
+                      Training
+                    </Text>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', paddingRight: 5 }}>
+                      <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+
               {userType === 'Student' && (
                 <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
                   <TouchableOpacity
@@ -766,7 +793,7 @@ const ProfileScreen = () => {
 
                 </View>
               )}
-              {userType !== 'Manager' && (
+              {userType !== 'Manager' && userType !== 'Admin' && (
                 <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
                   <TouchableOpacity
                     onPress={() => {
@@ -794,7 +821,353 @@ const ProfileScreen = () => {
                 </View>
 
               )}
-              {userType !== 'Manager' && userType !== 'Student' && (
+
+              {userType === 'Admin' && (
+                <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
+
+                  <TouchableOpacity
+                    style={{
+                      paddingVertical: 7,
+                      borderRadius: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: 'white',
+                    }}
+                    onPress={() => {
+                      navigation.navigate('HomeScreen');  // Replace with your screen name for training
+                    }}
+                  >
+                    <View style={{ width: '15%', justifyContent: 'center', alignItems: 'center' }}>
+                      {/* Icon for Training, you can use something like 'school' or 'sports-handball' */}
+                      <MaterialIcons name="sports-handball" size={20} color="#8A2BE2" />
+                    </View>
+                    <Text style={{ color: 'black', fontFamily: 'Inter-Regular' }}>
+                      Training
+                    </Text>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', paddingRight: 5 }}>
+                      <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+                    </View>
+                  </TouchableOpacity>
+
+                </View>
+              )}
+              {userType === 'Admin' && (
+                <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      navigation.navigate('OthersLeave');
+                    }}
+                    style={{
+                      paddingVertical: 7,
+                      borderRadius: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: 'white',
+                    }}
+                  >
+                    <View style={{ width: '15%', justifyContent: 'center', alignItems: 'center' }}>
+                      <Ionicons name="calendar-outline" size={20} color="rgb(72, 236, 241)" />
+                    </View>
+                    <Text style={{ color: 'black', fontFamily: 'Inter-Regular' }}>
+                      Leave Requests
+                    </Text>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', paddingRight: 5 }}>
+                      <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+
+              )}
+              {userType === 'Admin' && (
+                <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
+                  <TouchableOpacity
+                    style={{
+                      paddingVertical: 7,
+
+
+                      borderRadius: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      // backgroundColor: getSelectedStyle('OthersAdvancePayment')
+                      //   .backgroundColor, // Apply selected background
+                      backgroundColor: 'white',
+                    }}
+                    onPress={() => {
+                      navigation.navigate('OthersAdvancePayment');
+                    }}>
+                    <View style={{ width: '15%', justifyContent: 'center', alignItems: 'center' }}>
+                      <Feather name="credit-card" size={20} color="#388E3C" />
+                    </View>
+                    <Text style={{ color: 'black', fontFamily: 'Inter-Regular' }}>
+                      Payment Requests
+                    </Text>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', paddingRight: 5 }}>
+                      <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+
+              )}
+
+              {userType === 'Admin' && (
+                <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
+                  <TouchableOpacity
+                    style={{
+                      paddingVertical: 7,
+
+                      borderRadius: 10,
+                      flexDirection: 'row',
+
+                      alignItems: 'center',
+                      // backgroundColor:
+                      //   getSelectedStyle('HistoryReport').backgroundColor, // Apply selected background
+                      backgroundColor: 'white',
+                    }}
+                    onPress={() => {
+                      navigation.navigate('TrainerWiseHistoryReport')
+                    }}>
+                    <View style={{ width: '15%', justifyContent: 'center', alignItems: 'center' }}>
+                      <Feather name="clock" size={20} color="#757575" />
+                    </View>
+                    <Text style={{ color: 'black', fontFamily: 'Inter-Regular' }}>
+                      History Reports
+                    </Text>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', paddingRight: 5 }}>
+                      <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {userType === 'Admin' && (
+                <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
+                  <TouchableOpacity
+                    style={{
+
+                      paddingVertical: 7,
+
+                      borderRadius: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      // backgroundColor:
+                      //   getSelectedStyle2('HistoryReport').backgroundColor,
+                      backgroundColor: 'white',
+                    }}
+                    onPress={() => {
+                      navigation.navigate('TrainerWiseRewardPoint')
+                    }}>
+                    <View style={{ width: '15%', justifyContent: 'center', alignItems: 'center' }}>
+                      <Feather name="gift" size={20} color="#FFD700" />
+                    </View>
+                    <Text style={{ color: 'black', fontFamily: 'Inter-Regular' }}>
+                      Reward Points
+                    </Text>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', paddingRight: 5 }}>
+                      <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {userType === 'Admin' && (
+                <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
+                  <TouchableOpacity
+                    style={{
+                      paddingVertical: 7,
+                      borderRadius: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: 'white',
+                    }}
+                    onPress={() => {
+                      navigation.navigate('ChatStaffList')
+                    }}>
+                    <View style={{ width: '15%', justifyContent: 'center', alignItems: 'center' }}>
+                      <Feather name="message-circle" size={20} color="#1E90FF" />
+                    </View>
+                    <Text style={{ color: 'black', fontFamily: 'Inter-Regular' }}>
+                      Admin Chat
+                    </Text>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', paddingRight: 5 }}>
+                      <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {userType === 'Admin' && (
+
+                <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
+                  <TouchableOpacity
+                    style={{
+                      paddingVertical: 7,
+                      borderRadius: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: 'white',
+                    }}
+                    onPress={() => {
+                      navigation.navigate('IncomeExpense');
+                    }}
+                  >
+                    <View style={{ width: '15%', justifyContent: 'center', alignItems: 'center' }}>
+                      <Feather name="bar-chart-2" size={20} color="#28A745" />
+                    </View>
+                    <Text style={{ color: 'black', fontFamily: 'Inter-Regular' }}>
+                      Income Expense Report
+                    </Text>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', paddingRight: 5 }}>
+                      <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {userType === 'Admin' && (
+                <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
+                  <TouchableOpacity
+                    style={{
+                      paddingVertical: 7,
+                      borderRadius: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: 'white',
+                    }}
+                    onPress={() => {
+                      navigation.navigate('ListReminderAdmin');
+                    }}
+                  >
+                    <View style={{ width: '15%', justifyContent: 'center', alignItems: 'center' }}>
+                      <Feather name="bell" size={20} color="#FF6347" />
+                    </View>
+                    <Text style={{ color: 'black', fontFamily: 'Inter-Regular' }}>
+                      Schedule Notification
+                    </Text>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', paddingRight: 5 }}>
+                      <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {userType === 'Admin' && (
+                <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
+                  <TouchableOpacity
+                    style={{
+                      paddingVertical: 7,
+                      borderRadius: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: 'white',
+                    }}
+                    onPress={() => {
+                      navigation.navigate('ListNotesAdmin');
+                    }}
+                  >
+                    <View style={{ width: '15%', justifyContent: 'center', alignItems: 'center' }}>
+                      <Feather name="file-text" size={20} color="#8A2BE2" />
+                    </View>
+                    <Text style={{ color: 'black', fontFamily: 'Inter-Regular' }}>
+                      Reminder
+                    </Text>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', paddingRight: 5 }}>
+                      <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {userType === 'Admin' && (
+                <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
+
+                  {/* Staff Attendance Button */}
+                  <TouchableOpacity
+                    style={{
+                      paddingVertical: 7,
+                      borderRadius: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: 'white',
+                    }}
+                    onPress={() => {
+                      navigation.navigate('StaffAttendanceAdmin');  // Replace with your screen name
+                    }}
+                  >
+                    <View style={{ width: '15%', justifyContent: 'center', alignItems: 'center' }}>
+                      {/* Changed icon from 'access-time' to 'group' */}
+                      <MaterialIcons name="group" size={20} color="#8A2BE2" />
+                    </View>
+                    <Text style={{ color: 'black', fontFamily: 'Inter-Regular' }}>
+                      Staff Attendance
+                    </Text>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', paddingRight: 5 }}>
+                      <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {userType === 'Admin' && (
+                <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
+
+                  <TouchableOpacity
+                    style={{
+                      paddingVertical: 7,
+                      borderRadius: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: 'white',
+                    }}
+                    onPress={() => {
+                      navigation.navigate('StudentAttendanceAdmin');  // Replace with your screen name
+                    }}
+                  >
+                    <View style={{ width: '15%', justifyContent: 'center', alignItems: 'center' }}>
+                      {/* You can use a different icon here, like 'school' for student attendance */}
+                      <MaterialIcons name="school" size={20} color="#8A2BE2" />
+                    </View>
+                    <Text style={{ color: 'black', fontFamily: 'Inter-Regular' }}>
+                      Student Attendance
+                    </Text>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', paddingRight: 5 }}>
+                      <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+                    </View>
+                  </TouchableOpacity>
+
+                </View>
+              )}
+
+
+
+
+
+
+
+              {userType !== 'Admin' && userType !== 'Student' && (
+                <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
+                  <TouchableOpacity
+                    style={{
+                      paddingVertical: 7,
+                      borderRadius: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: 'white',
+                    }}
+                    onPress={() => {
+                      navigation.navigate('ChatStaffList')
+                    }}>
+                    <View style={{ width: '15%', justifyContent: 'center', alignItems: 'center' }}>
+                      <Feather name="message-circle" size={20} color="#1E90FF" />
+                    </View>
+                    <Text style={{ color: 'black', fontFamily: 'Inter-Regular' }}>
+                      Staff Chat
+                    </Text>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', paddingRight: 5 }}>
+                      <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+
+              {userType !== 'Manager' && userType !== 'Student' && userType !== 'Admin' && (
                 <View style={{ borderBottomWidth: 1, borderColor: '#EEE', paddingVertical: 8 }}>
                   <TouchableOpacity
                     onPress={() => {
@@ -843,7 +1216,7 @@ const ProfileScreen = () => {
                       <Feather name="clock" size={20} color="#757575" />
                     </View>
                     <Text style={{ color: 'black', fontFamily: 'Inter-Regular' }}>
-                      History Report
+                      History Reports
                     </Text>
                     <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', paddingRight: 5 }}>
                       <MaterialIcons name='arrow-forward-ios' color='black' size={18} />
@@ -1366,7 +1739,8 @@ const ProfileScreen = () => {
             </TouchableOpacity> */}
           </View>
         </ScrollView>
-      )}
+      )
+      }
       {/* Image Modal */}
 
       <Modal
@@ -1460,12 +1834,21 @@ const ProfileScreen = () => {
               }}>
               <TouchableOpacity
                 style={{
-                  backgroundColor: '#ddd',
+                  backgroundColor: 'white',
+                  borderWidth: 1, borderColor: 'black',
                   padding: 10,
                   borderRadius: 5,
                   width: '45%',
                   justifyContent: 'center',
                   alignItems: 'center',
+                  // 🌟 Shadow for iOS
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 3,
+
+                  // 🌟 Elevation for Android
+                  elevation: 4,
                 }}
                 onPress={closeconfirmodal}>
                 <Text
@@ -1479,17 +1862,26 @@ const ProfileScreen = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={{
-                  backgroundColor: colors.Black,
+                  backgroundColor: 'white',
+                  borderWidth: 1, borderColor: 'black',
                   padding: 10,
                   borderRadius: 5,
                   width: '45%',
                   justifyContent: 'center',
                   alignItems: 'center',
+                  // 🌟 Shadow for iOS
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 3,
+
+                  // 🌟 Elevation for Android
+                  elevation: 4,
                 }}
                 onPress={confirmLogout}>
                 <Text
                   style={{
-                    color: 'white',
+                    color: 'black',
                     fontWeight: 'bold',
                     fontFamily: 'Inter-Regular',
                   }}>
@@ -1722,7 +2114,7 @@ const ProfileScreen = () => {
       {/* <View style={{ justifyContent: 'flex-end' }}>
         <Bottomtabnavigation />
       </View> */}
-    </View>
+    </View >
   );
 };
 

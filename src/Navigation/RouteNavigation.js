@@ -37,6 +37,22 @@ import BeginScreen from '../Screens/BeginScreen';
 import BeginScreen2 from '../Screens/BeginScreen2';
 import Training from '../Screens/Training';
 import NotificationScreen from '../Screens/NotificationScreen';
+import IncomeExpense from '../Screens/IncomeExpense';
+import TrainerWiseRewardPoint from '../Screens/TrainerWiseRewardPoint';
+import TrainerWiseHistoryReport from '../Screens/TrainerWiseHistoryReport';
+import StudentAttendanceAdmin from '../Screens/StudentAttendanceAdmin';
+import StudentAttendanceList from '../Screens/StudentAttendanceList';
+import StaffAttendanceAdmin from '../Screens/StaffAttendanceAdmin';
+import ListNotesAdmin from '../Screens/ListNotesAdmin';
+import AddNotesAdmin from '../Screens/AddNotesAdmin';
+import ChatScreen from '../Screens/ChatScreen';
+import ChatStaffList from '../Screens/ChatStaffList';
+import ListReminderAdmin from '../Screens/ListReminderAdmin';
+import AddReminderAdmin from '../Screens/AddReminderAdmin';
+import MonthlySalaryScreen from '../Screens/MonthlySalaryScreen';
+import ListApplicationDateWise from '../Screens/ListApplicationDateWise';
+import ListBookedSchedule from '../Screens/ListBookedSchedule';
+import OutStandingList from '../Screens/OutStandingList';
 
 const Stack = createNativeStackNavigator();
 // const Drawer = createDrawerNavigator();
@@ -195,6 +211,27 @@ const RouteNavigation = () => {
         <Stack.Screen name='BeginScreen2' component={BeginScreen2} options={{ headerShown: false, animation: 'slide_from_right' }} />
         <Stack.Screen name='Training' component={Training} options={{ headerShown: false, animation: 'slide_from_right' }} />
         <Stack.Screen name='NotificationScreen' component={NotificationScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='IncomeExpense' component={IncomeExpense} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='TrainerWiseRewardPoint' component={TrainerWiseRewardPoint} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='TrainerWiseHistoryReport' component={TrainerWiseHistoryReport} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='StudentAttendanceAdmin' component={StudentAttendanceAdmin} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='StudentAttendanceList' component={StudentAttendanceList} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='StaffAttendanceAdmin' component={StaffAttendanceAdmin} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='ListNotesAdmin' component={ListNotesAdmin} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='AddNotesAdmin' component={AddNotesAdmin} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='ChatScreen' component={ChatScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='ChatStaffList' component={ChatStaffList} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='ListReminderAdmin' component={ListReminderAdmin} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='AddReminderAdmin' component={AddReminderAdmin} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='MonthlySalaryScreen' component={MonthlySalaryScreen} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='ListApplicationDateWise' component={ListApplicationDateWise} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='ListBookedSchedule' component={ListBookedSchedule} options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name='OutStandingList' component={OutStandingList} options={{ headerShown: false, animation: 'slide_from_right' }} />
+
+
+
+
+
 
       </Stack.Navigator>
       <Toast

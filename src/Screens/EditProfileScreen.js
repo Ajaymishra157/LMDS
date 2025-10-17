@@ -8,6 +8,7 @@ import {
   Alert,
   ToastAndroid,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import React, { useCallback, useState } from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -18,34 +19,58 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ImagePicker from 'react-native-image-crop-picker';
 import RNFS from 'react-native-fs';
 import colors from '../CommonFiles/Colors';
+import Entypo from 'react-native-vector-icons/Entypo';
 
 const EditProfileScreen = () => {
   const route = useRoute();
   const { profileData } = route.params;
+  console.log("student ka profile data", profileData);
   const navigation = useNavigation();
 
   const [UpdateLoading, setUpdateLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false); // For controlling modal visibility
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imageSelectModal, setImageSelectModal] = useState(false);
 
-  const [name, setName] = useState(profileData?.trainer_name || '');
-  const [mobile, setMobile] = useState(profileData?.trainer_mobile || '');
-  const [email, setEmail] = useState(profileData?.trainer_email || '');
-  const [address, setAddress] = useState(profileData?.trainer_address || '');
-  const [image, setImage] = useState(profileData?.trainer_image || '');
-  const onSelectImage = async () => {
-    Alert.alert('Choose Medium', 'Choose option', [
-      {
-        text: 'Camera',
-        onPress: () => onCamera(),
-      },
-      {
-        text: 'Gallery',
-        onPress: () => onGallery(),
-      },
-      {
-        text: 'Cancel',
-        onPress: () => { },
-      },
-    ]);
+  const [name, setName] = useState(profileData?.trainer_name || profileData?.application_student_name || '');
+  const [mobile, setMobile] = useState(profileData?.trainer_mobile || profileData?.application_mobileno || '');
+  const [email, setEmail] = useState(profileData?.trainer_email || profileData?.application_email || '');
+  const [address, setAddress] = useState(profileData?.trainer_address || profileData?.application_address || '');
+  const [image, setImage] = useState(profileData?.trainer_image || profileData?.application_image || '');
+  // const onSelectImage = async () => {
+  //   Alert.alert('Update Profile Picture', 'How would you like to upload a photo?', [
+  //     {
+  //       text: 'Camera',
+  //       onPress: () => onCamera(),
+  //     },
+  //     {
+  //       text: 'Gallery',
+  //       onPress: () => onGallery(),
+  //     },
+  //     {
+  //       text: 'Cancel',
+  //       onPress: () => { },
+  //     },
+  //   ]);
+  // };
+
+  const openImageSelectModal = () => setImageSelectModal(true);
+  const closeImageSelectModal = () => setImageSelectModal(false);
+
+  const onSelectImage = () => {
+    openImageSelectModal(); // Show modal instead of Alert
+  };
+
+
+  // This function handles the click event on the profile image and opens the modal
+  const handleImagePress = imageUri => {
+    setSelectedImage(imageUri); // Set the selected image
+    setModalVisible(true); // Open the modal
+  };
+
+  // This function closes the modal
+  const handleCloseModal = () => {
+    setModalVisible(false); // Close the modal
   };
 
   // Camera se image lene ka function
@@ -169,8 +194,7 @@ const EditProfileScreen = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{ position: 'absolute', top: 18.5, left: 15 }}
-          // onPress={() => {
+          style={{ position: 'absolute', top: 3, left: 5, borderColor: 'white', width: 50, height: 50, justifyContent: 'center', alignItems: 'center' }} // onPress={() => {
           //   // Normal back action
 
           //   if (openDrawerKey === 'otherAdvancepayment') {
@@ -199,47 +223,102 @@ const EditProfileScreen = () => {
           Edit Profile
         </Text>
       </View>
-      {/* Profile Image Section */}
-      <View style={{ flex: 1, paddingHorizontal: 10 }}>
-        <View
-          style={{
-            width: '100%',
-            height: 120,
-            backgroundColor: '#f9f9f9',
-            justifyContent: 'center',
-            alignItems: 'center',
-            position: 'relative',
-          }}>
-          <TouchableOpacity disabled={true}>
-            <Image
-              source={{ uri: image }}
-              style={{
-                width: 90,
-                height: 90,
-                borderRadius: 45,
-                backgroundColor: 'white',
-              }}
-            />
-            {/* Plus Icon at bottom-right */}
-            <TouchableOpacity onPress={onSelectImage}>
-              <FontAwesome
-                name="plus"
-                size={16}
-                color="blue"
-                style={{
-                  position: 'absolute',
-                  bottom: -1,
-                  right: -1,
-                  backgroundColor: 'white',
-                  borderRadius: 50,
-                  padding: 5,
-                }}
-              />
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </View>
+      <View
+        style={{
+          width: '100%',
+          height: 70,
+          backgroundColor: '#f5f7fa',
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingTop: 20,
+          backgroundColor: colors.Black
 
-        <View style={{ marginTop: 30 }}>
+        }}
+      >
+        {/* Image Container */}
+
+
+
+        {/* Stylish Plus Icon */}
+        {/* <TouchableOpacity
+     
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                backgroundColor: '#ffffff',
+                borderRadius: 20,
+                padding: 6,
+                borderWidth: 1,
+                borderColor: '#d1d1d1',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.1,
+                shadowRadius: 2,
+                elevation: 3,
+              }}
+            >
+              <FontAwesome name="plus" size={14} color="#007AFF" />
+            </TouchableOpacity> */}
+
+
+        {/* Change Picture Button */}
+
+      </View>
+      <View style={{
+        width: '100%', position: 'absolute',
+        top: 60, justifyContent: 'center', alignItems: 'center'
+      }}>
+        <TouchableOpacity
+          onPress={() =>
+            handleImagePress(
+              profileData?.trainer_image ||
+              profileData?.application_image,
+            )
+          }>
+          <Image
+            source={{ uri: image }}
+            style={{
+
+              width: 120,
+              height: 120,
+              borderRadius: 55,
+              backgroundColor: '#fff',
+              borderRadius: 100,
+              borderWidth: 4,
+              borderColor: 'white',
+            }}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={onSelectImage}
+          style={{
+            marginTop: 10,
+            paddingVertical: 4,
+            paddingHorizontal: 10,
+            borderRadius: 10,
+            backgroundColor: 'white',
+            borderWidth: 1, borderColor: colors.Black
+          }}
+        >
+          <Text
+            style={{
+              color: 'black',
+              fontSize: 12,
+              fontFamily: 'Inter-Bold',
+              letterSpacing: 0.5,
+            }}
+          >
+            Change Picture
+          </Text>
+        </TouchableOpacity>
+      </View>
+      {/* Profile Image Section */}
+      <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', paddingTop: 70 }}>
+
+
+        <View style={{ marginTop: 30, width: '100%', paddingHorizontal: 10 }}>
           {/* Name Field */}
           <View style={{ marginBottom: 20 }}>
             <Text
@@ -249,7 +328,7 @@ const EditProfileScreen = () => {
             <TextInput
               style={{
                 height: 40,
-                borderColor: 'black',
+                borderColor: '#a9a9a9',
                 borderWidth: 1,
                 borderRadius: 10,
                 marginTop: 5,
@@ -273,7 +352,7 @@ const EditProfileScreen = () => {
             <TextInput
               style={{
                 height: 40,
-                borderColor: 'black',
+                borderColor: '#a9a9a9',
                 borderWidth: 1,
                 borderRadius: 10,
                 marginTop: 5,
@@ -296,7 +375,7 @@ const EditProfileScreen = () => {
             </Text>
             <TextInput
               style={{
-                borderColor: 'black',
+                borderColor: '#a9a9a9',
                 borderWidth: 1,
                 borderRadius: 10,
                 marginTop: 5,
@@ -317,34 +396,230 @@ const EditProfileScreen = () => {
           </View>
         </View>
 
-        <View style={{ paddingTop: 30, alignItems: 'center' }}>
-          {UpdateLoading ? (
-            <View>
-              <ActivityIndicator size="small" color={colors.Black} />
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={{
-                height: 45,
-                backgroundColor: 'black',
-                borderRadius: 10,
-                width: '100%',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-              onPress={UpdateProfileApi}>
-              <Text
-                style={{
-                  color: 'white',
-                  fontSize: 16,
-                  fontFamily: 'Inter-Medium',
-                }}>
-                Update Profile
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
+
       </View>
+      <View style={{ alignItems: 'center', paddingHorizontal: 10 }}>
+        {UpdateLoading ? (
+          <View>
+            <ActivityIndicator size="small" color={colors.Black} />
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={{
+              height: 45,
+              backgroundColor: 'white',
+              borderWidth: 1, borderColor: 'black',
+              borderRadius: 10,
+              width: '100%',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={UpdateProfileApi}>
+            <Text
+              style={{
+                color: 'black',
+                fontSize: 16,
+                fontFamily: 'Inter-Bold',
+              }}>
+              Update Profile
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <Modal
+        transparent={true}
+        visible={modalVisible}
+        animationType="fade"
+        onRequestClose={handleCloseModal}>
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          }}
+          onPress={handleCloseModal}
+          activeOpacity={1}>
+          <View
+            style={{
+              width: '80%',
+              height: '40%',
+              backgroundColor: 'white',
+              borderRadius: 150,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onStartShouldSetResponder={() => true}
+            onTouchEnd={e => e.stopPropagation()}>
+            <Image
+              source={{ uri: selectedImage }}
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: 150,
+                resizeMode: 'stretch', // Make sure the image fits in the modal
+              }}
+            />
+            {/* <TouchableOpacity
+                    style={{
+                      position: 'absolute',
+                      bottom: 20,
+                      backgroundColor: '#007BFF',
+                      paddingHorizontal: 20,
+                      paddingVertical: 10,
+                      borderRadius: 10,
+                    }}
+                    onPress={handleCloseModal}>
+                    <Text style={{color: 'white', fontWeight: 'bold'}}>OK</Text>
+                  </TouchableOpacity> */}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={imageSelectModal}
+        onRequestClose={closeImageSelectModal}>
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          }}
+          activeOpacity={1}
+          onPress={closeImageSelectModal}>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+              width: '80%',
+              paddingVertical: 5,
+            }}>
+            <TouchableOpacity
+              onPress={closeImageSelectModal}
+              style={{
+                marginRight: 1,
+                backgroundColor: 'white',
+                borderRadius: 50,
+              }}>
+              <Entypo name="cross" size={25} color="black" />
+            </TouchableOpacity>
+          </View>
+          <View
+            style={{
+              backgroundColor: 'white',
+              padding: 20,
+              borderRadius: 10,
+              width: '80%',
+              alignItems: 'center',
+            }}
+            onStartShouldSetResponder={() => true}
+            onTouchEnd={e => e.stopPropagation()}>
+
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: 'bold',
+                marginBottom: 10,
+                color: 'black',
+                fontFamily: 'Inter-Medium',
+              }}>
+              Update Profile Picture
+            </Text>
+
+            <Text
+              style={{
+                fontSize: 14,
+                marginBottom: 20,
+                textAlign: 'center',
+                color: 'black',
+                fontFamily: 'Inter-Medium',
+              }}>
+              How would you like to upload your photo?
+            </Text>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                width: '100%',
+              }}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: 'white',
+                  borderWidth: 1, borderColor: 'black',
+                  padding: 10,
+                  borderRadius: 5,
+                  width: '45%',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  flexDirection: 'row', gap: 10,
+                  // 🌟 Shadow for iOS
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 3,
+
+                  // 🌟 Elevation for Android
+                  elevation: 4,
+                }}
+                onPress={() => {
+                  closeImageSelectModal();
+                  onCamera();
+                }}>
+                <MaterialIcons name="photo-camera" size={20} color="black" />
+                <Text
+                  style={{
+                    color: 'black',
+                    fontWeight: 'bold',
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  Camera
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  backgroundColor: 'white',
+                  borderWidth: 1, borderColor: 'black',
+                  padding: 10,
+                  borderRadius: 5,
+                  width: '45%',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  flexDirection: 'row', gap: 10,
+
+                  // 🌟 Shadow for iOS
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 3,
+
+                  // 🌟 Elevation for Android
+                  elevation: 4,
+                }}
+                onPress={() => {
+                  closeImageSelectModal();
+                  onGallery();
+                }}>
+                <MaterialIcons name="photo-library" size={20} color="black" />
+                <Text
+                  style={{
+                    color: 'black',
+                    fontWeight: 'bold',
+                    fontFamily: 'Inter-Regular',
+                  }}>
+                  Gallery
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
     </View>
   );
 };

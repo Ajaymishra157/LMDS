@@ -351,7 +351,7 @@ const AdvancePaymentList = () => {
                     flexDirection: 'row',
                 }}>
                 <TouchableOpacity
-                    style={{ position: 'absolute', top: 18.5, left: 15 }}
+                    style={{ position: 'absolute', top: 3, left: 5, borderColor: 'white', width: 50, height: 50, justifyContent: 'center', alignItems: 'center' }}
                     onPress={() => {
                         navigation.goBack();
                     }}>
@@ -1239,7 +1239,7 @@ const AdvancePaymentList = () => {
 
                                             <Text
                                                 style={{
-                                                    fontFamily: 'Inter-Regular',
+                                                    fontFamily: 'Inter-Bold',
                                                     fontSize: 12,
                                                     color: '#555',
                                                     textAlign: 'center',

@@ -486,7 +486,7 @@ const LeaveApplication = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{ position: 'absolute', top: 18.5, left: 15 }}
+          style={{ position: 'absolute', top: 3, left: 5, borderColor: 'white', width: 50, height: 50, justifyContent: 'center', alignItems: 'center' }}
           onPress={() => {
             navigation.goBack();
           }}>

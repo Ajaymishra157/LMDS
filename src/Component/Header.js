@@ -19,6 +19,11 @@ const Header = ({ title }) => {
   const [pendingAdvanceEntries, setPendingAdvanceEntries] = useState([]);
   const [pendingLeaveEntries, setPendingLeaveEntries] = useState([]);
 
+  const [reminderCount, setReminderCount] = useState(0);
+  const [StudentLeaveCount, setStudentLeaveCount] = useState(0);
+  console.log("studentLeaveCount itna hai", StudentLeaveCount);
+
+
 
 
 
@@ -41,7 +46,22 @@ const Header = ({ title }) => {
     };
 
     fetchData();
+
+    const intervalId = setInterval(fetchRealTimeData, 5000); // Poll every 5 seconds for updates
+
+    return () => clearInterval(intervalId);
   }, []);
+
+  const fetchRealTimeData = async () => {
+    if (userType === 'Manager') {
+      await OtherAdvancePaymentApi();
+      await OthersLeaveApi();
+      await OtherRemindersApi();
+    }
+    if (userType === 'Trainer') {
+      await StudentLeaveApi();
+    }
+  };
 
   const fetchProfile = async (userType) => {
     const id = await AsyncStorage.getItem(
@@ -220,11 +240,62 @@ const Header = ({ title }) => {
     }
   };
 
+  const OtherRemindersApi = async () => {
+    try {
+      const response = await fetch(ENDPOINTS.List_Reminder_Notification, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ type: 'Staff' }),
+      });
+
+      const data = await response.json();
+      if (data.code === 200) {
+        setReminderCount((data.payload || []).length); // 👈 Set the reminder count
+      } else {
+        setReminderCount(0);
+      }
+    } catch (error) {
+      console.error('Error fetching reminders:', error);
+      setReminderCount(0);
+    }
+  };
+
+  const StudentLeaveApi = async () => {
+    console.log("student Leave APi Successfully");
+    const trainerId = await AsyncStorage.getItem('trainer_id');
+    try {
+      const response = await fetch(ENDPOINTS.Leave_Student_Message, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          trainer_id: trainerId
+        }),
+      });
+
+      const data = await response.json();
+      if (data.code === 200) {
+        setStudentLeaveCount((data.payload.students || []).length);  // 👈 Set the reminder count
+      } else {
+        setStudentLeaveCount(0);
+      }
+    } catch (error) {
+      console.error('Error fetching reminders:', error);
+      setStudentLeaveCount(0);
+    }
+  };
+
+
 
 
   useEffect(() => {
     OtherAdvancePaymentApi();
     OthersLeaveApi();
+    OtherRemindersApi();
+    StudentLeaveApi();
   }, []);
 
 
@@ -235,13 +306,28 @@ const Header = ({ title }) => {
     const advance = parseInt(advanceCount) || 0;
     const leave = parseInt(leaveCount) || 0;
     const punch = showMissedPunch ? 1 : 0;
+    const reminder = parseInt(reminderCount) || 0;
+    const studentLeave = parseInt(StudentLeaveCount) || 0;
 
     if (userType === 'Manager') {
-      return advance + leave + punch;
-    } else {
+      return advance + leave + punch + reminder;
+    }
+    else if (userType === 'Admin') {
+      return;
+    }
+    else if (userType === 'Student') {
       return punch;
     }
+    else if (userType === 'Trainer') {
+      // Make sure to include student leave count for trainer
+      return punch + studentLeave;
+    } else {
+      return punch + reminder;
+    }
   };
+  useEffect(() => {
+    totalNotifications();
+  }, []);
 
 
 
@@ -321,6 +407,7 @@ const Header = ({ title }) => {
       pendingLeaveNames,
       pendingAdvanceEntries,
       pendingLeaveEntries,
+      reminderCount,
     });
   };
 

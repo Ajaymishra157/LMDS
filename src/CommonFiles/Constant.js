@@ -1,4 +1,5 @@
 export const BASE_URL = 'https://drivingschoolindia.com/webmasters_admin/api/';
+// export const BASE_URL = 'https://drivingschoolindia.com/webmasters_admin/api_dev/';
 // export const BASE_URL = 'https://drivingschoolindia.com/NEWLUCKY/api/';
 
 export const ENDPOINTS = {
@@ -48,4 +49,77 @@ export const ENDPOINTS = {
   Check_Student_Verification: `${BASE_URL}check_student_verification.php`,
   Count_Student_Leave_Complaint: `${BASE_URL}count_student_leave_complaint.php`,
   Update_Trainer_Profile: `${BASE_URL}update_trainer_profile.php`,
+  List_Staff: `${BASE_URL}list_staff.php`,
+  Slot_Wise_Student_List: `${BASE_URL}list_trainer_slot_wise_student.php`,
+  Student_Due_Amount: `${BASE_URL}list_student_due_amount.php`,
+  Leave_Student_Message: `${BASE_URL}list_student_leave_message.php`,
+  Add_Student_Leave_Reason: `${BASE_URL}add_student_leave_reason.php`,
+  List_Student: `${BASE_URL}list_student.php`,
+  List_Student_Attendance_Datewise: `${BASE_URL}list_student_attendance_datewise.php`,
+  List_Staff_Attendance_Datewise: `${BASE_URL}list_staff_attendance_datewise.php`,
+  Count_Today_Student: `${BASE_URL}count_today_student.php`,
+  List_Personal_Notes: `${BASE_URL}list_personal_note.php`,
+  Add_Personal_Notes: `${BASE_URL}add_personal_note.php`,
+  Delete_Personal_Notes: `${BASE_URL}delete_personal_note.php`,
+  Update_Personal_Notes: `${BASE_URL}update_personal_note.php`,
+  Add_Chat: `${BASE_URL}add_chat.php`,
+  Change_Status_Personal_Note: `${BASE_URL}change_status_personal_note.php`,
+  List_Chat: `${BASE_URL}list_chat.php`,
+  Delete_Chat: `${BASE_URL}delete_chat.php`,
+  Update_Chat: `${BASE_URL}update_chat.php`,
+  Change_Chat_Status: `${BASE_URL}change_chat_status.php`,
+  Add_Reminder_Notification: `${BASE_URL}add_reminder_notification.php`,
+  List_Reminder_Notification: `${BASE_URL}list_reminder_notification.php`,
+  Update_Reminder_Notification: `${BASE_URL}update_reminder_notification.php`,
+  Delete_Reminder_Notification: `${BASE_URL}delete_reminder_notification.php`,
+  list_outstanding: `${BASE_URL}list_outstanding.php`,
+  list_application_date_wise: `${BASE_URL}list_application_date_wise.php`,
+  search_application: `${BASE_URL}search_application.php`,
+  monthly_salary_report: `${BASE_URL}monthly_salary_report.php`,
+  list_booked_schedule: `${BASE_URL}list_booked_schedule.php`,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 };

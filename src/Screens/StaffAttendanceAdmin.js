@@ -78,7 +78,7 @@ const StaffAttendence = () => {
 
     const fetchStaffList = async () => {
         const trainerId = await AsyncStorage.getItem('trainer_id');
-        console.log("API called successfully");
+
         try {
             const response = await fetch(ENDPOINTS.List_Staff, {
                 method: 'POST',
@@ -329,11 +329,11 @@ const StaffAttendence = () => {
         setManagerLoading(true);
 
         const trainerId = await AsyncStorage.getItem('trainer_id');
-        const staffIdToSend = selectedStaffId || trainerId;
+        const staffIdToSend = selectedStaffId ? selectedStaffId : "";
         console.log("manager fromdata", fromdate, tilldate, staffIdToSend)
 
         try {
-            const response = await fetch(ENDPOINTS.Manager_Staff_Attendence_List, {
+            const response = await fetch(ENDPOINTS.List_Staff_Attendance_Datewise, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -842,43 +842,60 @@ const StaffAttendence = () => {
                                 flex: 1,
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                backgroundColor: 'rgba(0, 0, 0, 0.4)',
                             }}
                             onPress={() => setSlotDropdownVisible(false)}
                             activeOpacity={1}
                         >
                             <View
                                 style={{
-                                    width: '35%',
+                                    width: '80%',
+                                    maxHeight: 300, // ✅ Allow scroll if items overflow
                                     backgroundColor: 'white',
-                                    borderRadius: 8,
+                                    borderRadius: 10,
                                     paddingVertical: 10,
+                                    paddingHorizontal: 10,
+                                    elevation: 5, // Android shadow
+                                    shadowColor: '#000',
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 4,
                                 }}
                                 onStartShouldSetResponder={() => true}
                                 onTouchEnd={(e) => e.stopPropagation()}
                             >
                                 <FlatList
                                     data={staffOptions}
-                                    keyExtractor={(item) => item.id}
+                                    keyExtractor={(item) => item.id.toString()}
+                                    nestedScrollEnabled // ✅ Android scroll support
+                                    showsVerticalScrollIndicator={false}
                                     renderItem={({ item }) => (
                                         <TouchableOpacity
-                                            onPress={() => handleSelect(item)} // ✅ Pass full object
+                                            onPress={() => handleSelect(item)}
                                             style={{
                                                 paddingVertical: 12,
-                                                paddingHorizontal: 20,
+                                                paddingHorizontal: 15,
                                                 backgroundColor: item.name === SelectedStaffName ? '#4CAF50' : 'white',
+                                                borderBottomWidth: 0.5,
+                                                borderColor: '#ccc',
                                             }}
                                         >
-                                            <Text style={{ color: item.name === SelectedStaffName ? 'white' : 'black', fontSize: 16 }}>
+                                            <Text
+                                                style={{
+                                                    color: item.name === SelectedStaffName ? 'white' : '#333',
+                                                    fontSize: 16,
+                                                    fontFamily: 'Inter-Regular',
+                                                }}
+                                            >
                                                 {item.name}
                                             </Text>
                                         </TouchableOpacity>
                                     )}
                                 />
-
                             </View>
                         </TouchableOpacity>
                     </Modal>
+
                 </View>
             )}
             <View
@@ -895,72 +912,74 @@ const StaffAttendence = () => {
                     {/* Today Attendance Header */}
 
                     {/* Attendance Table */}
-                    <View
-                        style={{
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            backgroundColor: '#c4f5c5',
-                            width: '100%',
-                            borderTopWidth: 1, borderColor: 'black',
-                            borderLeftWidth: 1,
-                            borderBottomWidth: 1
+                    {ManagerList.length !== 0 && (
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                backgroundColor: '#c4f5c5',
+                                width: '100%',
+                                borderTopWidth: 1, borderColor: 'black',
+                                borderLeftWidth: 1,
+                                borderBottomWidth: 1
 
-                        }}>
-                        {/* Column Titles */}
-                        <View style={{ alignItems: 'center', borderRightWidth: 1, justifyContent: 'center', width: '30%', borderColor: 'black', }}>
-                            <Text
-                                style={{
-                                    fontWeight: 'bold',
-                                    fontFamily: 'Inter-Regular',
-                                    color: 'black',
-                                    paddingVertical: 7,
-                                }}>
-                                Staff Name
-                            </Text>
-                        </View>
-                        <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
-                            <Text
-                                style={{
-                                    fontWeight: 'bold',
-                                    fontFamily: 'Inter-Regular',
-                                    color: 'black',
+                            }}>
+                            {/* Column Titles */}
+                            <View style={{ alignItems: 'center', borderRightWidth: 1, justifyContent: 'center', width: '30%', borderColor: 'black', }}>
+                                <Text
+                                    style={{
+                                        fontWeight: 'bold',
+                                        fontFamily: 'Inter-Regular',
+                                        color: 'black',
+                                        paddingVertical: 7,
+                                    }}>
+                                    Staff Name
+                                </Text>
+                            </View>
+                            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
+                                <Text
+                                    style={{
+                                        fontWeight: 'bold',
+                                        fontFamily: 'Inter-Regular',
+                                        color: 'black',
 
-                                }}>
-                                Punch In
-                            </Text>
-                        </View>
-                        <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
-                            <Text
-                                style={{
-                                    fontWeight: 'bold',
-                                    fontFamily: 'Inter-Regular',
-                                    color: 'black',
+                                    }}>
+                                    Punch In
+                                </Text>
+                            </View>
+                            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
+                                <Text
+                                    style={{
+                                        fontWeight: 'bold',
+                                        fontFamily: 'Inter-Regular',
+                                        color: 'black',
 
-                                }}>
-                                Punch Out
-                            </Text>
-                        </View>
-                        <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
-                            <Text
-                                style={{
-                                    fontWeight: 'bold',
-                                    fontFamily: 'Inter-Regular',
-                                    color: 'black',
-                                }}>
-                                Status
-                            </Text>
-                        </View>
-                        <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '10%', borderColor: 'black', }}>
-                            <Text
-                                style={{
-                                    fontWeight: 'bold',
-                                    fontFamily: 'Inter-Regular',
-                                    color: 'black',
-                                }}>
+                                    }}>
+                                    Punch Out
+                                </Text>
+                            </View>
+                            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
+                                <Text
+                                    style={{
+                                        fontWeight: 'bold',
+                                        fontFamily: 'Inter-Regular',
+                                        color: 'black',
+                                    }}>
+                                    Status
+                                </Text>
+                            </View>
+                            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '10%', borderColor: 'black', }}>
+                                <Text
+                                    style={{
+                                        fontWeight: 'bold',
+                                        fontFamily: 'Inter-Regular',
+                                        color: 'black',
+                                    }}>
 
-                            </Text>
+                                </Text>
+                            </View>
                         </View>
-                    </View>
+                    )}
                 </View>
                 {/* Dynamic Data Section (Static Example Data) */}
                 <View style={{ flex: 1 }}>

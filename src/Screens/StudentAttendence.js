@@ -9,6 +9,7 @@ import {
   RefreshControl,
   View,
   Alert,
+  Image
 } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import Header from '../Component/Header';
@@ -20,6 +21,7 @@ import colors from '../CommonFiles/Colors';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const StudentAttendence = () => {
+  const StaffAttendance = require('../assets/images/StaffAttendance.png');
   const [refreshing, setRefreshing] = useState(false);
 
   const navigation = useNavigation();
@@ -228,7 +230,7 @@ const StudentAttendence = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{ position: 'absolute', top: 18.5, left: 15 }}
+          style={{ position: 'absolute', top: 3, left: 5, borderColor: 'white', width: 50, height: 50, justifyContent: 'center', alignItems: 'center' }}
           onPress={() => {
             navigation.goBack();
           }}>
@@ -321,36 +323,40 @@ const StudentAttendence = () => {
           backgroundColor: '#ccc',
         }}
       />
-
-      {!loading && (
-        <ScrollView
-          style={{ flex: 1, padding: 10 }}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={['#9Bd35A', '#689F38']}
-            />
-          }>
-          {/* Table Header */}
-          <View
-            style={{
-              flexDirection: 'row',
-              backgroundColor: '#ddd',
-              padding: 10,
-              borderRadius: 5,
+      {/* Table Header */}
+      {attendanceData.length !== 0 && (
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            backgroundColor: '#c4f5c5',
+            borderWidth: 1,
+            width: '100%',
+            marginTop: 10,
+          }}>
+          <View style={{
+            borderRightWidth: 1,
+            padding: 7,
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '33.33%',
+          }}>
+            <Text style={{
+              fontWeight: 'bold',
+              fontFamily: 'Inter-Regular',
+              textAlign: 'center',
+              color: 'black'
             }}>
-            <Text
-              style={{
-                flex: 1,
-                fontWeight: 'bold',
-                marginLeft: 5,
-                fontFamily: 'Inter-Regular',
-                textAlign: 'center',
-              }}>
               Date
             </Text>
+          </View>
+          <View style={{
+            borderRightWidth: 1,
+            padding: 7,
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '33.33%',
+          }}>
             <Text
               style={{
                 flex: 1,
@@ -361,6 +367,15 @@ const StudentAttendence = () => {
               }}>
               In Time
             </Text>
+          </View>
+
+          <View style={{
+
+            padding: 7,
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '33.33%',
+          }}>
 
             <Text
               style={{
@@ -373,6 +388,22 @@ const StudentAttendence = () => {
               Status
             </Text>
           </View>
+        </View>
+
+      )}
+
+      {!loading && (
+        <ScrollView
+          style={{ flex: 1, }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#9Bd35A', '#689F38']}
+            />
+          }>
+
 
           {/* Data List using .map() */}
           {attendanceData.length > 0 ? (
@@ -381,59 +412,109 @@ const StudentAttendence = () => {
                 key={index}
                 style={{
                   flexDirection: 'row',
-                  padding: 10,
-                  borderBottomWidth: 1,
-                  borderColor: '#ccc',
-                }}>
-                <Text
-                  style={{
-                    flex: 1,
-                    fontFamily: 'Inter-Regular',
-                    textAlign: 'center',
-                    fontSize: 13,
-                    color: colors.Black,
-                  }}>
-                  {item.attendance_date}
-                </Text>
-                <Text
-                  style={{
-                    flex: 1,
-                    marginLeft: 5,
-                    fontFamily: 'Inter-Regular',
-                    textAlign: 'center',
-                    fontSize: 13,
-                    color: colors.Black,
-                  }}>
-                  {item.punch_in_time || '----'}
-                </Text>
 
-                <Text
-                  style={{
-                    flex: 1,
-                    marginLeft: 5,
-                    fontFamily: 'Inter-Regular',
-                    textAlign: 'center',
-                    color:
-                      item.attendance_status == 'Present'
-                        ? 'green'
-                        : item.attendance_status == 'Absent'
-                          ? 'red'
-                          : 'black',
-                  }}>
-                  {item.attendance_status || '----'}
-                </Text>
+                  borderBottomWidth: 1,
+                  borderBottomColor: 'black',
+                  borderLeftWidth: 1,
+                  borderRightWidth: 1,
+                  width: '100%',
+                  backgroundColor:
+                    index % 2 === 0 ? '#fff' : '#f2f2f2',
+                }}>
+                <View style={{
+                  alignItems: 'center',
+
+                  justifyContent: 'center',
+                  borderRightWidth: 1,
+                  width: '33.33%',
+
+                }}>
+                  <Text
+                    style={{
+                      flex: 1,
+                      fontFamily: 'Inter-Regular',
+                      textAlign: 'center',
+                      fontSize: 13,
+                      color: colors.Black,
+                    }}>
+                    {item.attendance_date}
+                  </Text>
+                </View>
+                <View style={{
+                  alignItems: 'center',
+
+                  justifyContent: 'center',
+                  borderRightWidth: 1,
+                  width: '33.33%',
+
+                }}>
+                  <Text
+                    style={{
+                      flex: 1,
+                      marginLeft: 5,
+                      fontFamily: 'Inter-Regular',
+                      textAlign: 'center',
+                      fontSize: 13,
+                      color: colors.Black,
+                    }}>
+                    {item.punch_in_time || '----'}
+                  </Text>
+                </View>
+                <View style={{
+                  alignItems: 'center',
+
+                  justifyContent: 'center',
+
+                  width: '33.33%',
+
+                }}>
+
+                  <Text
+                    style={{
+                      flex: 1,
+                      marginLeft: 5,
+                      fontFamily: 'Inter-Regular',
+                      textAlign: 'center',
+                      color:
+                        item.attendance_status == 'Present'
+                          ? 'green'
+                          : item.attendance_status == 'Absent'
+                            ? 'red'
+                            : 'black',
+                    }}>
+                    {item.attendance_status || '----'}
+                  </Text>
+                </View>
               </View>
             ))
           ) : (
-            <Text
+            <View
               style={{
-                textAlign: 'center',
-                marginTop: 20,
-                fontFamily: 'Inter-Regular',
-                color: 'red',
+                height: 600,
+                justifyContent: 'center',
+                alignItems: 'center',
+
               }}>
-              No Attendence Yet
-            </Text>
+              <Image source={StaffAttendance}
+
+                style={{
+                  width: 70,
+                  height: 70,
+
+
+                }}
+
+              />
+              <Text
+                style={{
+                  textAlign: 'center',
+                  marginTop: 20,
+                  fontFamily: 'Inter-Regular',
+                  color: 'red',
+                }}>
+                No Attendence Yet
+              </Text>
+            </View>
           )}
         </ScrollView>
       )}

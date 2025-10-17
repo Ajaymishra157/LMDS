@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   View,
+  Image,
 } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import Header from '../Component/Header';
@@ -19,6 +20,7 @@ import colors from '../CommonFiles/Colors';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const AttendenceScreen = () => {
+  const StaffAttendance = require('../assets/images/StaffAttendance.png');
   const [refreshing, setRefreshing] = useState(false);
 
   const navigation = useNavigation();
@@ -172,7 +174,7 @@ const AttendenceScreen = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{ position: 'absolute', top: 18.5, left: 15 }}
+          style={{ position: 'absolute', top: 3, left: 5, borderColor: 'white', width: 50, height: 50, justifyContent: 'center', alignItems: 'center' }}
           onPress={() => {
             navigation.goBack();
           }}>
@@ -502,15 +504,33 @@ const AttendenceScreen = () => {
               </View>
             ))
           ) : (
-            <Text
+            <View
               style={{
-                textAlign: 'center',
-                marginTop: 20,
-                fontFamily: 'Inter-Regular',
-                color: 'red',
+                height: 600,
+                justifyContent: 'center',
+                alignItems: 'center',
+
               }}>
-              No Attendence Yet
-            </Text>
+              <Image source={StaffAttendance}
+
+                style={{
+                  width: 70,
+                  height: 70,
+
+
+                }}
+
+              />
+              <Text
+                style={{
+                  textAlign: 'center',
+                  marginTop: 20,
+                  fontFamily: 'Inter-Regular',
+                  color: 'red',
+                }}>
+                No Attendence Yet
+              </Text>
+            </View>
           )}
         </ScrollView>
       )}

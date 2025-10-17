@@ -22,6 +22,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 const ComplainScreen = () => {
   const Delete = require('../assets/images/delete.png');
   const Update = require('../assets/images/Update.png');
+  const Complaint = require('../assets/images/Complaint.png')
   const [ComplaintList, setComplaintList] = useState([]);
   const [ComplaintLoading, setComplaintLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -130,7 +131,8 @@ const ComplainScreen = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{ position: 'absolute', top: 18.5, left: 15 }}
+          style={{ position: 'absolute', top: 3, left: 5, borderColor: 'white', width: 50, height: 50, justifyContent: 'center', alignItems: 'center' }}
+
           onPress={() => {
             navigation.goBack();
           }}>
@@ -147,45 +149,7 @@ const ComplainScreen = () => {
           Complaint Details
         </Text>
       </View>
-      <View
-        style={{
-          alignItems: 'center',
-          justifyContent: 'center',
 
-          height: 90,
-        }}>
-        <TouchableOpacity
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'white',
-            borderWidth: 1, borderColor: 'black',
-            paddingVertical: 10,
-            paddingHorizontal: 20,
-            borderRadius: 10,
-            elevation: 5,
-            width: '80%',
-          }}
-          onPress={() => navigation.navigate('CreateComplaint')}>
-          <AntDesign
-            name="plus"
-            size={24}
-            color="black"
-            style={{ marginRight: 10 }}
-          />
-
-          <Text
-            style={{
-              fontSize: 16,
-              color: 'black',
-
-              fontFamily: 'Inter-Bold',
-            }}>
-            New Complaint
-          </Text>
-        </TouchableOpacity>
-      </View>
       <View
         style={{
           padding: 20,
@@ -198,16 +162,18 @@ const ComplainScreen = () => {
             flexDirection: 'row',
             justifyContent: 'space-between',
           }}>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: 'bold',
-              marginBottom: 5,
-              color: colors.Black,
-              fontFamily: 'Inter-Regular',
-            }}>
-            Recent Complaints
-          </Text>
+          {ComplaintList.length !== 0 && (
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: 'bold',
+                marginBottom: 5,
+                color: colors.Black,
+                fontFamily: 'Inter-Regular',
+              }}>
+              Recent Complaints
+            </Text>
+          )}
           {/* <TouchableOpacity
             onPress={() => {
               navigation.navigate('ComplaintDetails');
@@ -342,13 +308,18 @@ const ComplainScreen = () => {
             ListEmptyComponent={
               <View
                 style={{
+                  flex: 1,
                   justifyContent: 'center',
                   alignItems: 'center',
                   padding: 20,
+                  height: 600
                 }}>
+                <Image source={Complaint} style={{ height: 70, width: 70 }} />
+
                 <Text
                   style={{
                     fontSize: 18,
+                    marginTop: 10,
                     color: 'red',
                     fontFamily: 'Inter-Regular',
                   }}>
@@ -359,6 +330,43 @@ const ComplainScreen = () => {
           />
         )}
       </View>
+      <TouchableOpacity
+        style={{
+          position: 'absolute',
+          flexDirection: 'row',
+          justifyContent: 'center', alignItems: 'center',
+          bottom: 20,
+          left: 20,
+          right: 20,
+          backgroundColor: 'white',
+          paddingVertical: 14,
+          borderRadius: 10,
+          alignItems: 'center',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.3,
+          shadowRadius: 3,
+          zIndex: 999,
+          borderWidth: 1, borderColor: colors.Black
+        }}
+        onPress={() => navigation.navigate('CreateComplaint')}>
+        <AntDesign
+          name="plus"
+          size={24}
+          color="black"
+          style={{ marginRight: 10 }}
+        />
+
+        <Text
+          style={{
+            fontSize: 16,
+            color: 'black',
+
+            fontFamily: 'Inter-Bold',
+          }}>
+          New Complaint
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };

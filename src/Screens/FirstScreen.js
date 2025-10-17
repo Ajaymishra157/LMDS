@@ -1,8 +1,9 @@
-import { BackHandler, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { BackHandler, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import Header from '../Component/Header'
 import colors from '../CommonFiles/Colors'
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,6 +16,10 @@ const FirstScreen = () => {
     const navigation = useNavigation();
     const leave = require('../assets/images/leave.png');
     const LeaveApplication = require('../assets/images/LeaveApplication.png');
+    const Book = require('../assets/images/book.png');
+    const Application = require('../assets/images/Application.png');
+    const salary = require('../assets/images/salary.png');
+
     const [trainerName, setTrainerName] = useState('');
     const [ConfrimationModal, setConfrimationModal] = useState(false);
     const [userType, setUserType] = useState('');
@@ -221,7 +226,7 @@ const FirstScreen = () => {
 
 
             />
-            <View style={{ flex: 1 }}>
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 50 }}>
                 <View style={{
                     backgroundColor: '#f2f2f2', padding: 5, width: '100%', borderBottomWidth: 1, borderColor: '#ddd'
 
@@ -244,6 +249,7 @@ const FirstScreen = () => {
                                 color: '#333',
                                 fontFamily: 'Inter-Regular',
                                 marginLeft: 10,
+
                             }}>
                             Welcome, {userType === 'Student'
                                 ? ProfileData?.application_student_name || '---'
@@ -697,7 +703,7 @@ const FirstScreen = () => {
                             </TouchableOpacity>
                         )}
 
-                        {userType !== 'Student' && (
+                        {userType !== 'Student' && userType !== 'Admin' && (
                             <TouchableOpacity
                                 style={{
                                     alignItems: 'center',
@@ -747,7 +753,7 @@ const FirstScreen = () => {
 
                         )}
 
-                        {userType !== 'Manager' && (
+                        {userType !== 'Manager' && userType !== 'Admin' && (
                             <TouchableOpacity
                                 style={{
                                     alignItems: 'center',
@@ -798,6 +804,173 @@ const FirstScreen = () => {
 
                             </TouchableOpacity>
                         )}
+
+                        {/* samsuddin sir visible tabs */}
+                        {userType === 'Admin' && (
+                            <TouchableOpacity
+                                style={{
+                                    alignItems: 'center',
+                                    justifyContent: 'flex-start', // 👈 makes icon stick to top
+                                    backgroundColor: 'white',
+                                    paddingVertical: 10,
+                                    width: 100, // optional for uniformity
+                                    minHeight: 120,
+
+
+
+
+                                }}
+                                onPress={() => {
+                                    navigation.navigate('ListNotesAdmin');
+                                }}
+                            >
+                                <View
+                                    style={{
+                                        width: 50,
+                                        height: 50,
+                                        borderRadius: 50,
+                                        backgroundColor: 'white',
+                                        borderWidth: 1, borderColor: '#80ed99',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        marginBottom: 10,
+
+                                        shadowColor: '#000',
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.2,
+                                        shadowRadius: 3,
+
+                                    }}>
+                                    <MaterialIcons name="notifications-active" size={23} color="#80ed99" />
+
+                                </View>
+                                <Text
+                                    style={{
+                                        color: 'black',
+                                        fontSize: 14,
+                                        textAlign: 'center',
+                                        fontFamily: 'Inter-Medium',
+                                        width: 80, // 🔧 Adjust this as per your layout
+                                    }}
+                                    numberOfLines={2}
+                                    adjustsFontSizeToFit
+                                >
+                                    Reminder
+                                </Text>
+
+                            </TouchableOpacity>
+                        )}
+
+                        {userType === 'Admin' && (
+                            <TouchableOpacity
+                                style={{
+                                    alignItems: 'center',
+                                    justifyContent: 'flex-start', // 👈 makes icon stick to top
+                                    backgroundColor: 'white',
+                                    paddingVertical: 10,
+                                    width: 100, // optional for uniformity
+                                    minHeight: 120,
+
+
+
+
+                                }}
+                                onPress={() => {
+                                    navigation.navigate('IncomeExpense');
+                                }}
+                            >
+                                <View
+                                    style={{
+                                        width: 50,
+                                        height: 50,
+                                        borderRadius: 50,
+                                        backgroundColor: 'white',
+                                        borderWidth: 1, borderColor: '#66b3ff',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        marginBottom: 10,
+
+                                        shadowColor: '#000',
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.2,
+                                        shadowRadius: 3,
+
+                                    }}>
+                                    <FontAwesome5 name="file-invoice-dollar" size={23} color="#66b3ff" />
+                                </View>
+                                <Text
+                                    style={{
+                                        color: 'black',
+                                        fontSize: 24,
+                                        textAlign: 'center',
+                                        fontFamily: 'Inter-Medium',
+                                        width: 100, // 🔧 Adjust this as per your layout
+                                    }}
+                                    numberOfLines={2}
+                                    adjustsFontSizeToFit
+                                >
+                                    Income/Expense Report
+                                </Text>
+
+                            </TouchableOpacity>
+                        )}
+
+                        {userType === 'Admin' && (
+                            <TouchableOpacity
+                                style={{
+                                    alignItems: 'center',
+                                    justifyContent: 'flex-start',
+                                    backgroundColor: 'white',
+                                    paddingVertical: 10,
+                                    width: 100,
+                                    minHeight: 120,
+                                }}
+                                onPress={() => {
+                                    navigation.navigate('ChatStaffList');
+                                }}
+                            >
+                                <View
+                                    style={{
+                                        width: 50,
+                                        height: 50,
+                                        borderRadius: 50,
+                                        backgroundColor: 'white',
+                                        borderWidth: 1,
+                                        borderColor: '#7286d3',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        marginBottom: 10,
+                                        shadowColor: '#000',
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.2,
+                                        shadowRadius: 3,
+                                    }}
+                                >
+                                    {/* Change the icon to something more chat-specific */}
+                                    <FontAwesome5 name="comments" size={23} color="#7286d3" />
+                                    {/* Alternate: MaterialIcons name="chat" */}
+                                </View>
+                                <Text
+                                    style={{
+                                        color: 'black',
+                                        fontSize: 14,
+                                        textAlign: 'center',
+                                        fontFamily: 'Inter-Medium',
+                                        width: 100,
+                                    }}
+                                    numberOfLines={2}
+                                    adjustsFontSizeToFit
+                                >
+                                    Admin Chat
+                                </Text>
+                            </TouchableOpacity>
+
+                        )}
+
+
+
+
+
                         {userType === 'Manager' && (
                             <TouchableOpacity
                                 style={{
@@ -848,7 +1021,7 @@ const FirstScreen = () => {
                                     numberOfLines={2}
                                     adjustsFontSizeToFit
                                 >
-                                    Staff Attendence
+                                    Staff Attendance
                                 </Text>
                             </TouchableOpacity>
                         )}
@@ -905,7 +1078,7 @@ const FirstScreen = () => {
 
 
                         {/* First Box (Staff) */}
-                        {userType !== 'Trainer' && userType !== 'Manager' && userType !== 'Student' && (
+                        {userType !== 'Trainer' && userType !== 'Manager' && userType !== 'Student' && userType !== 'Admin' && (
                             <TouchableOpacity
                                 style={{
                                     alignItems: 'center',
@@ -1343,6 +1516,1008 @@ const FirstScreen = () => {
 
                         </View>
                     )}
+                    {userType === 'Admin' && (
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-around',
+                                backgroundColor: 'white',
+                                width: '100%',
+                                marginTop: 20,
+                                paddingHorizontal: 10,
+                                paddingVertical: 14,
+                                borderRadius: 10,
+
+
+                                // 💡 iOS shadow
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.1,
+                                shadowRadius: 4,
+
+                                // 💡 Android shadow
+                                elevation: 5,
+                            }}>
+
+
+
+                            {userType === 'Admin' && (
+                                <TouchableOpacity
+                                    style={{
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start', // 👈 makes icon stick to top
+                                        backgroundColor: 'white',
+                                        paddingVertical: 10,
+                                        width: 100, // optional for uniformity
+                                        minHeight: 120,
+
+
+
+                                    }}
+                                    onPress={() => {
+                                        navigation.navigate('OthersAdvancePayment');
+                                    }}>
+                                    <View
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: 50,
+                                            backgroundColor: 'white',
+                                            borderWidth: 1, borderColor: '#388E3C',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginBottom: 10,
+
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.2,
+                                            shadowRadius: 3,
+
+                                        }}>
+                                        <MaterialCommunityIcons name="credit-card-plus-outline" size={26} color="#388E3C" />
+
+
+
+
+                                    </View>
+                                    <Text
+                                        style={{
+                                            color: 'black',
+                                            fontSize: 14,
+                                            textAlign: 'center',
+                                            fontFamily: 'Inter-Medium',
+                                            width: 80, // 🔧 Adjust this as per your layout
+                                        }}
+                                        numberOfLines={2}
+                                        adjustsFontSizeToFit
+                                    >
+                                        Payment Requests
+                                    </Text>
+                                    {AdvanceCount > 0 && (
+                                        <View
+                                            style={{
+                                                position: 'absolute',
+                                                top: 4,
+                                                right: 18,
+                                                backgroundColor: 'red',
+                                                borderRadius: 20,
+                                                width: 22,
+                                                height: 22,
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                            }}
+                                        >
+                                            <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold' }}>
+                                                {AdvanceCount}
+                                            </Text>
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+                            )}
+
+                            {/* Second Box (Schedule) */}
+                            {userType === 'Admin' && (
+                                <TouchableOpacity
+                                    style={{
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start', // 👈 makes icon stick to top
+                                        backgroundColor: 'white',
+                                        paddingVertical: 10,
+                                        width: 100, // optional for uniformity
+                                        minHeight: 120,
+
+
+
+
+                                    }}
+                                    onPress={() => {
+                                        navigation.navigate('TrainerWiseHistoryReport');
+                                    }}
+                                >
+                                    <View
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: 50,
+                                            backgroundColor: 'white',
+                                            borderWidth: 1, borderColor: '#757575',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginBottom: 10,
+
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.2,
+                                            shadowRadius: 3,
+
+
+                                        }}>
+                                        <MaterialCommunityIcons name="history" size={26} color="#757575" />
+
+
+
+
+                                    </View>
+                                    <Text
+                                        style={{
+                                            color: 'black',
+                                            fontSize: 14,
+                                            textAlign: 'center',
+                                            fontFamily: 'Inter-Medium',
+                                            width: 80, // 🔧 Adjust this as per your layout
+                                        }}
+                                        numberOfLines={2}
+                                        adjustsFontSizeToFit
+                                    >
+                                        History Reports
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+
+
+                            {userType === 'Admin' && (
+                                <TouchableOpacity
+                                    style={{
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start', // 👈 makes icon stick to top
+                                        backgroundColor: 'white',
+                                        paddingVertical: 10,
+                                        width: 100, // optional for uniformity
+                                        minHeight: 120,
+
+
+
+
+                                    }}
+                                    onPress={() => {
+                                        navigation.navigate('TrainerWiseRewardPoint');
+                                    }}
+                                >
+                                    <View
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: 50,
+                                            backgroundColor: 'white',
+                                            borderWidth: 1, borderColor: '#FFD700',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginBottom: 10,
+
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.2,
+                                            shadowRadius: 3,
+
+
+                                        }}>
+                                        <MaterialCommunityIcons name="star-circle-outline" size={26} color="#FFD700" />
+
+
+
+
+                                    </View>
+                                    <Text
+                                        style={{
+                                            color: 'black',
+                                            fontSize: 14,
+                                            textAlign: 'center',
+                                            fontFamily: 'Inter-Medium',
+                                            width: 80, // 🔧 Adjust this as per your layout
+                                        }}
+                                        numberOfLines={2}
+                                        adjustsFontSizeToFit
+                                    >
+                                        Reward Points
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+
+
+
+
+
+
+
+                        </View>
+                    )}
+                    {userType === 'Admin' && (
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-around',
+                                backgroundColor: 'white',
+                                width: '100%',
+                                marginTop: 20,
+                                paddingHorizontal: 10,
+                                paddingVertical: 14,
+                                borderRadius: 10,
+
+
+                                // 💡 iOS shadow
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.1,
+                                shadowRadius: 4,
+
+                                // 💡 Android shadow
+                                elevation: 5,
+                            }}>
+
+
+
+                            {userType === 'Admin' && (
+                                <TouchableOpacity
+                                    style={{
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start', // 👈 makes icon stick to top
+
+                                        backgroundColor: 'white',
+                                        paddingVertical: 10,
+                                        width: 100, // optional for uniformity
+                                        minHeight: 120,
+
+
+
+                                    }}
+                                    onPress={() => {
+                                        navigation.navigate('OthersLeave');
+                                    }}>
+                                    <View
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: 50,
+                                            backgroundColor: 'white',
+                                            borderWidth: 1, borderColor: '#D93025',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginBottom: 10,
+
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.2,
+                                            shadowRadius: 3,
+                                        }}>
+                                        <Image source={leave} style={{ width: 26, height: 26, tintColor: '#D93025', color: '#D93025' }} />
+
+
+
+
+                                    </View>
+                                    <Text
+                                        style={{
+                                            color: 'black',
+                                            fontSize: 14,
+                                            textAlign: 'center',
+                                            fontFamily: 'Inter-Medium',
+                                            width: 80, // 🔧 Adjust this as per your layout
+                                        }}
+                                        numberOfLines={2}
+                                        adjustsFontSizeToFit
+                                    >
+                                        Leave Requests
+                                    </Text>
+                                    {/* Show notification dot if LeaveCount is greater than 0 */}
+                                    {LeaveCount > 0 && (
+                                        <View
+                                            style={{
+                                                position: 'absolute',
+                                                top: 4,
+                                                right: 18,
+                                                backgroundColor: 'red',
+                                                borderRadius: 20,
+                                                width: 22,
+                                                height: 22,
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                            }}
+                                        >
+                                            <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold' }}>
+                                                {LeaveCount}
+                                            </Text>
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+                            )}
+
+                            {/* Second Box (Schedule) */}
+                            {userType === 'Admin' && (
+                                <TouchableOpacity
+                                    style={{
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start', // 👈 makes icon stick to top
+                                        backgroundColor: 'white',
+                                        paddingVertical: 10,
+                                        width: 100, // optional for uniformity
+                                        minHeight: 120,
+
+
+
+                                    }}
+                                    onPress={() => {
+                                        navigation.navigate('StudentAttendanceAdmin');
+                                    }}>
+                                    <View
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: 50,
+                                            backgroundColor: 'white',
+                                            borderWidth: 1, borderColor: '#4285F4',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginBottom: 10,
+
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.2,
+                                            shadowRadius: 3,
+
+                                        }}>
+                                        <MaterialCommunityIcons name="school-outline" size={26} color="#4285F4" />
+
+
+
+
+                                    </View>
+                                    <Text
+                                        style={{
+                                            color: 'black',
+                                            fontSize: 14,
+                                            textAlign: 'center',
+                                            fontFamily: 'Inter-Medium',
+                                            width: 83, // 🔧 Adjust this as per your layout
+                                        }}
+                                        numberOfLines={2}
+                                        adjustsFontSizeToFit
+                                    >
+                                        Student Attendance
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+
+
+                            {userType === 'Admin' && (
+                                <TouchableOpacity
+                                    style={{
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start', // 👈 makes icon stick to top
+                                        backgroundColor: 'white',
+                                        paddingVertical: 10,
+                                        width: 100, // optional for uniformity
+                                        minHeight: 120,
+
+
+
+                                    }}
+                                    onPress={() => {
+                                        navigation.navigate('StaffAttendanceAdmin');
+                                    }}>
+                                    <View
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: 50,
+                                            backgroundColor: 'white',
+                                            borderWidth: 1, borderColor: '#4285F4',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginBottom: 10,
+
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.2,
+                                            shadowRadius: 3,
+
+                                        }}>
+                                        <MaterialCommunityIcons name="account-group-outline" size={26} color="#4285F4" />
+
+
+
+
+                                    </View>
+                                    <Text
+                                        style={{
+                                            color: 'black',
+                                            fontSize: 14,
+                                            textAlign: 'center',
+                                            fontFamily: 'Inter-Medium',
+                                            width: 83, // 🔧 Adjust this as per your layout
+                                        }}
+                                        numberOfLines={2}
+                                        adjustsFontSizeToFit
+                                    >
+                                        Staff Attendance
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+
+
+
+
+
+
+
+
+
+                        </View>
+                    )}
+
+                    {userType === 'Admin' && (
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-around',
+                                backgroundColor: 'white',
+                                width: '100%',
+                                marginTop: 20,
+                                paddingHorizontal: 10,
+                                paddingVertical: 14,
+                                borderRadius: 10,
+
+
+                                // 💡 iOS shadow
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.1,
+                                shadowRadius: 4,
+
+                                // 💡 Android shadow
+                                elevation: 5,
+                            }}>
+
+
+
+
+
+                            {userType === 'Admin' && (
+                                <TouchableOpacity
+                                    style={{
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start',
+                                        backgroundColor: 'white',
+                                        paddingVertical: 10,
+                                        width: 100,
+                                        minHeight: 120,
+                                    }}
+                                    onPress={() => {
+                                        navigation.navigate('ListReminderAdmin');
+                                    }}
+                                >
+                                    <View
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: 50,
+                                            backgroundColor: 'white',
+                                            borderWidth: 1,
+                                            borderColor: '#7286d3',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginBottom: 10,
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.2,
+                                            shadowRadius: 3,
+                                        }}
+                                    >
+                                        {/* Change the icon to something more chat-specific */}
+                                        <FontAwesome5 name="calendar-alt" size={23} color="#7286d3" />
+
+
+                                        {/* Alternate: MaterialIcons name="chat" */}
+                                    </View>
+                                    <Text
+                                        style={{
+                                            color: 'black',
+                                            fontSize: 14,
+                                            textAlign: 'center',
+                                            fontFamily: 'Inter-Medium',
+                                            width: 100,
+                                        }}
+                                        numberOfLines={2}
+                                        adjustsFontSizeToFit
+                                    >
+                                        My Schedule
+                                    </Text>
+                                </TouchableOpacity>
+
+                            )}
+
+                            {userType === 'Admin' && (
+                                <TouchableOpacity
+                                    style={{
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start',
+                                        backgroundColor: 'white',
+                                        paddingVertical: 10,
+                                        width: 100,
+                                        minHeight: 120,
+                                    }}
+                                    onPress={() => {
+                                        navigation.navigate('MonthlySalaryScreen');
+                                    }}
+                                >
+                                    <View
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: 50,
+                                            backgroundColor: '#e6f5ea', // light green background
+                                            borderWidth: 1,
+                                            borderColor: '#2e8b57', // dark green border
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginBottom: 10,
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.2,
+                                            shadowRadius: 3,
+                                        }}
+                                    >
+                                        <Image source={salary} style={{ width: 24, height: 24, }} />
+                                    </View>
+                                    <Text
+                                        style={{
+                                            color: 'black',
+                                            fontSize: 14,
+                                            textAlign: 'center',
+                                            fontFamily: 'Inter-Medium',
+                                            width: 100,
+                                        }}
+                                        numberOfLines={2}
+                                        adjustsFontSizeToFit
+                                    >
+                                        Monthly Salary
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+
+
+                            {userType === 'Admin' && (
+                                <TouchableOpacity
+                                    style={{
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start', // 👈 makes icon stick to top
+                                        backgroundColor: 'white',
+                                        paddingVertical: 10,
+                                        width: 100, // optional for uniformity
+                                        minHeight: 120,
+
+
+
+                                    }}
+                                    onPress={() => {
+                                        navigation.navigate('HomeScreen');
+                                    }}>
+                                    <View
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: 50,
+                                            backgroundColor: 'white',
+                                            borderWidth: 1, borderColor: '#4285F4',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginBottom: 10,
+
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.2,
+                                            shadowRadius: 3,
+
+
+
+                                        }}>
+                                        <MaterialIcons name="drive-eta" size={26} color="#4285F4" />
+
+
+
+
+                                    </View>
+                                    <Text
+                                        style={{
+                                            color: 'black',
+                                            fontSize: 14,
+                                            textAlign: 'center',
+                                            fontFamily: 'Inter-Medium',
+                                        }}>
+                                        Training
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+
+
+
+
+
+
+
+                        </View>
+                    )}
+                    {userType === 'Admin' && (
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-around',
+                                backgroundColor: 'white',
+                                width: '100%',
+                                marginTop: 20,
+                                paddingHorizontal: 10,
+                                paddingVertical: 14,
+                                borderRadius: 10,
+
+                                // iOS shadow
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.1,
+                                shadowRadius: 4,
+
+                                // Android shadow
+                                elevation: 5,
+                            }}
+                        >
+                            {/* 📅 Book Schedule */}
+                            <TouchableOpacity
+                                style={{
+                                    alignItems: 'center',
+                                    justifyContent: 'flex-start',
+                                    backgroundColor: 'white',
+                                    paddingVertical: 10,
+                                    width: 100,
+                                    minHeight: 120,
+                                }}
+                                onPress={() => {
+                                    navigation.navigate('ListBookedSchedule');
+                                }}
+                            >
+                                <View
+                                    style={{
+                                        width: 50,
+                                        height: 50,
+                                        borderRadius: 50,
+                                        backgroundColor: '#F5F3FF', // light lavender
+                                        borderWidth: 1,
+                                        borderColor: '#7881fcff', // lavender purple
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        marginBottom: 10,
+                                        shadowColor: '#000',
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.2,
+                                        shadowRadius: 3,
+                                    }}
+                                >
+
+                                    <Image source={Book} style={{ width: 24, height: 24, }} />
+                                </View>
+                                <Text
+                                    style={{
+                                        color: '#1F2937',
+                                        fontSize: 13,
+                                        textAlign: 'center',
+                                        fontFamily: 'Inter-Medium',
+                                        width: 100,
+                                    }}
+                                    numberOfLines={2}
+                                    adjustsFontSizeToFit
+                                >
+                                    Book schedule list
+                                </Text>
+                            </TouchableOpacity>
+
+                            {/* 💰 Application List */}
+                            <TouchableOpacity
+                                style={{
+                                    alignItems: 'center',
+                                    justifyContent: 'flex-start',
+                                    backgroundColor: 'white',
+                                    paddingVertical: 10,
+                                    width: 100,
+                                    minHeight: 120,
+                                }}
+                                onPress={() => {
+                                    navigation.navigate('ListApplicationDateWise');
+                                }}
+                            >
+                                <View
+                                    style={{
+                                        width: 50,
+                                        height: 50,
+                                        borderRadius: 50,
+                                        backgroundColor: '#ECFDF5', // minty background
+                                        borderWidth: 1,
+                                        borderColor: '#40df48ff', // emerald green
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        marginBottom: 10,
+                                        shadowColor: '#000',
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.2,
+                                        shadowRadius: 3,
+                                    }}
+                                >
+                                    <Image source={Application} style={{ width: 24, height: 24, }} />
+                                </View>
+                                <Text
+                                    style={{
+                                        color: '#1F2937',
+                                        fontSize: 13,
+                                        textAlign: 'center',
+                                        fontFamily: 'Inter-Medium',
+                                        width: 100,
+                                    }}
+                                    numberOfLines={2}
+                                    adjustsFontSizeToFit
+                                >
+                                    Application List
+                                </Text>
+                            </TouchableOpacity>
+
+                            {/* ❗ Outstanding List */}
+                            <TouchableOpacity
+                                style={{
+                                    alignItems: 'center',
+                                    justifyContent: 'flex-start',
+                                    backgroundColor: 'white',
+                                    paddingVertical: 10,
+                                    width: 100,
+                                    minHeight: 120,
+                                }}
+                                onPress={() => {
+                                    navigation.navigate('OutStandingList');
+                                }}
+                            >
+                                <View
+                                    style={{
+                                        width: 50,
+                                        height: 50,
+                                        borderRadius: 50,
+                                        backgroundColor: '#FEE2E2', // light red background
+                                        borderWidth: 1,
+                                        borderColor: '#EF4444', // bold red border
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        marginBottom: 10,
+                                        shadowColor: '#000',
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.2,
+                                        shadowRadius: 3,
+                                    }}
+                                >
+                                    <MaterialCommunityIcons name="alert-circle" size={26} color="#EF4444" />
+                                </View>
+                                <Text
+                                    style={{
+                                        color: '#1F2937',
+                                        fontSize: 13,
+                                        textAlign: 'center',
+                                        fontFamily: 'Inter-Medium',
+                                        width: 100,
+                                    }}
+                                    numberOfLines={2}
+                                    adjustsFontSizeToFit
+                                >
+                                    Outstanding List
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
+                    {userType !== 'Admin' && userType !== 'Student' && (
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-around',
+                                backgroundColor: 'white',
+                                width: '100%',
+                                marginTop: 20,
+                                paddingHorizontal: 10,
+                                paddingVertical: 14,
+                                borderRadius: 10,
+
+
+                                // 💡 iOS shadow
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.1,
+                                shadowRadius: 4,
+
+                                // 💡 Android shadow
+                                elevation: 5,
+                            }}>
+
+
+
+                            {userType !== 'Admin' && userType !== 'Student' && (
+                                <TouchableOpacity
+                                    style={{
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start',
+                                        backgroundColor: 'white',
+                                        paddingVertical: 10,
+                                        width: 100,
+                                        minHeight: 120,
+                                    }}
+                                    onPress={() => {
+                                        navigation.navigate('ChatStaffList');
+                                    }}
+                                >
+                                    <View
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: 50,
+                                            backgroundColor: 'white',
+                                            borderWidth: 1,
+                                            borderColor: '#7286d3',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginBottom: 10,
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.2,
+                                            shadowRadius: 3,
+                                        }}
+                                    >
+                                        {/* Change the icon to something more chat-specific */}
+                                        <FontAwesome5 name="comments" size={23} color="#7286d3" />
+                                        {/* Alternate: MaterialIcons name="chat" */}
+                                    </View>
+                                    <Text
+                                        style={{
+                                            color: 'black',
+                                            fontSize: 14,
+                                            textAlign: 'center',
+                                            fontFamily: 'Inter-Medium',
+                                            width: 100,
+                                        }}
+                                        numberOfLines={2}
+                                        adjustsFontSizeToFit
+                                    >
+                                        Staff Chat
+                                    </Text>
+                                </TouchableOpacity>
+
+                            )}
+
+                            {userType === 'Manager' && (
+                                <TouchableOpacity
+                                    style={{
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start', // 👈 makes icon stick to top
+                                        backgroundColor: 'white',
+                                        paddingVertical: 10,
+                                        width: 100, // optional for uniformity
+                                        minHeight: 120,
+
+
+
+                                    }}
+                                    onPress={() => {
+                                        navigation.navigate('HomeScreen');
+                                    }}>
+                                    <View
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: 50,
+                                            backgroundColor: 'white',
+                                            borderWidth: 1, borderColor: '#4285F4',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginBottom: 10,
+
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.2,
+                                            shadowRadius: 3,
+
+
+
+                                        }}>
+                                        <MaterialIcons name="drive-eta" size={26} color="#4285F4" />
+
+
+
+
+                                    </View>
+                                    <Text
+                                        style={{
+                                            color: 'black',
+                                            fontSize: 14,
+                                            textAlign: 'center',
+                                            fontFamily: 'Inter-Medium',
+                                        }}>
+                                        Training
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+
+                            {userType === 'Admin' && (
+                                <TouchableOpacity
+                                    style={{
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start',
+                                        backgroundColor: 'white',
+                                        paddingVertical: 10,
+                                        width: 100,
+                                        minHeight: 120,
+                                    }}
+                                    onPress={() => {
+                                        navigation.navigate('ListReminderAdmin');
+                                    }}
+                                >
+                                    <View
+                                        style={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: 50,
+                                            backgroundColor: 'white',
+                                            borderWidth: 1,
+                                            borderColor: '#7286d3',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginBottom: 10,
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.2,
+                                            shadowRadius: 3,
+                                        }}
+                                    >
+                                        {/* Change the icon to something more chat-specific */}
+                                        <FontAwesome5 name="bell" size={23} color="#7286d3" />
+
+                                        {/* Alternate: MaterialIcons name="chat" */}
+                                    </View>
+                                    <Text
+                                        style={{
+                                            color: 'black',
+                                            fontSize: 14,
+                                            textAlign: 'center',
+                                            fontFamily: 'Inter-Medium',
+                                            width: 100,
+                                        }}
+                                        numberOfLines={2}
+                                        adjustsFontSizeToFit
+                                    >
+                                        Reminder
+                                    </Text>
+                                </TouchableOpacity>
+
+                            )}
+
+
+
+
+
+
+
+                        </View>
+                    )}
+
+
 
 
                     <View
@@ -1541,8 +2716,10 @@ const FirstScreen = () => {
 
                     </View>
 
+
+
                 </View>
-            </View>
+            </ScrollView>
             {/* <View style={{ justifyContent: 'flex-end' }}>
                 <View
                     style={{
@@ -1615,12 +2792,21 @@ const FirstScreen = () => {
                             }}>
                             <TouchableOpacity
                                 style={{
-                                    backgroundColor: '#ddd',
+                                    backgroundColor: 'white',
+                                    borderWidth: 1, borderColor: 'black',
                                     padding: 10,
                                     borderRadius: 5,
                                     width: '45%',
                                     justifyContent: 'center',
                                     alignItems: 'center',
+                                    // 🌟 Shadow for iOS
+                                    shadowColor: '#000',
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 3,
+
+                                    // 🌟 Elevation for Android
+                                    elevation: 4,
                                 }}
                                 onPress={closeconfirmodal}>
                                 <Text
@@ -1634,17 +2820,26 @@ const FirstScreen = () => {
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={{
-                                    backgroundColor: colors.Black,
+                                    backgroundColor: 'white',
+                                    borderWidth: 1, borderColor: 'black',
                                     padding: 10,
                                     borderRadius: 5,
                                     width: '45%',
                                     justifyContent: 'center',
                                     alignItems: 'center',
+                                    // 🌟 Shadow for iOS
+                                    shadowColor: '#000',
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 3,
+
+                                    // 🌟 Elevation for Android
+                                    elevation: 4,
                                 }}
                                 onPress={confirmLogout}>
                                 <Text
                                     style={{
-                                        color: 'white',
+                                        color: 'black',
                                         fontWeight: 'bold',
                                         fontFamily: 'Inter-Regular',
                                     }}>
@@ -1699,12 +2894,21 @@ const FirstScreen = () => {
                             }}>
                             <TouchableOpacity
                                 style={{
-                                    backgroundColor: '#ddd',
+                                    backgroundColor: 'white',
+                                    borderWidth: 1, borderColor: 'black',
                                     padding: 10,
                                     borderRadius: 5,
                                     width: '45%',
                                     justifyContent: 'center',
                                     alignItems: 'center',
+                                    // 🌟 Shadow for iOS
+                                    shadowColor: '#000',
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 3,
+
+                                    // 🌟 Elevation for Android
+                                    elevation: 4,
                                 }}
                                 onPress={closeExitModal}>
                                 <Text
@@ -1718,17 +2922,26 @@ const FirstScreen = () => {
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={{
-                                    backgroundColor: 'black',
+                                    backgroundColor: 'white',
+                                    borderWidth: 1, borderColor: 'black',
                                     padding: 10,
                                     borderRadius: 5,
                                     width: '45%',
                                     justifyContent: 'center',
                                     alignItems: 'center',
+                                    // 🌟 Shadow for iOS
+                                    shadowColor: '#000',
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 3,
+
+                                    // 🌟 Elevation for Android
+                                    elevation: 4,
                                 }}
                                 onPress={confirmExit}>
                                 <Text
                                     style={{
-                                        color: 'white',
+                                        color: 'black',
                                         fontWeight: 'bold',
                                         fontFamily: 'Inter-Regular',
                                     }}>

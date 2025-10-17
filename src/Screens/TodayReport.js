@@ -55,11 +55,9 @@ const TodayReport = () => {
   // Fetch data from API
   const ShowTrainerDateWiseApi = async () => {
     setReportLoading(true);
-    const trainerId = await AsyncStorage.getItem('trainer_id');
-    // const formattedDate = getFormattedCurrentDate();
-    console.log("ye api mai jane wala date hai", formatDateForAPI(fromDate));
-    console.log("ye api mai jane wala date hai", formatDateForAPI(tillDate));
-    console.log("ye api mai jane wala date hai", trainerId);
+    const trainerId = route.params?.trainer_id || await AsyncStorage.getItem('trainer_id');
+    console.log("trainerId kya hai", trainerId);
+
 
     try {
       const response = await fetch(ENDPOINTS.Show_Trainer_Date_Wise, {
@@ -129,7 +127,7 @@ const TodayReport = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{ position: 'absolute', top: 18.5, left: 15 }}
+          style={{ position: 'absolute', top: 3, left: 5, borderColor: 'white', width: 50, height: 50, justifyContent: 'center', alignItems: 'center' }}
           // onPress={() => {
           //   navigation.navigate('HomeScreen', { openDrawerKey: true });
           // }}

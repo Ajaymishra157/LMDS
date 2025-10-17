@@ -20,7 +20,6 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import {
     useFocusEffect,
@@ -33,9 +32,11 @@ import { ENDPOINTS } from '../CommonFiles/Constant';
 import colors from '../CommonFiles/Colors';
 
 
-const StaffAttendence = () => {
+const StudentAttendanceAdmin = () => {
+
     const StaffAttendance = require('../assets/images/StaffAttendance.png');
     const route = useRoute();
+    // const { application_id } = route.params;
     const [userType, setUserType] = useState('');
     const navigation = useNavigation();
     const [refreshing, setRefreshing] = useState(false);
@@ -49,10 +50,6 @@ const StaffAttendence = () => {
     const [TimingList, setTimingList] = useState([]);
     const [TimingLoading, setTimingLoading] = useState(false);
 
-
-
-
-
     const [ModalVisible, setModalVisible] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState('Today'); // Selected filter state
     const [isFilterActive, setIsFilterActive] = useState(false);
@@ -61,68 +58,6 @@ const StaffAttendence = () => {
     const [isValidTillDate, setIsValidTillDate] = useState(true);
     const [showFromDatePicker, setShowFromDatePicker] = useState(false);
     const [showTillDatePicker, setShowTillDatePicker] = useState(false);
-    const [isDropdownVisible, setDropdownVisible] = useState(false);
-
-
-    const [isSlotDropdownVisible, setSlotDropdownVisible] = useState(false);
-    const [selectedOption, setSelectedOption] = useState(null);
-    const [SelectedStaffName, setSelectedStaffName] = useState(null);
-
-    const [staffOptions, setStaffOptions] = useState([]);
-    console.log("STAFFOPTIONxxx", staffOptions);
-    const [selectedStaffId, setSelectedStaffId] = useState(null);
-
-    useEffect(() => {
-        fetchStaffList();
-    }, []);
-
-    const fetchStaffList = async () => {
-        const trainerId = await AsyncStorage.getItem('trainer_id');
-        console.log("API called successfully");
-        try {
-            const response = await fetch(ENDPOINTS.List_Staff, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    staff_id: trainerId,
-                    type: "Staff"
-                }),
-            });
-
-            const data = await response.json();
-
-            if (data.code === 200) {
-                const staffList = data.payload.map(staff => ({
-                    name: staff.staff_name,
-                    id: staff.staff_id,
-                }));
-                console.log("✅ Staff list:", staffList);
-                setStaffOptions(staffList); // Save array of { name, id }
-            } else {
-                console.log("⚠️ Staff list fetch failed");
-            }
-        } catch (error) {
-            console.error('❌ Error fetching staff:', error.message);
-        }
-    };
-
-
-    const options = staffOptions;
-
-
-
-
-    const handleSelect = (item) => {
-        setSelectedOption(item);
-        setSelectedStaffName(item.name);
-        setSelectedStaffId(item.id);
-        setSlotDropdownVisible(false);
-
-    };
-
-
 
     const filters = ['Today', 'Yesterday', 'Month', 'custom'];
     const getFormattedCurrentDate = () => {
@@ -215,13 +150,6 @@ const StaffAttendence = () => {
             ManagerAttendenceListApi(formatDateForAPI(fromDate), formatDateForAPI(tillDate));
         }
     }, [fromDate, tillDate]);
-
-    useEffect(() => {
-        if (selectedStaffId) {
-            ManagerAttendenceListApi(formatDateForAPI(fromDate), formatDateForAPI(tillDate));
-        }
-    }, [selectedStaffId]);
-
 
 
 
@@ -329,17 +257,16 @@ const StaffAttendence = () => {
         setManagerLoading(true);
 
         const trainerId = await AsyncStorage.getItem('trainer_id');
-        const staffIdToSend = selectedStaffId || trainerId;
-        console.log("manager fromdata", fromdate, tilldate, staffIdToSend)
+        console.log("manager fromdata", fromdate, tilldate)
 
         try {
-            const response = await fetch(ENDPOINTS.Manager_Staff_Attendence_List, {
+            const response = await fetch(ENDPOINTS.List_Student_Attendance_Datewise, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    staff_id: staffIdToSend,
+                    // application_id: application_id,
                     from_date: fromdate,
                     till_date: tilldate,
                 }),
@@ -420,7 +347,7 @@ const StaffAttendence = () => {
 
                 width: '100%'
             }}>
-            {/* Staff Name */}
+            {/* StudentName */}
             <View
                 style={{
 
@@ -430,7 +357,7 @@ const StaffAttendence = () => {
                     borderRightWidth: 1,
 
                     borderColor: 'black',
-                    width: '30%',
+                    width: '25%',
                 }}>
                 <Text
                     style={{
@@ -440,7 +367,7 @@ const StaffAttendence = () => {
                         textAlign: 'center',
                         paddingVertical: 8
                     }}>
-                    {item.staff_name || '----'}
+                    {item.application_student_name || '----'}
                 </Text>
             </View>
 
@@ -452,7 +379,7 @@ const StaffAttendence = () => {
                     justifyContent: 'center',
                     borderRightWidth: 1,
                     borderColor: 'black',
-                    width: '20%',
+                    width: '25%',
                 }}>
                 <Text
                     style={{
@@ -464,20 +391,10 @@ const StaffAttendence = () => {
                 </Text>
             </View>
 
-            {/* Punch Out Time */}
-            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
-                <Text
-                    style={{
-                        fontFamily: 'Inter-Regular',
-                        color: 'black',
-                        fontSize: 12, // Consistent font size
-                    }}>
-                    {item.punch_out_time || '----'}
-                </Text>
-            </View>
+
 
             {/* Status */}
-            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
+            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '25%', borderColor: 'black', }}>
                 <TouchableOpacity disabled={true}>
                     <Text
                         style={{
@@ -494,9 +411,27 @@ const StaffAttendence = () => {
                     </Text>
                 </TouchableOpacity>
             </View>
+            <View
+                style={{
+
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRightWidth: 1,
+                    borderColor: 'black',
+                    width: '25%',
+                }}>
+                <Text
+                    style={{
+                        fontFamily: 'Inter-Regular',
+                        color: 'black',
+                        fontSize: 12, // Consistent font size
+                    }}>
+                    {item.application_number || '----'}
+                </Text>
+            </View>
 
             {/* Eye Icon */}
-            <View
+            {/* <View
                 style={{
                     justifyContent: 'center',
                     width: '10%', // Adjust width if necessary
@@ -516,7 +451,7 @@ const StaffAttendence = () => {
                     style={{ flex: 1, justifyContent: 'center' }}>
                     <Icon name="eye" size={18} color="black" />
                 </TouchableOpacity>
-            </View>
+            </View> */}
         </View>
     );
 
@@ -539,12 +474,6 @@ const StaffAttendence = () => {
         const year = date.getFullYear(); // Get the year
 
         return `${day}-${month}-${year}`; // Return the formatted date as "DD-MM-YYYY"
-    };
-
-
-
-    const toggleDropdown = () => {
-        setDropdownVisible(!isDropdownVisible);
     };
 
     return (
@@ -578,7 +507,7 @@ const StaffAttendence = () => {
                         fontWeight: 'bold',
                         fontFamily: 'Inter-Bold',
                     }}>
-                    Staff Attendance
+                    Student Attendance
                 </Text>
             </View>
 
@@ -663,305 +592,81 @@ const StaffAttendence = () => {
                 </View>
 
 
-                {/* <View style={{ position: 'relative', width: '40%', justifyContent: 'center', alignItems: 'flex-start' }}>
-                    <Text
-                        style={{
-                            fontSize: 12,
-                            fontWeight: 'bold',
-                            color: '#333',
-                            fontFamily: 'Inter-Regular',
-                            marginLeft: 8
-                        }}>
-                        Staff
-                    </Text>
-                    <TouchableOpacity
-                        style={{
-                            backgroundColor: 'white',
-                            paddingVertical: 10,
-                            borderRadius: 8,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            borderColor: 'black',
-                            borderWidth: 1,
-                            width: '90%',
-                            paddingHorizontal: 10,
-                        }}
-                        onPress={toggleDropdown}
-                    >
-
-
-                        <Text
-                            style={{
-                                paddingLeft: 8,
-                                fontSize: 16,
-                                fontFamily: 'Inter-Regular',
-                                color: selectedType ? 'black' : '#777',
-                            }}
-                        >
-                            {selectedType ? selectedType : 'Select Slot'}
-                        </Text>
-
-                        <Ionicons
-                            name={isDropdownVisible ? 'chevron-up' : 'chevron-down'}
-                            size={20}
-                            color="black"
-                        />
-                    </TouchableOpacity>
-
-             
-                    <Modal
-                        animationType="slide"
-                        transparent={true}
-                        visible={isDropdownVisible}
-                   
-                    >
-                        <TouchableOpacity
-                            style={{
-                                flex: 1,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                backgroundColor: 'rgba(0, 0, 0, 0.5)', 
-                            }}
-                            onPress={() => setDropdownVisible(false)}
-                            activeOpacity={1}
-                        >
-                            <View
-                                style={{
-                                    width: '35%',
-                                    position: 'absolute',
-                                    top: 162,
-                                    right: 17,
-                                    backgroundColor: 'white',
-                                    borderRadius: 8,
-
-
-
-                                    maxHeight: 400,
-                                }}
-                                onStartShouldSetResponder={() => true}
-                                onTouchEnd={e => e.stopPropagation()}
-                            >
-                                <FlatList
-                                    data={data}
-                                    style={{ maxHeight: 330 }}
-                                    keyboardShouldPersistTaps="handled"
-                                    renderItem={({ item }) => (
-                                        <TouchableOpacity
-                                            style={{
-                                                paddingHorizontal: 20,
-                                                paddingVertical: 10,
-                                                marginRight: 10,
-                                                backgroundColor:
-                                                    item.training_time === selectedTime ? '#4CAF50' : '#fff', // Green when selected
-
-                                                borderBottomWidth: 1,
-                                                borderColor: '#ccc',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                width: '100%',
-                                            }}
-                                            onPress={() => handleSelect2(item)}
-                                            activeOpacity={1}
-                                        >
-                                            <Text
-                                                style={{
-                                                    fontSize: 16,
-                                                    fontFamily: 'Inter-Regular',
-                                                    color: item.training_time === selectedTime ? '#fff' : '#000', // White text when selected
-                                                }}
-                                            >
-                                                {item.time_am_pm}
-                                            </Text>
-
-                                        </TouchableOpacity>
-
-                                    )}
-                                    keyExtractor={(item) => item.value}
-                                />
-                            </View>
-                        </TouchableOpacity>
-                    </Modal>
-                </View> */}
-
-
             </View>
-            {userType === 'Admin' && (
-                <View style={{ width: '100%', marginTop: 5, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text
-                        style={{
-                            fontSize: 12,
-                            fontWeight: 'bold',
-                            color: '#333',
-                            fontFamily: 'Inter-Regular',
-                            marginLeft: 8,
-                        }}
-                    >
-                        STAFF
-                    </Text>
-
-                    <TouchableOpacity
-                        onPress={() => setSlotDropdownVisible(true)}
-                        style={{
-                            backgroundColor: 'white',
-                            paddingVertical: 10,
-                            borderRadius: 8,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            borderColor: 'black',
-                            borderWidth: 1,
-                            width: '90%',
-                            paddingHorizontal: 10,
-                        }}
-                    >
-                        <Text
-                            style={{
-                                fontSize: 16,
-                                fontFamily: 'Inter-Regular',
-                                color: selectedOption ? 'black' : '#777',
-                            }}
-                        >
-                            {selectedOption?.name || 'Select Staff'}
-                        </Text>
-                        <Ionicons
-                            name={isSlotDropdownVisible ? 'chevron-up' : 'chevron-down'}
-                            size={20}
-                            color="black"
-                        />
-                    </TouchableOpacity>
-
-                    {/* Modal for dropdown */}
-                    <Modal
-                        transparent
-                        visible={isSlotDropdownVisible}
-                        animationType="fade"
-                    >
-                        <TouchableOpacity
-                            style={{
-                                flex: 1,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                            }}
-                            onPress={() => setSlotDropdownVisible(false)}
-                            activeOpacity={1}
-                        >
-                            <View
-                                style={{
-                                    width: '35%',
-                                    backgroundColor: 'white',
-                                    borderRadius: 8,
-                                    paddingVertical: 10,
-                                }}
-                                onStartShouldSetResponder={() => true}
-                                onTouchEnd={(e) => e.stopPropagation()}
-                            >
-                                <FlatList
-                                    data={staffOptions}
-                                    keyExtractor={(item) => item.id}
-                                    renderItem={({ item }) => (
-                                        <TouchableOpacity
-                                            onPress={() => handleSelect(item)} // ✅ Pass full object
-                                            style={{
-                                                paddingVertical: 12,
-                                                paddingHorizontal: 20,
-                                                backgroundColor: item.name === SelectedStaffName ? '#4CAF50' : 'white',
-                                            }}
-                                        >
-                                            <Text style={{ color: item.name === SelectedStaffName ? 'white' : 'black', fontSize: 16 }}>
-                                                {item.name}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    )}
-                                />
-
-                            </View>
-                        </TouchableOpacity>
-                    </Modal>
-                </View>
-            )}
             <View
                 style={{
                     flex: 1,
                     paddingTop: 20,
 
                 }}>
-
-                <View
-                    style={{
-                        marginTop: 10,
-                    }}>
-                    {/* Today Attendance Header */}
-
-                    {/* Attendance Table */}
+                {ManagerList.length !== 0 && (
                     <View
                         style={{
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            backgroundColor: '#c4f5c5',
-                            width: '100%',
-                            borderTopWidth: 1, borderColor: 'black',
-                            borderLeftWidth: 1,
-                            borderBottomWidth: 1
-
+                            marginTop: 10,
                         }}>
-                        {/* Column Titles */}
-                        <View style={{ alignItems: 'center', borderRightWidth: 1, justifyContent: 'center', width: '30%', borderColor: 'black', }}>
-                            <Text
-                                style={{
-                                    fontWeight: 'bold',
-                                    fontFamily: 'Inter-Regular',
-                                    color: 'black',
-                                    paddingVertical: 7,
-                                }}>
-                                Staff Name
-                            </Text>
-                        </View>
-                        <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
-                            <Text
-                                style={{
-                                    fontWeight: 'bold',
-                                    fontFamily: 'Inter-Regular',
-                                    color: 'black',
+                        {/* Today Attendance Header */}
 
-                                }}>
-                                Punch In
-                            </Text>
-                        </View>
-                        <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
-                            <Text
-                                style={{
-                                    fontWeight: 'bold',
-                                    fontFamily: 'Inter-Regular',
-                                    color: 'black',
+                        {/* Attendance Table */}
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                backgroundColor: '#c4f5c5',
+                                width: '100%',
+                                borderTopWidth: 1, borderColor: 'black',
+                                borderLeftWidth: 1,
+                                borderBottomWidth: 1
 
-                                }}>
-                                Punch Out
-                            </Text>
-                        </View>
-                        <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '20%', borderColor: 'black', }}>
-                            <Text
-                                style={{
-                                    fontWeight: 'bold',
-                                    fontFamily: 'Inter-Regular',
-                                    color: 'black',
-                                }}>
-                                Status
-                            </Text>
-                        </View>
-                        <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '10%', borderColor: 'black', }}>
-                            <Text
-                                style={{
-                                    fontWeight: 'bold',
-                                    fontFamily: 'Inter-Regular',
-                                    color: 'black',
-                                }}>
+                            }}>
+                            {/* Column Titles */}
+                            <View style={{ alignItems: 'center', borderRightWidth: 1, justifyContent: 'center', width: '25%', borderColor: 'black', }}>
+                                <Text
+                                    style={{
+                                        fontWeight: 'bold',
+                                        fontFamily: 'Inter-Regular',
+                                        color: 'black',
+                                        paddingVertical: 7,
+                                    }}>
+                                    Name
+                                </Text>
+                            </View>
+                            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '25%', borderColor: 'black', }}>
+                                <Text
+                                    style={{
+                                        fontWeight: 'bold',
+                                        fontFamily: 'Inter-Regular',
+                                        color: 'black',
 
-                            </Text>
+                                    }}>
+                                    Punch In
+                                </Text>
+                            </View>
+
+                            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '25%', borderColor: 'black', }}>
+                                <Text
+                                    style={{
+                                        fontWeight: 'bold',
+                                        fontFamily: 'Inter-Regular',
+                                        color: 'black',
+                                    }}>
+                                    Status
+                                </Text>
+                            </View>
+
+                            <View style={{ alignItems: 'center', justifyContent: 'center', borderRightWidth: 1, width: '25%', borderColor: 'black', }}>
+                                <Text
+                                    style={{
+                                        fontWeight: 'bold',
+                                        fontFamily: 'Inter-Regular',
+                                        color: 'black',
+                                    }}>
+                                    App No
+                                </Text>
+                            </View>
+
                         </View>
                     </View>
-                </View>
+                )}
                 {/* Dynamic Data Section (Static Example Data) */}
                 <View style={{ flex: 1 }}>
                     {ManagerLoading ? (
@@ -979,7 +684,7 @@ const StaffAttendence = () => {
                         <FlatList
                             data={ManagerList}
                             renderItem={renderItem}
-                            keyExtractor={item => item.id.toString()}
+                            keyExtractor={item => item.attendance_id.toString()}
                             ListEmptyComponent={
                                 <View
                                     style={{
@@ -1135,7 +840,7 @@ const StaffAttendence = () => {
                         fontSize: 14,
                         color: 'grey',
                       }}>
-                      Staff Name
+                      StudentName
                     </Text>
                     <Text style={{ color: 'black', fontFamily: 'Inter-Medium' }}>
                       :
@@ -1482,7 +1187,7 @@ const StaffAttendence = () => {
                                                 fontSize: 14,
                                                 color: 'grey',
                                             }}>
-                                            Staff Name
+                                            StudentName
                                         </Text>
                                         <Text style={{ color: 'black', fontFamily: 'Inter-Medium' }}>
                                             :
@@ -1939,4 +1644,4 @@ const StaffAttendence = () => {
     );
 };
 
-export default StaffAttendence;
+export default StudentAttendanceAdmin;

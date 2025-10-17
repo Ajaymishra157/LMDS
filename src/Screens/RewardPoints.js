@@ -21,6 +21,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 const RewardPoints = () => {
+
   const Reward = require('../assets/images/reward.png');
   const [RewardPoints, setRewardPoints] = useState([]);
   const [ReportLoading, setRewardLoading] = useState(false);
@@ -49,7 +50,8 @@ const RewardPoints = () => {
 
   const ShowRewardPointsApi = async () => {
     setRewardLoading(true);
-    const trainerId = await AsyncStorage.getItem('trainer_id');
+    const trainerId = route.params?.trainer_id || await AsyncStorage.getItem('trainer_id');
+    console.log("trainerId kya hai", trainerId);
     // const formattedDate = getFormattedCurrentDate();
 
     try {
@@ -131,7 +133,7 @@ const RewardPoints = () => {
           flexDirection: 'row',
         }}>
         <TouchableOpacity
-          style={{ position: 'absolute', top: 18.5, left: 15 }}
+          style={{ position: 'absolute', top: 3, left: 5, borderColor: 'white', width: 50, height: 50, justifyContent: 'center', alignItems: 'center' }}
           // onPress={() => {
           //   navigation.navigate('HomeScreen', { rewardPointsKey: true });
           // }}

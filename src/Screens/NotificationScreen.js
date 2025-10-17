@@ -1,12 +1,19 @@
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Image } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import colors from '../CommonFiles/Colors';
+import { ENDPOINTS } from '../CommonFiles/Constant';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const NotificationScreen = () => {
     const Notification = require('../assets/images/notification.png');
     const route = useRoute();
+    const [LeaveData, setLeaveData] = useState([]);
+    console.log("ye Leave ka data hai", LeaveData);
+    const [ListReminder, setListReminder] = useState([]);
+    const [reminders, setReminders] = useState([]);
     const navigation = useNavigation();
     const {
         userType,
@@ -97,6 +104,75 @@ const NotificationScreen = () => {
 
 
 
+    useEffect(() => {
+        LeaveStudentMessageApi();
+    }, []);
+
+    const LeaveStudentMessageApi = async () => {
+        console.log("Leave Student Called Successfully");
+        const trainerId = await AsyncStorage.getItem('trainer_id');
+
+        try {
+            const response = await fetch(ENDPOINTS.Leave_Student_Message, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    trainer_id: trainerId
+                }),
+            });
+
+            const data = await response.json();
+
+            // Check response status
+            if (data.code === 200) {
+                setLeaveData(data.payload.students); // Set the students data
+            } else {
+                setLeaveData([]); // Clear leaveData if no students
+            }
+        } catch (error) {
+            console.error('Error:', error.message);
+            setLeaveData([]); // Clear data on error
+        } finally {
+            setLoading(false); // Stop loading
+        }
+    };
+
+
+
+
+    const fetchReminders = async () => {
+        console.log("This Api Called Successfully")
+        try {
+            const response = await fetch(ENDPOINTS.List_Reminder_Notification, {
+                method: 'POST', // Change to POST
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ type: 'Staff' }), // Body with type
+            });
+
+            const data = await response.json();
+
+            if (data.code === 200) {
+
+                setReminders(data.payload);
+                console.log("ye hai reminders", reminders)
+            } else {
+                setReminders([]);
+            }
+        } catch (error) {
+            console.error('Error fetching reminders:', error.message);
+        }
+    };
+
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchReminders();
+        }, [])
+    );
+
 
 
     return (
@@ -111,7 +187,8 @@ const NotificationScreen = () => {
                     flexDirection: 'row',
                 }}>
                 <TouchableOpacity
-                    style={{ position: 'absolute', top: 18.5, left: 15 }}
+                    style={{ position: 'absolute', top: 3, left: 5, borderColor: 'white', width: 50, height: 50, justifyContent: 'center', alignItems: 'center' }}
+
                     onPress={() => {
                         navigation.goBack();
                     }}>
@@ -242,18 +319,49 @@ const NotificationScreen = () => {
 
 
 
-                        {punch === 1 && (
+                        {userType !== 'Admin' && punch === 1 && (
                             <TouchableOpacity
-                                style={styles.card}
+                                style={{
+                                    backgroundColor: '#fff',
+                                    padding: 16,
+                                    borderBottomWidth: 1,
+                                    borderColor: 'grey',
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    elevation: 5,
+                                    shadowColor: '#000',
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.1,
+                                    shadowRadius: 5,
+                                }}
                                 onPress={() => navigation.navigate('AttendenceScreen')}
                             >
-                                <Text style={styles.text}>⏰ Missed Punch Detected</Text>
+                                <View
+                                    style={{
+                                        backgroundColor: '#ffe5e5',
+                                        padding: 12,
+                                        borderRadius: 50,
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        marginRight: 15,
+                                    }}
+                                >
+                                    <Text style={{ fontSize: 20 }}>😔</Text>
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={{ fontSize: 16, fontWeight: '600', color: 'black', fontFamily: 'Inter-Bold' }}>
+                                        Oh no! You missed your punch.
+                                    </Text>
+                                    <Text style={{ fontSize: 13, color: '#888', marginTop: 4, fontFamily: 'Inter-Bold' }}>
+                                        Tap to mark your attendance now.
+                                    </Text>
+                                </View>
                             </TouchableOpacity>
                         )}
                     </>
                 ) : (
                     <>
-                        {punch === 1 ? (
+                        {userType !== 'Admin' && punch === 1 ? (
                             <TouchableOpacity
                                 style={{
                                     backgroundColor: '#fff',
@@ -296,35 +404,165 @@ const NotificationScreen = () => {
                             </TouchableOpacity>
 
                         ) : (
-                            <View
-                                style={{
-                                    height: 600,
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-
-                                }}>
-                                <Image source={Notification}
-
+                            userType === 'Admin' || userType === 'Student' || LeaveData.length === 0 && reminders.length === 0 ? (
+                                <View
                                     style={{
-                                        width: 70,
-                                        height: 70,
-
-
+                                        height: 600,
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
                                     }}
-
-                                />
-                                <Text style={{
-                                    fontSize: 16,
-                                    color: '#888',
-                                    fontFamily: 'Inter-Regular',
-                                    textAlign: 'center',
-                                    marginTop: 40,
-                                }}>No Notifications Yet</Text>
-                            </View>
-
+                                >
+                                    <Image source={Notification} style={{ width: 70, height: 70 }} />
+                                    <Text
+                                        style={{
+                                            fontSize: 16,
+                                            color: 'red',
+                                            fontFamily: 'Inter-Regular',
+                                            textAlign: 'center',
+                                            marginTop: 40,
+                                        }}
+                                    >
+                                        There are no notifications
+                                    </Text>
+                                </View>
+                            ) : null
                         )}
                     </>
                 )}
+
+                {LeaveData.length > 0 &&
+                    LeaveData.map((item, index) => (
+                        <TouchableOpacity
+                            key={index}
+                            style={{
+                                backgroundColor: '#fff',
+                                padding: 16,
+                                borderBottomWidth: 1,
+                                borderColor: 'grey',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                elevation: 5,
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.1,
+                                shadowRadius: 5,
+                                marginBottom: 5,
+                            }}
+                            onPress={() => {
+                                // Navigate or open modal for reason/details if needed
+                                // Example:
+                                // navigation.navigate('StudentLeaveDetail', { studentId: item.student_id });
+                            }}
+                        >
+                            {/* 📄 Icon */}
+                            <View
+                                style={{
+                                    backgroundColor: '#fbe9e7',
+                                    padding: 14,
+                                    borderRadius: 50,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    marginRight: 16,
+                                }}
+                            >
+                                <Text style={{ fontSize: 22 }}>📄</Text>
+                            </View>
+
+                            {/* Leave Info */}
+                            <View style={{ flex: 1 }}>
+                                <Text
+                                    style={{
+                                        fontSize: 13,
+                                        fontWeight: '700',
+                                        color: '#d84315',
+                                        fontFamily: 'Inter-Bold',
+                                    }}
+                                >
+                                    ({item.application_number}) {item.application_student_name} - Requested leave
+                                </Text>
+                                <Text
+                                    style={{
+                                        fontSize: 11,
+                                        color: '#777',
+                                        marginTop: 4,
+                                        fontFamily: 'Inter-Regular',
+                                    }}
+                                >
+                                    Reason: {item.application_leave_note || 'Not provided'}
+                                </Text>
+                                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 6 }}>
+                                    <Text style={{ fontSize: 11, color: '#555' }}>
+                                        {getTimeAgo(item.entry_date)}
+                                    </Text>
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    ))}
+                {userType !== 'Admin' && userType !== 'Student' && reminders.length > 0 && reminders.map((item, index) => (
+                    <View
+                        key={index}
+                        style={{
+                            backgroundColor: '#fff',
+                            padding: 16,
+                            borderBottomWidth: 1,
+                            borderColor: 'grey',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            elevation: 5,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.1,
+                            shadowRadius: 5,
+                            marginBottom: 5,
+                        }}
+                    >
+                        {/* Reminder Icon */}
+                        <View
+                            style={{
+                                backgroundColor: '#f3e5f5',
+                                padding: 14,
+                                borderRadius: 50,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                marginRight: 16,
+                            }}
+                        >
+                            <Ionicons name="calendar-outline" size={22} color="#6a1b9a" />
+
+                        </View>
+
+                        {/* Reminder Details */}
+                        <View style={{ flex: 1 }}>
+                            <Text
+                                style={{
+                                    fontSize: 13,
+                                    fontWeight: '700',
+                                    color: '#6a1b9a',
+                                    fontFamily: 'Inter-Bold',
+                                }}
+                            >
+                                {item.note}
+                            </Text>
+                            <Text
+                                style={{
+                                    fontSize: 11,
+                                    color: '#777',
+                                    marginTop: 4,
+                                    fontFamily: 'Inter-Regular',
+                                }}
+                            >
+                                Scheduled at: {item.c_date} {item.c_time}
+                            </Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 6 }}>
+                                <Text style={{ fontSize: 11, color: '#555' }}>
+                                    {getTimeAgo(item.entry_date)}
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+                ))}
+
+
             </ScrollView>
 
         </>
